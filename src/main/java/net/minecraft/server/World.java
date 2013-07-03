@@ -1472,10 +1472,19 @@ public abstract class World implements IBlockAccess {
                     this.playerJoinedWorld(entity);
                     SpigotTimings.tickEntityTimer.stopTiming(); // Spigot
                 } catch (Throwable throwable1) {
+                    // PaperSpigot start
+                    SpigotTimings.tickEntityTimer.stopTiming(); // Spigot
+                    System.err.println("Entity threw exception at " + entity.world.getWorld().getName()+":"+entity.locX +"," + entity.locY+","+entity.locZ);
+                    throwable1.printStackTrace();
+                    entity.dead = true;
+                    continue;
+                    /*
                     crashreport = CrashReport.a(throwable1, "Ticking entity");
                     crashreportsystemdetails = crashreport.a("Entity being ticked");
                     entity.a(crashreportsystemdetails);
                     throw new ReportedException(crashreport);
+                    */
+                    // PaperSpigot end
                 }
             }
 
@@ -1528,11 +1537,19 @@ public abstract class World implements IBlockAccess {
                     tileentity.h();
                     tileentity.tickTimer.stopTiming(); // Spigot
                 } catch (Throwable throwable2) {
+                    // PaperSpigot start
                     tileentity.tickTimer.stopTiming(); // Spigot
+                    System.err.println("TileEntity threw exception at " + tileentity.world.getWorld().getName()+":"+tileentity.x +"," + tileentity.y+","+tileentity.z);
+                    throwable2.printStackTrace();
+                    iterator.remove();
+                    continue;
+                    /*
                     crashreport = CrashReport.a(throwable2, "Ticking block entity");
                     crashreportsystemdetails = crashreport.a("Block entity being ticked");
                     tileentity.a(crashreportsystemdetails);
                     throw new ReportedException(crashreport);
+                    */
+                    // PaperSpigot end
                 }
             }
 
