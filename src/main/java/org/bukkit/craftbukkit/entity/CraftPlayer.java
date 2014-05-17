@@ -492,6 +492,26 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
         // If this player is riding another entity, we must dismount before teleporting.
         entity.mount(null);
 
+        // PaperSpigot start
+        Entity vehicle = entity.vehicle;
+        Entity passenger = entity.passenger;
+        if (vehicle != null) {
+            vehicle.passenger = null;
+            vehicle.teleportTo(location, false);
+            vehicle = vehicle.getBukkitEntity().getHandle();
+            entity.vehicle = vehicle;
+            vehicle.passenger = entity;
+        }
+
+        if (passenger != null) {
+            passenger.vehicle = null;
+            passenger.teleportTo(location, false);
+            passenger = passenger.getBukkitEntity().getHandle();
+            entity.passenger = passenger;
+            entity.vehicle = entity;
+        }
+        // PaperSpigot end
+
         // Update the From Location
         from = event.getFrom();
         // Grab the new To Location dependent on whether the event was cancelled.
@@ -511,6 +531,16 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
         } else {
             server.getHandle().moveToWorld(entity, toWorld.dimension, true, to, true);
         }
+
+        // PaperSpigot start
+        if (vehicle != null) {
+            vehicle.retrack();
+            //entity.retrack();
+        }
+        if (passenger != null) {
+            passenger.retrack();
+        }
+        // PaperSpigot end
         return true;
     }
 
