@@ -527,6 +527,7 @@ public class WorldServer extends World {
         if (i != this.M.size()) {
             throw new IllegalStateException("TickNextTick list out of synch");
         } else {
+            /* PaperSpigot start - Fix redstone lag issues
             if (i > 1000) {
                 // CraftBukkit start - If the server has too much to process over time, try to alleviate that
                 if (i > 20 * 1000) {
@@ -535,7 +536,12 @@ public class WorldServer extends World {
                     i = 1000;
                 }
                 // CraftBukkit end
+            } */
+
+            if (i > paperSpigotConfig.tickNextTickListCap) {
+                i = paperSpigotConfig.tickNextTickListCap;
             }
+            // PaperSpigot end
 
             this.methodProfiler.a("cleaning");
 
@@ -551,6 +557,24 @@ public class WorldServer extends World {
                 this.M.remove(nextticklistentry);
                 this.V.add(nextticklistentry);
             }
+
+            // PaperSpigot start - Allow redstone ticks to bypass the tickNextTickListCap
+            if (paperSpigotConfig.tickNextTickListCapIgnoresRedstone) {
+                Iterator<NextTickListEntry> iterator = this.N.iterator();
+                while (iterator.hasNext()) {
+                    NextTickListEntry next = iterator.next();
+                    if (!flag && next.d > this.worldData.getTime()) {
+                        break;
+                    }
+
+                    if (next.a().isPowerSource() || next.a() instanceof IContainer) {
+                        iterator.remove();
+                        this.M.remove(next);
+                        this.V.add(next);
+                    }
+                }
+            }
+            // PaperSpigot end
 
             this.methodProfiler.b();
             this.methodProfiler.a("ticking");

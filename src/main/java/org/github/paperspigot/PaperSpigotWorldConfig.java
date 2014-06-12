@@ -196,4 +196,14 @@ public class PaperSpigotWorldConfig
         boatsDropBoats = getBoolean( "game-mechanics.boats-drop-boats", false );
         lessPickyTorches = getBoolean( "game-mechanics.less-picky-torch-placement", false );
     }
+
+    public int tickNextTickListCap;
+    public boolean tickNextTickListCapIgnoresRedstone;
+    private void tickNextTickListCap()
+    {
+        tickNextTickListCap = getInt( "tick-next-tick-list-cap", 10000 ); // Higher values will be friendlier to vanilla style mechanics (to a point) but may hurt performance
+        tickNextTickListCapIgnoresRedstone = getBoolean("tick-next-tick-list-cap-ignores-redstone", false); // Redstone TickNextTicks will always bypass the preceding cap.
+        log( "WorldServer TickNextTickList cap set at " + tickNextTickListCap );
+        log( "WorldServer TickNextTickList cap always processes redstone: " + tickNextTickListCapIgnoresRedstone );
+    }
 }
