@@ -50,6 +50,12 @@ public class VillageSiege {
                     return;
                 }
             }
+
+            // PaperSpigot start - Siege manager initial state is -1
+            if (this.c == -1) {
+                return;
+            }
+            // PaperSpigot end
         }
 
         if (!this.b) {
@@ -89,9 +95,12 @@ public class VillageSiege {
 
                 while (true) {
                     if (i < 10) {
-                        this.g = chunkcoordinates.x + (int) ((double) (MathHelper.cos(this.world.random.nextFloat() * 3.1415927F * 2.0F) * f) * 0.9D);
+                        // PaperSpigot start - Zombies should spawn near the perimeter of the village not in the center of it
+                        float angle = this.world.random.nextFloat() * (float) Math.PI * 2.0F;
+                        this.g = chunkcoordinates.x + (int) ((double) (MathHelper.cos(angle) * f) * 0.9D);
                         this.h = chunkcoordinates.y;
-                        this.i = chunkcoordinates.z + (int) ((double) (MathHelper.sin(this.world.random.nextFloat() * 3.1415927F * 2.0F) * f) * 0.9D);
+                        this.i = chunkcoordinates.z + (int) ((double) (MathHelper.sin(angle) * f) * 0.9D);
+                        // PaperSpigot end
                         flag = false;
                         Iterator iterator1 = this.world.villages.getVillages().iterator();
 
@@ -165,6 +174,7 @@ public class VillageSiege {
                 // CraftBukkit - add Return
                 return Vec3D.a((double) i1, (double) j1, (double) k1);
             }
+
         }
 
         return null;
