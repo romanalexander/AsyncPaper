@@ -222,6 +222,7 @@ public abstract class World implements IBlockAccess {
         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
         this.ticksPerMonsterSpawns = this.getServer().getTicksPerMonsterSpawns(); // CraftBukkit
         // CraftBukkit end
+        this.keepSpawnInMemory = this.paperSpigotConfig.keepSpawnInMemory; // PaperSpigot
         // Spigot start
         this.chunkTickRadius = (byte) ( ( this.getServer().getViewDistance() < 7 ) ? this.getServer().getViewDistance() : 7 );
         this.chunkTickList = new net.minecraft.util.gnu.trove.map.hash.TLongShortHashMap( spigotConfig.chunksPerTick * 5, 0.7f, Long.MIN_VALUE, Short.MIN_VALUE );
