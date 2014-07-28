@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -359,5 +360,16 @@ public class SpigotConfig
         ( (AttributeRanged) GenericAttributes.d ).b = movementSpeed;
         attackDamage = getDouble( "settings.attribute.attackDamage.max", attackDamage );
         ( (AttributeRanged) GenericAttributes.e ).b = attackDamage;
+    }
+
+    private static void globalAPICache()
+    {
+        if ( getBoolean( "settings.global-api-cache", false ) && !CachedStreamHandlerFactory.isSet )
+        {
+            Bukkit.getLogger().info( "Global API cache enabled - All requests to Mojang's API will be " +
+                    "handled by Spigot" );
+            CachedStreamHandlerFactory.isSet = true;
+            URL.setURLStreamHandlerFactory(new CachedStreamHandlerFactory());
+        }
     }
 }
