@@ -164,4 +164,11 @@ public class PaperSpigotWorldConfig
             log( "TNT/Falling Block Height Limit set to Y: " + fallingBlockHeightNerf);
         }
     }
+
+    public int waterOverLavaFlowSpeed;
+    private void waterOverLavaFlowSpeed()
+    {
+        waterOverLavaFlowSpeed = getInt( "water-over-lava-flow-speed", 5 );
+        log( "Water over lava flow speed: " + waterOverLavaFlowSpeed);
+    }
 }
