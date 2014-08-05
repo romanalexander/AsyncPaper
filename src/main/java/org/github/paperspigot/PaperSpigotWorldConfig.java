@@ -106,4 +106,11 @@ public class PaperSpigotWorldConfig
         reedMaxHeight = getInt( "max-growth-height.reeds", 3 );
         log( "Max height for cactus growth " + cactusMaxHeight + ". Max height for reed growth " + reedMaxHeight);
     }
+
+    public boolean invertedDaylightDetectors;
+    private void invertedDaylightDetectors()
+    {
+        invertedDaylightDetectors = getBoolean( "inverted-daylight-detectors", false );
+        log( "Inverted Redstone Lamps: " + invertedDaylightDetectors );
+    }
 }

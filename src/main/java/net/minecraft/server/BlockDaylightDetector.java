@@ -38,14 +38,27 @@ public class BlockDaylightDetector extends BlockContainer {
                 f += (6.2831855F - f) * 0.2F;
             }
 
-            i1 = Math.round((float) i1 * MathHelper.cos(f));
-            if (i1 < 0) {
-                i1 = 0;
-            }
+            // PaperSpigot start - Configurable "inversion" for daylight detectors
+            if (world.paperSpigotConfig.invertedDaylightDetectors) {
+                i1 = Math.round((float) i1 * MathHelper.cos(f) * -1 + 15);
+                if (i1 < 10) {
+                    i1 = 0;
+                }
 
-            if (i1 > 15) {
-                i1 = 15;
+                if (i1 > 9) {
+                    i1 = 15;
+                }
+            } else {
+                i1 = Math.round((float) i1 * MathHelper.cos(f));
+                if (i1 < 0) {
+                    i1 = 0;
+                }
+
+                if (i1 > 15) {
+                    i1 = 15;
+                }
             }
+            // PaperSpigot end
 
             if (l != i1) {
                 i1 = org.bukkit.craftbukkit.event.CraftEventFactory.callRedstoneChange(world, i, j, k, l, i1).getNewCurrent(); // CraftBukkit - Call BlockRedstoneEvent
