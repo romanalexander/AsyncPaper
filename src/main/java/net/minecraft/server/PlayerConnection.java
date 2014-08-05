@@ -581,7 +581,8 @@ public class PlayerConnection implements PacketPlayInListener {
 
     public void a(PacketPlayInBlockPlace packetplayinblockplace) {
         boolean throttled = false;
-        if (lastPlace != -1 && packetplayinblockplace.timestamp - lastPlace < 30 && packets++ >= 4) {
+        // PaperSpigot - Allow disabling the player interaction limiter
+        if (org.github.paperspigot.PaperSpigotConfig.interactLimitEnabled && lastPlace != -1 && packetplayinblockplace.timestamp - lastPlace < 30 && packets++ >= 4) {
             throttled = true;
         } else if ( packetplayinblockplace.timestamp - lastPlace >= 30 || lastPlace == -1 )
         {

@@ -152,4 +152,13 @@ public class PaperSpigotConfig
             Bukkit.getLogger().log( Level.INFO, "Disabling async plugin bad ju-ju catcher, this may be bad depending on your plugins" );
         }
     }
+
+    public static boolean interactLimitEnabled;
+    private static void interactLimitEnabled()
+    {
+        interactLimitEnabled = getBoolean( "settings.limit-player-interactions", true );
+        if (!interactLimitEnabled) {
+            Bukkit.getLogger().log( Level.INFO, "Disabling player interaction limiter, your server may be more vulnerable to malicious users" );
+        }
+    }
 }
