@@ -154,4 +154,14 @@ public class PaperSpigotWorldConfig
         keepSpawnInMemory = getBoolean( "keep-spawn-loaded", true );
         log( "Keep spawn chunk loaded: " + keepSpawnInMemory );
     }
+
+    public double fallingBlockHeightNerf;
+    private void fallingBlockheightNerf()
+    {
+        // Technically a little disingenuous as it applies to all falling blocks but alas, backwards compat prevails!
+        fallingBlockHeightNerf = getDouble( "tnt-entity-height-nerf", 0 );
+        if (fallingBlockHeightNerf != 0) {
+            log( "TNT/Falling Block Height Limit set to Y: " + fallingBlockHeightNerf);
+        }
+    }
 }
