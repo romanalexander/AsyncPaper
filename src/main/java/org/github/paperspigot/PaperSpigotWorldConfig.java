@@ -113,4 +113,12 @@ public class PaperSpigotWorldConfig
         invertedDaylightDetectors = getBoolean( "inverted-daylight-detectors", false );
         log( "Inverted Redstone Lamps: " + invertedDaylightDetectors );
     }
+
+    public int fishingMinTicks;
+    public int fishingMaxTicks;
+    private void fishingTickRange()
+    {
+        fishingMinTicks = getInt( "fishing-time-range.MinimumTicks", 100 );
+        fishingMaxTicks = getInt( "fishing-time-range.MaximumTicks", 900 );
+    }
 }
