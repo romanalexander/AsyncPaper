@@ -826,7 +826,7 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
         // CraftBukkit end
         if (!this.isInvulnerable()) {
             if (!damagesource.ignoresArmor() && this.isBlocking() && f > 0.0F) {
-                f = (1.0F + f) * 0.5F;
+                f = (1.0F + f) * this.world.paperSpigotConfig.playerBlockingDamageMultiplier; // PaperSpigot - Configurable damage multiplier for blocking
             }
 
             f = this.applyArmorModifier(damagesource, f);
