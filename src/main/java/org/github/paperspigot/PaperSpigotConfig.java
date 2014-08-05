@@ -143,4 +143,13 @@ public class PaperSpigotConfig
     {
         babyZombieMovementSpeed = getDouble( "settings.baby-zombie-movement-speed", 0.5D); // Player moves at 0.1F, for reference
     }
+
+    public static boolean asyncCatcherFeature;
+    private static void asyncCatcherFeature()
+    {
+        asyncCatcherFeature = getBoolean( "settings.async-plugin-bad-magic-catcher", true );
+        if (!asyncCatcherFeature) {
+            Bukkit.getLogger().log( Level.INFO, "Disabling async plugin bad ju-ju catcher, this may be bad depending on your plugins" );
+        }
+    }
 }
