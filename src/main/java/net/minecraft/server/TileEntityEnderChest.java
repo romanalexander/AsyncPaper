@@ -16,6 +16,9 @@ public class TileEntityEnderChest extends TileEntity {
         }
 
         this.i = this.a;
+
+        // PaperSpigot start - Move chest sound handling out of the tick loop
+        /*
         float f = 0.1F;
         double d0;
 
@@ -52,6 +55,8 @@ public class TileEntityEnderChest extends TileEntity {
                 this.a = 0.0F;
             }
         }
+        */
+        // PaperSpigot end
     }
 
     public boolean c(int i, int j) {
@@ -71,11 +76,39 @@ public class TileEntityEnderChest extends TileEntity {
     public void a() {
         ++this.j;
         this.world.playBlockAction(this.x, this.y, this.z, Blocks.ENDER_CHEST, 1, this.j);
+
+        // PaperSpigot start - Move chest open sound handling down to here
+        double d0;
+
+        if (this.j > 0 && this.a == 0.0F) {
+            double d1 = (double) this.x + 0.5D;
+
+            d0 = (double) this.z + 0.5D;
+            this.world.makeSound(d1, (double) this.y + 0.5D, d0, "random.chestopen", 0.5F, this.world.random.nextFloat() * 0.1F + 0.9F);
+        }
+        // PaperSpigot end
     }
 
     public void b() {
         --this.j;
         this.world.playBlockAction(this.x, this.y, this.z, Blocks.ENDER_CHEST, 1, this.j);
+
+        // PaperSpigot start - Move chest close sound handling down to here
+        float f = 0.1F;
+        double d0;
+
+        if (this.j == 0 && this.a == 0.0F || this.j > 0 && this.a < 1.0F) {
+            float f1 = this.a;
+            d0 = (double) this.x + 0.5D;
+            double d2 = (double) this.z + 0.5D;
+
+            this.world.makeSound(d0, (double) this.y + 0.5D, d2, "random.chestclosed", 0.5F, this.world.random.nextFloat() * 0.1F + 0.9F);
+
+            if (this.a < 0.0F) {
+                this.a = 0.0F;
+            }
+        }
+        // PaperSpigot end
     }
 
     public boolean a(EntityHuman entityhuman) {
