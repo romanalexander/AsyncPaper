@@ -1314,13 +1314,13 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
                 i = Math.round(MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2) * 100.0F);
                 if (i > 0) {
                     this.a(StatisticList.m, i);
-                    this.applyExhaustion(0.015F * (float) i * 0.01F);
+                    this.applyExhaustion(world.paperSpigotConfig.playerSwimmingExhaustion * (float) i * 0.01F); // PaperSpigot - Configurable swimming exhaustion
                 }
             } else if (this.M()) {
                 i = Math.round(MathHelper.sqrt(d0 * d0 + d2 * d2) * 100.0F);
                 if (i > 0) {
                     this.a(StatisticList.i, i);
-                    this.applyExhaustion(0.015F * (float) i * 0.01F);
+                    this.applyExhaustion(world.paperSpigotConfig.playerSwimmingExhaustion * (float) i * 0.01F); // PaperSpigot - Configurable swimming (diving) exhaustion
                 }
             } else if (this.h_()) {
                 if (d1 > 0.0D) {
