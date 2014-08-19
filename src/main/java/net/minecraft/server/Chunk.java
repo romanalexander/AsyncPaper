@@ -755,6 +755,11 @@ public class Chunk {
                 this.world.triggerHoppersList.add(tileentity);
             }
             // Spigot end
+            // PaperSpigot start - Remove invalid mob spawner Tile Entities
+        } else if (this.world.paperSpigotConfig.removeInvalidMobSpawnerTEs && tileentity instanceof TileEntityMobSpawner &&
+                org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(getType(i, j, k)) != org.bukkit.Material.MOB_SPAWNER) {
+            this.tileEntities.remove(chunkposition);
+            // PaperSpigot end
             // CraftBukkit start
         } else {
             System.out.println("Attempted to place a tile entity (" + tileentity + ") at " + tileentity.x + "," + tileentity.y + "," + tileentity.z
