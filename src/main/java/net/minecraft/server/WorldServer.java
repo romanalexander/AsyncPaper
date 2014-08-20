@@ -514,6 +514,7 @@ public class WorldServer extends World {
         }
 
         super.tickEntities();
+        spigotConfig.currentPrimedTnt = 0; // Spigot
     }
 
     public void i() {
