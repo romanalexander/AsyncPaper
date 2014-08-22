@@ -201,6 +201,7 @@ class CraftMetaItem implements ItemMeta, Repairable {
     static final ItemMetaKey ATTRIBUTES_UUID_HIGH = new ItemMetaKey("UUIDMost");
     @Specific(Specific.To.NBT)
     static final ItemMetaKey ATTRIBUTES_UUID_LOW = new ItemMetaKey("UUIDLeast");
+    static final ItemMetaKey UNBREAKABLE = new ItemMetaKey("Unbreakable"); // Spigot
 
     private String displayName;
     private List<String> lore;
@@ -226,6 +227,7 @@ class CraftMetaItem implements ItemMeta, Repairable {
 
         this.repairCost = meta.repairCost;
         this.attributes = meta.attributes;
+        spigot.setUnbreakable( meta.spigot.isUnbreakable() ); // Spigot
     }
 
     CraftMetaItem(NBTTagCompound tag) {
@@ -418,6 +420,12 @@ class CraftMetaItem implements ItemMeta, Repairable {
         } else {
             attributes = null;
         }
+        // Spigot start
+        if ( tag.hasKey( UNBREAKABLE.NBT ) )
+        {
+            spigot.setUnbreakable( tag.getBoolean( UNBREAKABLE.NBT ) );
+        }
+        // Spigot end
     }
 
     static Map<Enchantment, Integer> buildEnchantments(NBTTagCompound tag, ItemMetaKey key) {
@@ -458,6 +466,13 @@ class CraftMetaItem implements ItemMeta, Repairable {
         }
 
         attributes = null;
+        // Spigot start
+        Boolean unbreakable = SerializableMeta.getObject( Boolean.class, map, UNBREAKABLE.BUKKIT, true );
+        if ( unbreakable != null )
+        {
+            spigot.setUnbreakable( unbreakable );
+        }
+        // Spigot end
     }
 
     static Map<Enchantment, Integer> buildEnchantments(Map<String, Object> map, ItemMetaKey key) {
@@ -489,6 +504,13 @@ class CraftMetaItem implements ItemMeta, Repairable {
         }
 
         applyEnchantments(enchantments, itemTag, ENCHANTMENTS);
+
+        // Spigot start
+        if ( spigot.isUnbreakable() )
+        {
+            itemTag.setBoolean( UNBREAKABLE.NBT, true );
+        }
+        // Spigot end
 
         if (hasRepairCost()) {
             itemTag.setInt(REPAIR.NBT, repairCost);
@@ -548,7 +570,7 @@ class CraftMetaItem implements ItemMeta, Repairable {
 
     @Overridden
     boolean isEmpty() {
-        return !(hasDisplayName() || hasEnchants() || hasLore() || hasAttributes() || hasRepairCost());
+        return !(hasDisplayName() || hasEnchants() || hasLore() || hasAttributes() || hasRepairCost() || spigot.isUnbreakable()); // Spigot
     }
 
     public String getDisplayName() {
@@ -672,7 +694,7 @@ class CraftMetaItem implements ItemMeta, Repairable {
                 && (this.hasEnchants() ? that.hasEnchants() && this.enchantments.equals(that.enchantments) : !that.hasEnchants())
                 && (this.hasLore() ? that.hasLore() && this.lore.equals(that.lore) : !that.hasLore())
                 && (this.hasAttributes() ? that.hasAttributes() && this.attributes.equals(that.attributes) : !that.hasAttributes())
-                && (this.hasRepairCost() ? that.hasRepairCost() && this.repairCost == that.repairCost : !that.hasRepairCost());
+                && (this.hasRepairCost() ? that.hasRepairCost() && this.repairCost == that.repairCost : !that.hasRepairCost()) && this.spigot.isUnbreakable() == that.spigot.isUnbreakable(); // Spigot
     }
 
     /**
@@ -698,6 +720,7 @@ class CraftMetaItem implements ItemMeta, Repairable {
         hash = 61 * hash + (hasEnchants() ? this.enchantments.hashCode() : 0);
         hash = 61 * hash + (hasAttributes() ? this.attributes.hashCode() : 0);
         hash = 61 * hash + (hasRepairCost() ? this.repairCost : 0);
+        hash = 61 * hash + (spigot.isUnbreakable() ? 1231 : 1237); // Spigot
         return hash;
     }
 
@@ -740,6 +763,13 @@ class CraftMetaItem implements ItemMeta, Repairable {
         if (hasRepairCost()) {
             builder.put(REPAIR.BUKKIT, repairCost);
         }
+
+        // Spigot start
+        if ( spigot.isUnbreakable() )
+        {
+            builder.put( UNBREAKABLE.BUKKIT, true );
+        }
+        // Spigot end
 
         return builder;
     }
@@ -803,6 +833,19 @@ class CraftMetaItem implements ItemMeta, Repairable {
     // Spigot start
     private final Spigot spigot = new Spigot()
     {
+        private boolean unbreakable;
+
+        @Override
+        public void setUnbreakable(boolean setUnbreakable)
+        {
+            unbreakable = setUnbreakable;
+        }
+
+        @Override
+        public boolean isUnbreakable()
+        {
+            return unbreakable;
+        }
     };
 
     @Override
