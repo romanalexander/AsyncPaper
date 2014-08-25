@@ -56,6 +56,12 @@ public class TileEntity {
             }
         }
     }
+
+    // Optimized TileEntity Tick changes
+    private static int tileEntityCounter = 0;
+    public boolean isAdded = false;
+    public int tileId = tileEntityCounter++;
+
     // Spigot end
 
     public TileEntity() {}

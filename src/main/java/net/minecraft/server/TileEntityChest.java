@@ -255,7 +255,7 @@ public class TileEntityChest extends TileEntity implements IInventory {
         ++this.ticks;
         float f;
 
-        if (!this.world.isStatic && this.o != 0 && (this.ticks + this.x + this.y + this.z) % 200 == 0) {
+        if (!this.world.isStatic && this.o != 0 && (this.ticks + this.x + this.y + this.z) % 10 == 0) { // PaperSpigot Reduced 200 -> 10 interval due to reduced tick rate from Improved Tick Handling
             this.o = 0;
             f = 5.0F;
             List list = this.world.a(EntityHuman.class, AxisAlignedBB.a((double) ((float) this.x - f), (double) ((float) this.y - f), (double) ((float) this.z - f), (double) ((float) (this.x + 1) + f), (double) ((float) (this.y + 1) + f), (double) ((float) (this.z + 1) + f)));

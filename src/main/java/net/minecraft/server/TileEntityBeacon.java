@@ -45,7 +45,7 @@ public class TileEntityBeacon extends TileEntity implements IInventory {
     public TileEntityBeacon() {}
 
     public void h() {
-        if (this.world.getTime() % 80L == 0L) {
+        if (true || this.world.getTime() % 80L == 0L) { // PaperSpigot - controlled by Improved Tick handling
             this.y();
             this.x();
         }
