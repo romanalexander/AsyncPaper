@@ -48,6 +48,12 @@ public class EntityTNTPrimed extends Entity {
         this.lastZ = this.locZ;
         this.motY -= 0.03999999910593033D;
         this.move(this.motX, this.motY, this.motZ);
+        // PaperSpigot start - Remove entities in unloaded chunks
+        if (this.inUnloadedChunk && world.paperSpigotConfig.removeUnloadedTNTEntities) {
+            this.die();
+            this.fuseTicks = 2;
+        }
+        // PaperSpigot end
         this.motX *= 0.9800000190734863D;
         this.motY *= 0.9800000190734863D;
         this.motZ *= 0.9800000190734863D;

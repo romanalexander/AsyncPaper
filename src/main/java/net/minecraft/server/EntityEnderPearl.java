@@ -21,6 +21,12 @@ public class EntityEnderPearl extends EntityProjectile {
             movingobjectposition.entity.damageEntity(DamageSource.projectile(this, this.getShooter()), 0.0F);
         }
 
+        // PaperSpigot start - Remove entities in unloaded chunks
+        if (inUnloadedChunk && world.paperSpigotConfig.removeUnloadedEnderPearls) {
+            die();
+        }
+        // PaperSpigot end
+
         for (int i = 0; i < 32; ++i) {
             this.world.addParticle("portal", this.locX, this.locY + this.random.nextDouble() * 2.0D, this.locZ, this.random.nextGaussian(), 0.0D, this.random.nextGaussian());
         }

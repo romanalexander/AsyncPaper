@@ -120,6 +120,7 @@ public abstract class Entity {
     public EnumEntitySize as;
     public boolean valid; // CraftBukkit
     public org.bukkit.projectiles.ProjectileSource projectileSource; // CraftBukkit - For projectiles only
+    public boolean inUnloadedChunk = false; // PaperSpigot - Remove entities in unloaded chunks
 
     // Spigot start
     public CustomTimingsHandler tickTimer = org.bukkit.craftbukkit.SpigotTimings.getEntityTimings(this); // Spigot
