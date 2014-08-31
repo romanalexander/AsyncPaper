@@ -105,8 +105,12 @@ public abstract class BlockMinecartTrackAbstract extends Block {
             }
 
             if (flag) {
-                this.b(world, i, j, k, world.getData(i, j, k), 0);
-                world.setAir(i, j, k);
+                // PaperSpigot start - Rails dupe workaround
+                if (world.getType(i, j, k).getMaterial() != Material.AIR) {
+                    this.b(world, i, j, k, world.getData(i, j, k), 0);
+                    world.setAir(i, j, k);
+                }
+                // PaperSpigot end
             } else {
                 this.a(world, i, j, k, l, i1, block);
             }
