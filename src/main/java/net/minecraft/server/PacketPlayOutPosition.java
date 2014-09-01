@@ -30,12 +30,20 @@ public class PacketPlayOutPosition extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
+        // Spigot start - protocol patch
         packetdataserializer.writeDouble(this.a);
-        packetdataserializer.writeDouble(this.b);
+        packetdataserializer.writeDouble(this.b - (packetdataserializer.version >= 16 ? 1.62 : 0));
         packetdataserializer.writeDouble(this.c);
         packetdataserializer.writeFloat(this.d);
         packetdataserializer.writeFloat(this.e);
-        packetdataserializer.writeBoolean(this.f);
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeBoolean( this.f );
+        } else
+        {
+            packetdataserializer.writeByte( 0 );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

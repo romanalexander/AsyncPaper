@@ -747,6 +747,36 @@ public class PlayerConnection implements PacketPlayInListener {
     }
 
     public void sendPacket(Packet packet) {
+        // Spigot start - protocol patch
+        if ( NetworkManager.a( networkManager ).attr( NetworkManager.protocolVersion ).get() >= 17 )
+        {
+            if ( packet instanceof PacketPlayOutWindowItems )
+            {
+                PacketPlayOutWindowItems items = (PacketPlayOutWindowItems) packet;
+                if ( player.activeContainer instanceof ContainerEnchantTable
+                        && player.activeContainer.windowId == items.a )
+                {
+                    ItemStack[] old = items.b;
+                    items.b = new ItemStack[ old.length + 1 ];
+                    items.b[ 0 ] = old[ 0 ];
+                    System.arraycopy( old, 1, items.b, 2, old.length - 1 );
+                    items.b[ 1 ] = new ItemStack( Items.INK_SACK, 3, 4 );
+
+                }
+            } else if ( packet instanceof PacketPlayOutSetSlot )
+            {
+                PacketPlayOutSetSlot items = (PacketPlayOutSetSlot) packet;
+                if ( player.activeContainer instanceof ContainerEnchantTable
+                        && player.activeContainer.windowId == items.a )
+                {
+                    if ( items.b >= 1 )
+                    {
+                        items.b++;
+                    }
+                }
+            }
+        }
+        // Spigot end
         if (packet instanceof PacketPlayOutChat) {
             PacketPlayOutChat packetplayoutchat = (PacketPlayOutChat) packet;
             EnumChatVisibility enumchatvisibility = this.player.getChatFlags();
@@ -1108,6 +1138,7 @@ public class PlayerConnection implements PacketPlayInListener {
     }
 
     public void a(PacketPlayInUseEntity packetplayinuseentity) {
+        if ( packetplayinuseentity.c() == null ) return; // Spigot - protocol patch
         if (this.player.dead) return; // CraftBukkit
         WorldServer worldserver = this.minecraftServer.getWorldServer(this.player.dimension);
         Entity entity = packetplayinuseentity.a((World) worldserver);
@@ -1237,6 +1268,21 @@ public class PlayerConnection implements PacketPlayInListener {
             }
 
             InventoryView inventory = this.player.activeContainer.getBukkitView();
+            // Spigot start - protocol patch
+            if ( NetworkManager.a( networkManager ).attr( NetworkManager.protocolVersion ).get() >= 17 )
+            {
+                if ( player.activeContainer instanceof ContainerEnchantTable )
+                {
+                    if ( packetplayinwindowclick.slot == 1 )
+                    {
+                        return;
+                    } else if ( packetplayinwindowclick.slot > 1 )
+                    {
+                        packetplayinwindowclick.slot--;
+                    }
+                }
+            }
+            // Spigot end
             SlotType type = CraftInventoryView.getSlotType(inventory, packetplayinwindowclick.d());
 
             InventoryClickEvent event = null;
@@ -1587,7 +1633,20 @@ public class PlayerConnection implements PacketPlayInListener {
                 if (entityitem != null) {
                     entityitem.e();
                 }
+            // Spigot start - protocol patch
+            } else
+            {
+                if ( flag1 )
+                {
+                    player.playerConnection.sendPacket(
+                            new PacketPlayOutSetSlot( 0,
+                                    packetplayinsetcreativeslot.c(),
+                                    player.defaultContainer.getSlot( packetplayinsetcreativeslot.c() ).getItem()
+                            )
+                    );
+                }
             }
+            // Spigot end
         }
     }
 
@@ -1721,7 +1780,7 @@ public class PlayerConnection implements PacketPlayInListener {
         // CraftBukkit end
 
         if ("MC|BEdit".equals(packetplayincustompayload.c())) {
-            packetdataserializer = new PacketDataSerializer(Unpooled.wrappedBuffer(packetplayincustompayload.e()));
+            packetdataserializer = new PacketDataSerializer(Unpooled.wrappedBuffer(packetplayincustompayload.e()), networkManager.getVersion()); // Spigot - protocol patch
 
             try {
                 itemstack = packetdataserializer.c();
@@ -1753,7 +1812,7 @@ public class PlayerConnection implements PacketPlayInListener {
 
             return;
         } else if ("MC|BSign".equals(packetplayincustompayload.c())) {
-            packetdataserializer = new PacketDataSerializer(Unpooled.wrappedBuffer(packetplayincustompayload.e()));
+            packetdataserializer = new PacketDataSerializer(Unpooled.wrappedBuffer(packetplayincustompayload.e()), networkManager.getVersion()); // Spigot - protocol patch
 
             try {
                 itemstack = packetdataserializer.c();

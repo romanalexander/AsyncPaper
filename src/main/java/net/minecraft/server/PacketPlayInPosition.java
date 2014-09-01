@@ -8,8 +8,17 @@ public class PacketPlayInPosition extends PacketPlayInFlying {
 
     public void a(PacketDataSerializer packetdataserializer) {
         this.x = packetdataserializer.readDouble();
-        this.y = packetdataserializer.readDouble();
-        this.stance = packetdataserializer.readDouble();
+        // Spigot start - protocol patch
+        if (packetdataserializer.version < 16)
+        {
+            this.y = packetdataserializer.readDouble();
+            this.stance = packetdataserializer.readDouble();
+        } else
+        {
+            this.y = packetdataserializer.readDouble();
+            this.stance = y + 1.62;
+        }
+        // Spigot end
         this.z = packetdataserializer.readDouble();
         super.a(packetdataserializer);
     }

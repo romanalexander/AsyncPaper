@@ -4,8 +4,8 @@ import java.util.List;
 
 public class PacketPlayOutWindowItems extends Packet {
 
-    private int a;
-    private ItemStack[] b;
+    public int a; // Spigot
+    public ItemStack[] b; // Spigot
 
     public PacketPlayOutWindowItems() {}
 

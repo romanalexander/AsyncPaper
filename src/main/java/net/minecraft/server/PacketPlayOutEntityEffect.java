@@ -28,10 +28,22 @@ public class PacketPlayOutEntityEffect extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeByte(this.b);
-        packetdataserializer.writeByte(this.c);
-        packetdataserializer.writeShort(this.d);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeByte( this.b );
+            packetdataserializer.writeByte( this.c );
+            packetdataserializer.writeShort( this.d );
+        } else
+        {
+            packetdataserializer.b( a );
+            packetdataserializer.writeByte( b );
+            packetdataserializer.writeByte( c );
+            packetdataserializer.b( d );
+            packetdataserializer.writeBoolean( false );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

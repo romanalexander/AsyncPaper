@@ -65,7 +65,7 @@ public class AntiXray
         if ( world.spigotConfig.antiXray )
         {
             obfuscate.startTiming();
-            obfuscate( chunkX, chunkY, bitmask, buffer, world );
+            obfuscate( chunkX, chunkY, bitmask, buffer, world, false );
             obfuscate.stopTiming();
         }
     }
@@ -73,7 +73,7 @@ public class AntiXray
     /**
      * Removes all non exposed ores from the chunk buffer.
      */
-    public void obfuscate(int chunkX, int chunkY, int bitmask, byte[] buffer, World world)
+    public void obfuscate(int chunkX, int chunkY, int bitmask, byte[] buffer, World world, boolean newFormat)
     {
         // If the world is marked as obfuscated
         if ( world.spigotConfig.antiXray )
@@ -120,11 +120,22 @@ public class AntiXray
                                 if ( index >= buffer.length )
                                 {
                                     index++;
+                                    if ( newFormat ) index++;
                                     continue;
                                 }
                                 // Grab the block ID in the buffer.
                                 // TODO: extended IDs are not yet supported
-                                int blockId = buffer[index] & 0xFF;
+                                int blockId;
+                                int data = 0;
+                                if ( newFormat )
+                                {
+                                    blockId = (buffer[ index ] & 0xFF) | ( ( buffer[ index + 1 ] & 0xFF ) << 8 );
+                                    data = blockId & 0xF;
+                                    blockId >>>= 4; // Remove data value
+                                } else
+                                {
+                                    blockId = buffer[ index ] & 0xFF;
+                                }
                                 // Check if the block should be obfuscated
                                 if ( obfuscateBlocks[blockId] )
                                 {
@@ -132,6 +143,7 @@ public class AntiXray
                                     if ( !isLoaded( world, startX + x, ( i << 4 ) + y, startZ + z, initialRadius ) )
                                     {
                                         index++;
+                                        if ( newFormat ) index++;
                                         continue;
                                     }
                                     // On the otherhand, if radius is 0, or the nearby blocks are all non air, we can obfuscate
@@ -141,7 +153,15 @@ public class AntiXray
                                         {
                                             case 1:
                                                 // Replace with replacement material
-                                                buffer[index] = replaceWithTypeId;
+                                                if ( newFormat )
+                                                {
+                                                    char replace = (char) ((replaceWithTypeId << 4) | data);
+                                                    buffer[ index ] = (byte) ( replace & 0xFF );
+                                                    buffer[ index + 1 ] = (byte) ( ( replace >> 8 ) & 0xFF );
+                                                } else
+                                                {
+                                                    buffer[ index ] = replaceWithTypeId;
+                                                }
                                                 break;
                                             case 2:
                                                 // Replace with random ore.
@@ -149,13 +169,23 @@ public class AntiXray
                                                 {
                                                     randomOre = 0;
                                                 }
-                                                buffer[index] = replacementOres[randomOre++];
+                                                if ( newFormat )
+                                                {
+                                                    char replace = (char) (replacementOres[ randomOre++ ] & 0xFF);
+                                                    replace = (char) ((replace << 4) | data);
+                                                    buffer[ index ] = (byte) ( replace & 0xFF );
+                                                    buffer[ index + 1 ] = (byte) ( ( replace >> 8 ) & 0xFF );
+                                                } else
+                                                {
+                                                    buffer[ index ] = replacementOres[ randomOre++ ];
+                                                }
                                                 break;
                                         }
                                     }
                                 }
 
                                 index++;
+                                if (newFormat) index++;
                             }
                         }
                     }

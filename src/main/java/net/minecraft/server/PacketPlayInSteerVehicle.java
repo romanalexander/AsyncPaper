@@ -12,8 +12,17 @@ public class PacketPlayInSteerVehicle extends Packet {
     public void a(PacketDataSerializer packetdataserializer) {
         this.a = packetdataserializer.readFloat();
         this.b = packetdataserializer.readFloat();
-        this.c = packetdataserializer.readBoolean();
-        this.d = packetdataserializer.readBoolean();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.c = packetdataserializer.readBoolean();
+            this.d = packetdataserializer.readBoolean();
+        } else {
+            int flags = packetdataserializer.readUnsignedByte();
+            c = (flags & 0x1) != 0;
+            d = (flags & 0x2) != 0;
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) {

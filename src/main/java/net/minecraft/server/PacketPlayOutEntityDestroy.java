@@ -19,11 +19,22 @@ public class PacketPlayOutEntityDestroy extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeByte(this.a.length);
+        // Spigot start - protocol lib
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeByte( this.a.length );
 
-        for (int i = 0; i < this.a.length; ++i) {
-            packetdataserializer.writeInt(this.a[i]);
+            for ( int i = 0; i < this.a.length; ++i )
+            {
+                packetdataserializer.writeInt( this.a[ i ] );
+            }
+        } else {
+            packetdataserializer.b( a.length );
+            for ( int i : a ) {
+                packetdataserializer.b( i );
+            }
         }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

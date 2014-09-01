@@ -26,7 +26,7 @@ public class PacketDecoder extends ByteToMessageDecoder {
         int i = bytebuf.readableBytes();
 
         if (i != 0) {
-            PacketDataSerializer packetdataserializer = new PacketDataSerializer(bytebuf);
+            PacketDataSerializer packetdataserializer = new PacketDataSerializer( bytebuf, NetworkManager.getVersion( channelhandlercontext.channel() ) ); // Spigot
             int j = packetdataserializer.a();
             Packet packet = Packet.a((BiMap) channelhandlercontext.channel().attr(NetworkManager.e).get(), j);
 

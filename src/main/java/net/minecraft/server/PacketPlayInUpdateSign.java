@@ -12,13 +12,35 @@ public class PacketPlayInUpdateSign extends Packet {
     public PacketPlayInUpdateSign() {}
 
     public void a(PacketDataSerializer packetdataserializer) throws IOException {
-        this.a = packetdataserializer.readInt();
-        this.b = packetdataserializer.readShort();
-        this.c = packetdataserializer.readInt();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+            this.b = packetdataserializer.readShort();
+            this.c = packetdataserializer.readInt();
+        } else
+        {
+            long position = packetdataserializer.readLong();
+            a = packetdataserializer.readPositionX( position );
+            b = packetdataserializer.readPositionY( position );
+            c = packetdataserializer.readPositionZ( position );
+        }
+        // Spigot end
         this.d = new String[4];
 
         for (int i = 0; i < 4; ++i) {
-            this.d[i] = packetdataserializer.c(15);
+            // Spigot start - protocol patch
+            if ( packetdataserializer.version < 21 )
+            {
+                this.d[ i ] = packetdataserializer.c( 15 );
+            } else
+            {
+                this.d[ i ] = ChatSerializer.a( packetdataserializer.c( Short.MAX_VALUE ) ).c();
+            }
+            if (this.d[i].length() > 15) {
+                this.d[i] = this.d[i].substring( 0, 15 );
+            }
+            // Spigot end
         }
     }
 

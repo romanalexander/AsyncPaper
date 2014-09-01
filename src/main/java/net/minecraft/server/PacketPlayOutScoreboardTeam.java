@@ -71,10 +71,25 @@ public class PacketPlayOutScoreboardTeam extends Packet {
             packetdataserializer.a(this.c);
             packetdataserializer.a(this.d);
             packetdataserializer.writeByte(this.g);
+            // Spigot start - protocol patch
+            if ( packetdataserializer.version >= 16 )
+            {
+                packetdataserializer.a( "always" );
+                packetdataserializer.writeByte( EnumChatFormat.WHITE.ordinal() );
+            }
+            // Spigot end
         }
 
         if (this.f == 0 || this.f == 3 || this.f == 4) {
-            packetdataserializer.writeShort(this.e.size());
+            // Spigot start - protocol patch
+            if ( packetdataserializer.version < 16 )
+            {
+                packetdataserializer.writeShort( this.e.size() );
+            } else
+            {
+                packetdataserializer.b( e.size() );
+            }
+            // Spigot end
             Iterator iterator = this.e.iterator();
 
             while (iterator.hasNext()) {

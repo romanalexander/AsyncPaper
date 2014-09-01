@@ -24,10 +24,19 @@ public class PacketPlayOutBed extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeInt(this.b);
-        packetdataserializer.writeByte(this.c);
-        packetdataserializer.writeInt(this.d);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeInt( this.b );
+            packetdataserializer.writeByte( this.c );
+            packetdataserializer.writeInt( this.d );
+        } else
+        {
+            packetdataserializer.b( a );
+            packetdataserializer.writePosition( b, c, d );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

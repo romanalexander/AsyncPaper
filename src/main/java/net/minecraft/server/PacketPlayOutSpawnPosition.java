@@ -21,9 +21,16 @@ public class PacketPlayOutSpawnPosition extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.x);
-        packetdataserializer.writeInt(this.y);
-        packetdataserializer.writeInt(this.z);
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.x );
+            packetdataserializer.writeInt( this.y );
+            packetdataserializer.writeInt( this.z );
+
+        } else
+        {
+            packetdataserializer.writePosition( x, y, z );
+        }
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

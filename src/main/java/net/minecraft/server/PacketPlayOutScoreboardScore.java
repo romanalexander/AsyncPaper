@@ -35,12 +35,25 @@ public class PacketPlayOutScoreboardScore extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
-        packetdataserializer.a(this.a);
-        packetdataserializer.writeByte(this.d);
-        if (this.d != 1) {
-            packetdataserializer.a(this.b);
-            packetdataserializer.writeInt(this.c);
+        packetdataserializer.a( this.a );
+        packetdataserializer.writeByte( this.d );
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            if ( this.d != 1 )
+            {
+                packetdataserializer.a( this.b );
+                packetdataserializer.writeInt( this.c );
+            }
+        } else
+        {
+            packetdataserializer.a( this.b );
+            if ( this.d != 1 )
+            {
+                packetdataserializer.b( c );
+            }
         }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

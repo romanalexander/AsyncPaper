@@ -31,8 +31,22 @@ public class PacketPlayOutCustomPayload extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
         packetdataserializer.a(this.tag);
-        packetdataserializer.writeShort(this.data.length);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 29 )
+        {
+            packetdataserializer.writeShort( this.data.length );
+        }
+        if ( packetdataserializer.version >= 47 && tag.equals( "MC|Brand" ) )
+        {
+            packetdataserializer.a( new String( data, "UTF-8" ) );
+            return;
+        }
         packetdataserializer.writeBytes(this.data);
+        if ( packetdataserializer.version >= 29 && tag.equals( "MC|AdvCdm" ) )
+        {
+            packetdataserializer.writeBoolean( true );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

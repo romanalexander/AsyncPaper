@@ -9,9 +9,19 @@ public class PacketPlayInEntityAction extends Packet {
     public PacketPlayInEntityAction() {}
 
     public void a(PacketDataSerializer packetdataserializer) {
-        this.a = packetdataserializer.readInt();
-        this.animation = packetdataserializer.readByte();
-        this.c = packetdataserializer.readInt();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+            this.animation = packetdataserializer.readByte();
+            this.c = packetdataserializer.readInt();
+        } else
+        {
+            a = packetdataserializer.a();
+            animation = packetdataserializer.readUnsignedByte() + 1;
+            c = packetdataserializer.a();
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) {

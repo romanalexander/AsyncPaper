@@ -14,9 +14,20 @@ public class PacketPlayInBlockPlace extends Packet {
     public PacketPlayInBlockPlace() {}
 
     public void a(PacketDataSerializer packetdataserializer) {
-        this.a = packetdataserializer.readInt();
-        this.b = packetdataserializer.readUnsignedByte();
-        this.c = packetdataserializer.readInt();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+            this.b = packetdataserializer.readUnsignedByte();
+            this.c = packetdataserializer.readInt();
+        } else
+        {
+            long position = packetdataserializer.readLong();
+            a = packetdataserializer.readPositionX( position );
+            b = packetdataserializer.readPositionY( position );
+            c = packetdataserializer.readPositionZ( position );
+        }
+        // Spigot end
         this.d = packetdataserializer.readUnsignedByte();
         this.e = packetdataserializer.c();
         this.f = (float) packetdataserializer.readUnsignedByte() / 16.0F;

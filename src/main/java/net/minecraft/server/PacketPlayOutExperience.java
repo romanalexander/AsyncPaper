@@ -22,8 +22,17 @@ public class PacketPlayOutExperience extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) {
         packetdataserializer.writeFloat(this.a);
-        packetdataserializer.writeShort(this.c);
-        packetdataserializer.writeShort(this.b);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeShort( this.c );
+            packetdataserializer.writeShort( this.b );
+        } else
+        {
+            packetdataserializer.b( c );
+            packetdataserializer.b( b );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

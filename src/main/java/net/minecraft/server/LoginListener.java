@@ -10,6 +10,7 @@ import javax.crypto.SecretKey;
 import net.minecraft.util.com.google.common.base.Charsets;
 import net.minecraft.util.com.mojang.authlib.GameProfile;
 import net.minecraft.util.com.mojang.authlib.properties.Property;
+import net.minecraft.util.io.netty.util.concurrent.Future;
 import net.minecraft.util.io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.util.org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
@@ -101,6 +102,19 @@ public class LoginListener implements PacketLoginInListener {
             // CraftBukkit end
         } else {
             this.g = EnumProtocolState.e;
+            // Spigot start
+            if ( networkManager.getVersion() >= 27 )
+            {
+                this.networkManager.handle( new org.spigotmc.ProtocolInjector.PacketLoginCompression( 256 ), new GenericFutureListener()
+                {
+                    @Override
+                    public void operationComplete(Future future) throws Exception
+                    {
+                        networkManager.enableCompression();
+                    }
+                } );
+            }
+            // Spigot end
             this.networkManager.handle(new PacketLoginOutSuccess(this.i), new GenericFutureListener[0]);
             this.server.getPlayerList().a(this.networkManager, this.server.getPlayerList().processLogin(this.i, s)); // CraftBukkit - add player reference
         }

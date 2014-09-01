@@ -8,8 +8,24 @@ public class PacketPlayInUseEntity extends Packet {
     public PacketPlayInUseEntity() {}
 
     public void a(PacketDataSerializer packetdataserializer) {
-        this.a = packetdataserializer.readInt();
-        this.action = EnumEntityUseAction.values()[packetdataserializer.readByte() % EnumEntityUseAction.values().length];
+        // Spigot start
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+            this.action = EnumEntityUseAction.values()[packetdataserializer.readByte() % EnumEntityUseAction.values().length];
+        } else {
+            this.a = packetdataserializer.a();
+            int val = packetdataserializer.a();
+            if ( val == 2 ) {
+                packetdataserializer.readFloat();
+                packetdataserializer.readFloat();
+                packetdataserializer.readFloat();
+            } else
+            {
+                this.action = EnumEntityUseAction.values()[ val % EnumEntityUseAction.values().length ];
+            }
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) {

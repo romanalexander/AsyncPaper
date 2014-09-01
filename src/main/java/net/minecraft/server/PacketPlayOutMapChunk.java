@@ -17,28 +17,24 @@ public class PacketPlayOutMapChunk extends Packet {
     private int h;
     private static byte[] i = new byte[196864];
 
+    private Chunk chunk; // Spigot
+    private int mask; // Spigot
+
     public PacketPlayOutMapChunk() {}
 
-    public PacketPlayOutMapChunk(Chunk chunk, boolean flag, int i) {
+    // Spigot start - protocol patch
+    public PacketPlayOutMapChunk(Chunk chunk, boolean flag, int i, int version) {
+        this.chunk = chunk;
+        this.mask = i;
         this.a = chunk.locX;
         this.b = chunk.locZ;
         this.g = flag;
-        ChunkMap chunkmap = a(chunk, flag, i);
-        Deflater deflater = new Deflater(4); // Spigot
+        ChunkMap chunkmap = a(chunk, flag, i, version);
 
         this.d = chunkmap.c;
         this.c = chunkmap.b;
-        chunk.world.spigotConfig.antiXrayInstance.obfuscateSync(chunk.locX, chunk.locZ, i, chunkmap.a, chunk.world); // Spigot
 
-        try {
-            this.f = chunkmap.a;
-            deflater.setInput(chunkmap.a, 0, chunkmap.a.length);
-            deflater.finish();
-            this.e = new byte[chunkmap.a.length];
-            this.h = deflater.deflate(this.e);
-        } finally {
-            deflater.end();
-        }
+        this.f = chunkmap.a;
     }
 
     public static int c() {
@@ -89,9 +85,28 @@ public class PacketPlayOutMapChunk extends Packet {
         packetdataserializer.writeInt(this.b);
         packetdataserializer.writeBoolean(this.g);
         packetdataserializer.writeShort((short) (this.c & '\uffff'));
-        packetdataserializer.writeShort((short) (this.d & '\uffff'));
-        packetdataserializer.writeInt(this.h);
-        packetdataserializer.writeBytes(this.e, 0, this.h);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 27 )
+        {
+            chunk.world.spigotConfig.antiXrayInstance.obfuscate(chunk.locX, chunk.locZ, mask, this.f, chunk.world, false); // Spigot
+            Deflater deflater = new Deflater(4); // Spigot
+            try {
+                deflater.setInput(this.f, 0, this.f.length);
+                deflater.finish();
+                this.e = new byte[this.f.length];
+                this.h = deflater.deflate(this.e);
+            } finally {
+                deflater.end();
+            }
+            packetdataserializer.writeShort( (short) ( this.d & '\uffff' ) );
+            packetdataserializer.writeInt( this.h );
+            packetdataserializer.writeBytes( this.e, 0, this.h );
+        } else
+        {
+            chunk.world.spigotConfig.antiXrayInstance.obfuscate(chunk.locX, chunk.locZ, mask, this.f, chunk.world, true); // Spigot
+            a( packetdataserializer, this.f );
+        }
+        // Spigot end - protocol patch
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {
@@ -102,7 +117,8 @@ public class PacketPlayOutMapChunk extends Packet {
         return String.format("x=%d, z=%d, full=%b, sects=%d, add=%d, size=%d", new Object[] { Integer.valueOf(this.a), Integer.valueOf(this.b), Boolean.valueOf(this.g), Integer.valueOf(this.c), Integer.valueOf(this.d), Integer.valueOf(this.h)});
     }
 
-    public static ChunkMap a(Chunk chunk, boolean flag, int i) {
+    // Spigot start - protocol patch
+    public static ChunkMap a(Chunk chunk, boolean flag, int i, int version) {
         int j = 0;
         ChunkSection[] achunksection = chunk.getSections();
         int k = 0;
@@ -125,22 +141,59 @@ public class PacketPlayOutMapChunk extends Packet {
             }
         }
 
-        for (l = 0; l < achunksection.length; ++l) {
-            if (achunksection[l] != null && (!flag || !achunksection[l].isEmpty()) && (i & 1 << l) != 0) {
-                byte[] abyte1 = achunksection[l].getIdArray();
+        if ( version < 24 )
+        {
+            for ( l = 0; l < achunksection.length; ++l )
+            {
+                if ( achunksection[ l ] != null && ( !flag || !achunksection[ l ].isEmpty() ) && ( i & 1 << l ) != 0 )
+                {
+                    byte[] abyte1 = achunksection[ l ].getIdArray();
 
-                System.arraycopy(abyte1, 0, abyte, j, abyte1.length);
-                j += abyte1.length;
+                    System.arraycopy( abyte1, 0, abyte, j, abyte1.length );
+                    j += abyte1.length;
+                }
+            }
+        } else {
+            for ( l = 0; l < achunksection.length; ++l )
+            {
+                if ( achunksection[ l ] != null && ( !flag || !achunksection[ l ].isEmpty() ) && ( i & 1 << l ) != 0 )
+                {
+                    byte[] abyte1 = achunksection[ l ].getIdArray();
+                    NibbleArray nibblearray = achunksection[ l ].getDataArray();
+                    for ( int ind = 0; ind < abyte1.length; ind++ )
+                    {
+                        int id = abyte1[ ind ] & 0xFF;
+                        int px = ind & 0xF;
+                        int py = ( ind >> 8 ) & 0xF;
+                        int pz = ( ind >> 4 ) & 0xF;
+                        int data = nibblearray.a( px, py, pz );
+                        if ( id == 90 && data == 0 )
+                        {
+                            Blocks.PORTAL.updateShape( chunk.world, ( chunk.locX << 4 ) + px, ( l << 4 ) + py, ( chunk.locZ << 4 ) + pz );
+                        } else
+                        {
+                            data = org.spigotmc.SpigotDebreakifier.getCorrectedData( id, data );
+                        }
+                        char val = (char) ( id << 4 | data );
+                        abyte[ j++ ] = (byte) ( val & 0xFF );
+                        abyte[ j++ ] = (byte) ( ( val >> 8 ) & 0xFF );
+                    }
+                }
             }
         }
 
         NibbleArray nibblearray;
 
-        for (l = 0; l < achunksection.length; ++l) {
-            if (achunksection[l] != null && (!flag || !achunksection[l].isEmpty()) && (i & 1 << l) != 0) {
-                nibblearray = achunksection[l].getDataArray();
-                System.arraycopy(nibblearray.a, 0, abyte, j, nibblearray.a.length);
-                j += nibblearray.a.length;
+        if ( version < 24 )
+        {
+            for ( l = 0; l < achunksection.length; ++l )
+            {
+                if ( achunksection[ l ] != null && ( !flag || !achunksection[ l ].isEmpty() ) && ( i & 1 << l ) != 0 )
+                {
+                    nibblearray = achunksection[ l ].getDataArray();
+                    System.arraycopy(nibblearray.a, 0, abyte, j, nibblearray.a.length);
+                    j += nibblearray.a.length;
+                }
             }
         }
 
@@ -162,7 +215,7 @@ public class PacketPlayOutMapChunk extends Packet {
             }
         }
 
-        if (k > 0) {
+        if (k > 0 && version < 24) {
             for (l = 0; l < achunksection.length; ++l) {
                 if (achunksection[l] != null && (!flag || !achunksection[l].isEmpty()) && achunksection[l].getExtendedIdArray() != null && (i & 1 << l) != 0) {
                     nibblearray = achunksection[l].getExtendedIdArray();
@@ -183,7 +236,9 @@ public class PacketPlayOutMapChunk extends Packet {
         System.arraycopy(abyte, 0, chunkmap.a, 0, j);
         return chunkmap;
     }
+    // Spigot end - protocol patch
 
+    @Override
     public void handle(PacketListener packetlistener) {
         this.a((PacketPlayOutListener) packetlistener);
     }

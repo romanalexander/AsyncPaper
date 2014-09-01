@@ -2,15 +2,18 @@ package net.minecraft.server;
 
 public class PacketPlayOutEntityLook extends PacketPlayOutEntity {
 
+    private boolean onGround; // Spigot - protocol patch
+
     public PacketPlayOutEntityLook() {
         this.g = true;
     }
 
-    public PacketPlayOutEntityLook(int i, byte b0, byte b1) {
+    public PacketPlayOutEntityLook(int i, byte b0, byte b1, boolean onGround) { // Spigot - protocol patch
         super(i);
         this.e = b0;
         this.f = b1;
         this.g = true;
+        this.onGround = onGround; // Spigot - protocol patch
     }
 
     public void a(PacketDataSerializer packetdataserializer) {
@@ -23,6 +26,12 @@ public class PacketPlayOutEntityLook extends PacketPlayOutEntity {
         super.b(packetdataserializer);
         packetdataserializer.writeByte(this.e);
         packetdataserializer.writeByte(this.f);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 22 )
+        {
+            packetdataserializer.writeBoolean( onGround );
+        }
+        // Spigot end
     }
 
     public String b() {

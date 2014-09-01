@@ -46,7 +46,15 @@ public class PacketPlayOutUpdateAttributes extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
-        packetdataserializer.writeInt(this.a);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16)
+        {
+            packetdataserializer.writeInt( this.a );
+        } else
+        {
+            packetdataserializer.b( a );
+        }
+        // Spigot end
         packetdataserializer.writeInt(this.b.size());
         Iterator iterator = this.b.iterator();
 
@@ -55,7 +63,14 @@ public class PacketPlayOutUpdateAttributes extends Packet {
 
             packetdataserializer.a(attributesnapshot.a());
             packetdataserializer.writeDouble(attributesnapshot.b());
-            packetdataserializer.writeShort(attributesnapshot.c().size());
+            // Spigot start - protocol patch
+            if ( packetdataserializer.version < 16 )
+            {
+                packetdataserializer.writeShort( attributesnapshot.c().size() );
+            } else {
+                packetdataserializer.b( attributesnapshot.c().size() );
+            }
+            // Spigot end
             Iterator iterator1 = attributesnapshot.c().iterator();
 
             while (iterator1.hasNext()) {

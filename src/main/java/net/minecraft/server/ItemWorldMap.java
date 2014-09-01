@@ -199,7 +199,7 @@ public class ItemWorldMap extends ItemWorldMapBase {
     public Packet c(ItemStack itemstack, World world, EntityHuman entityhuman) {
         byte[] abyte = this.getSavedMap(itemstack, world).getUpdatePacket(itemstack, world, entityhuman);
 
-        return abyte == null ? null : new PacketPlayOutMap(itemstack.getData(), abyte);
+        return abyte == null ? null : new PacketPlayOutMap(itemstack.getData(), abyte, this.getSavedMap(itemstack, world).scale); // Spigot - protocol patch
     }
 
     public void d(ItemStack itemstack, World world, EntityHuman entityhuman) {

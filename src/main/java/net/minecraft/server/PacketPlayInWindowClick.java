@@ -3,7 +3,7 @@ package net.minecraft.server;
 public class PacketPlayInWindowClick extends Packet {
 
     private int a;
-    private int slot;
+    public int slot; // Spigot
     private int button;
     private short d;
     private ItemStack item;

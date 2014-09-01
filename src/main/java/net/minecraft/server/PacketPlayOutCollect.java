@@ -18,8 +18,17 @@ public class PacketPlayOutCollect extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeInt(this.b);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeInt( this.b );
+        } else
+        {
+            packetdataserializer.b( this.a );
+            packetdataserializer.b( this.b );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

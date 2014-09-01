@@ -2,6 +2,8 @@ package net.minecraft.server;
 
 import java.io.IOException;
 
+import org.bukkit.craftbukkit.util.CraftChatMessage; // Spigot - protocol patch
+
 public class PacketPlayOutUpdateSign extends Packet {
 
     private int x;
@@ -30,13 +32,28 @@ public class PacketPlayOutUpdateSign extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
-        packetdataserializer.writeInt(this.x);
-        packetdataserializer.writeShort(this.y);
-        packetdataserializer.writeInt(this.z);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.x );
+            packetdataserializer.writeShort( this.y );
+            packetdataserializer.writeInt( this.z );
+        } else
+        {
+            packetdataserializer.writePosition( x, y, z );
+        }
 
         for (int i = 0; i < 4; ++i) {
-            packetdataserializer.a(this.lines[i]);
+            if ( packetdataserializer.version < 21 )
+            {
+                packetdataserializer.a( this.lines[ i ] );
+            } else
+            {
+                String line = ChatSerializer.a( CraftChatMessage.fromString( this.lines[ i ] )[ 0 ] );
+                packetdataserializer.a( line );
+            }
         }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

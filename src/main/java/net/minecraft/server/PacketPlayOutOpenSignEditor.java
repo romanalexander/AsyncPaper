@@ -25,9 +25,17 @@ public class PacketPlayOutOpenSignEditor extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeInt(this.b);
-        packetdataserializer.writeInt(this.c);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeInt( this.b );
+            packetdataserializer.writeInt( this.c );
+        } else
+        {
+            packetdataserializer.writePosition( a, b, c );
+        }
+        // Spigot end
     }
 
     public void handle(PacketListener packetlistener) {

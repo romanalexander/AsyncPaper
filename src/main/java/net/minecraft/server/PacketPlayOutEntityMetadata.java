@@ -24,8 +24,16 @@ public class PacketPlayOutEntityMetadata extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        DataWatcher.a(this.b, packetdataserializer);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+        } else
+        {
+            packetdataserializer.b( a );
+        }
+        DataWatcher.a(this.b, packetdataserializer, packetdataserializer.version);
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

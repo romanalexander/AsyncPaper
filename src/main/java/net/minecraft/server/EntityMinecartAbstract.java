@@ -74,7 +74,7 @@ public abstract class EntityMinecartAbstract extends Entity {
         this.datawatcher.a(17, new Integer(0));
         this.datawatcher.a(18, new Integer(1));
         this.datawatcher.a(19, new Float(0.0F));
-        this.datawatcher.a(20, new Integer(0));
+        this.datawatcher.a(20, new org.spigotmc.ProtocolData.DualInt(0, 0)); // Spigot - protocol patch
         this.datawatcher.a(21, new Integer(6));
         this.datawatcher.a(22, Byte.valueOf((byte) 0));
     }
@@ -841,12 +841,22 @@ public abstract class EntityMinecartAbstract extends Entity {
     }
 
     public void k(int i) {
-        this.getDataWatcher().watch(20, Integer.valueOf(i & '\uffff' | this.p() << 16));
+        // Spigot start - protocol patch
+        org.spigotmc.ProtocolData.DualInt val = datawatcher.getDualInt(20);
+        val.value = Integer.valueOf(i & '\uffff' | this.p() << 16);
+        val.value2 = Integer.valueOf(i & '\uffff' | this.p() << 12);
+        this.getDataWatcher().watch(20, val);
+        // Spigot end
         this.a(true);
     }
 
     public void l(int i) {
-        this.getDataWatcher().watch(20, Integer.valueOf(Block.getId(this.n()) & '\uffff' | i << 16));
+        // Spigot start - protocol patch
+        org.spigotmc.ProtocolData.DualInt val = datawatcher.getDualInt(20);
+        val.value =  Integer.valueOf(Block.getId(this.n()) & '\uffff' | i << 16);
+        val.value2 =  Integer.valueOf(Block.getId(this.n()) & '\uffff' | i << 12);
+        this.getDataWatcher().watch(20, val);
+        // Spigot end
         this.a(true);
     }
 

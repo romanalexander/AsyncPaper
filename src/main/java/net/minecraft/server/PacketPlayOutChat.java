@@ -27,6 +27,12 @@ public class PacketPlayOutChat extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
         packetdataserializer.a(ChatSerializer.a(this.a));
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 16 )
+        {
+            packetdataserializer.writeByte(0);
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

@@ -8,8 +8,15 @@ public class PacketPlayInArmAnimation extends Packet {
     public PacketPlayInArmAnimation() {}
 
     public void a(PacketDataSerializer packetdataserializer) {
-        this.a = packetdataserializer.readInt();
-        this.b = packetdataserializer.readByte();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+            this.b = packetdataserializer.readByte();
+        } else {
+            b = 1;
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) {

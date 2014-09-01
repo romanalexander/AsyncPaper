@@ -91,7 +91,7 @@ public class PacketPlayOutSpawnEntityLiving extends Packet {
         packetdataserializer.writeShort(this.f);
         packetdataserializer.writeShort(this.g);
         packetdataserializer.writeShort(this.h);
-        this.l.a(packetdataserializer);
+        this.l.a(packetdataserializer, packetdataserializer.version); // Spigot
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

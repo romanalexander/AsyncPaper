@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.minecraft.util.org.apache.commons.lang3.ObjectUtils;
+import org.spigotmc.ProtocolData; // Spigot - protocol patch
 
 public class DataWatcher {
 
@@ -30,6 +31,19 @@ public class DataWatcher {
 
     public void a(int i, Object object) {
         int integer = classToId.get(object.getClass()); // Spigot
+
+        // Spigot start - protocol patch
+        if ( object instanceof ProtocolData.ByteShort
+                || object instanceof ProtocolData.DualByte
+                || object instanceof ProtocolData.HiddenByte )
+        {
+            integer = classToId.get( Byte.class );
+        }
+        if ( object instanceof ProtocolData.IntByte
+                || object instanceof ProtocolData.DualInt ) {
+            integer = classToId.get( Integer.class );
+        }
+        // Spigot end
 
         if (integer == -1) { // Spigot
             throw new IllegalArgumentException("Unknown data type: " + object.getClass());
@@ -57,19 +71,19 @@ public class DataWatcher {
     }
 
     public byte getByte(int i) {
-        return ((Byte) this.i(i).b()).byteValue();
+        return ((Number) this.i(i).b()).byteValue(); // Spigot - protocol patch
     }
 
     public short getShort(int i) {
-        return ((Short) this.i(i).b()).shortValue();
+        return ((Number) this.i(i).b()).shortValue(); // Spigot - protocol patch
     }
 
     public int getInt(int i) {
-        return ((Integer) this.i(i).b()).intValue();
+        return ((Number) this.i(i).b()).intValue(); // Spigot - protocol patch
     }
 
     public float getFloat(int i) {
-        return ((Float) this.i(i).b()).floatValue();
+        return ((Number) this.i(i).b()).floatValue(); // Spigot - protocol patch
     }
 
     public String getString(int i) {
@@ -79,6 +93,18 @@ public class DataWatcher {
     public ItemStack getItemStack(int i) {
         return (ItemStack) this.i(i).b();
     }
+
+    // Spigot start - protocol patch
+    public ProtocolData.DualByte getDualByte(int i) {
+        return (ProtocolData.DualByte) this.i(i).b();
+    }
+    public ProtocolData.IntByte getIntByte(int i) {
+        return (ProtocolData.IntByte) this.i(i).b();
+    }
+    public ProtocolData.DualInt getDualInt(int i) {
+        return (ProtocolData.DualInt) this.i(i).b();
+    }
+    // Spigot end
 
     private WatchableObject i(int i) {
         this.f.readLock().lock();
@@ -119,14 +145,20 @@ public class DataWatcher {
         return this.e;
     }
 
+    // Spigot start - protocol patch
     public static void a(List list, PacketDataSerializer packetdataserializer) {
+        a(list, packetdataserializer, 5);
+    }
+
+    public static void a(List list, PacketDataSerializer packetdataserializer, int version) {
+    // Spigot end - protocol patch
         if (list != null) {
             Iterator iterator = list.iterator();
 
             while (iterator.hasNext()) {
                 WatchableObject watchableobject = (WatchableObject) iterator.next();
 
-                a(packetdataserializer, watchableobject);
+                a(packetdataserializer, watchableobject, version); // Spigot - protocol patch
             }
         }
 
@@ -171,14 +203,20 @@ public class DataWatcher {
         return arraylist;
     }
 
+    // Spigot start - protocol patch
     public void a(PacketDataSerializer packetdataserializer) {
+        a(packetdataserializer, 5);
+    }
+
+    public void a(PacketDataSerializer packetdataserializer, int version) {
+    // Spigot end
         this.f.readLock().lock();
         Iterator iterator = this.dataValues.valueCollection().iterator(); // Spigot
 
         while (iterator.hasNext()) {
             WatchableObject watchableobject = (WatchableObject) iterator.next();
 
-            a(packetdataserializer, watchableobject);
+            a(packetdataserializer, watchableobject, version); // Spigot - protocol patch
         }
 
         this.f.readLock().unlock();
@@ -211,25 +249,46 @@ public class DataWatcher {
         return arraylist;
     }
 
-    private static void a(PacketDataSerializer packetdataserializer, WatchableObject watchableobject) {
-        int i = (watchableobject.c() << 5 | watchableobject.a() & 31) & 255;
+    // Spigot start - protocol patch
+    private static void a(PacketDataSerializer packetdataserializer, WatchableObject watchableobject, int version) {
+        int type = watchableobject.c();
+        if (watchableobject.b() instanceof ProtocolData.ByteShort && version >= 16) {
+            type = 1;
+        }
+        if (watchableobject.b() instanceof ProtocolData.IntByte && version >= 28) {
+            type = 0;
+        }
+        if ( version < 16 && watchableobject.b() instanceof ProtocolData.HiddenByte ) return;
+
+        int i = (type << 5 | watchableobject.a() & 31) & 255;
 
         packetdataserializer.writeByte(i);
-        switch (watchableobject.c()) {
+        switch (type) {
         case 0:
-            packetdataserializer.writeByte(((Byte) watchableobject.b()).byteValue());
+            if ( watchableobject.b() instanceof ProtocolData.DualByte )
+            {
+                ProtocolData.DualByte dualByte = (ProtocolData.DualByte) watchableobject.b();
+                packetdataserializer.writeByte( version >= 16 ? dualByte.value2 : dualByte.value );
+            } else
+            {
+                packetdataserializer.writeByte( ( (Number) watchableobject.b() ).byteValue() );
+            }
             break;
 
         case 1:
-            packetdataserializer.writeShort(((Short) watchableobject.b()).shortValue());
+            packetdataserializer.writeShort(((Number) watchableobject.b()).shortValue());
             break;
 
         case 2:
-            packetdataserializer.writeInt(((Integer) watchableobject.b()).intValue());
+            int val = ((Number) watchableobject.b()).intValue();
+            if ( watchableobject.b() instanceof ProtocolData.DualInt && version >= 46 ) {
+                val = ((ProtocolData.DualInt) watchableobject.b()).value2;
+            }
+            packetdataserializer.writeInt(val);
             break;
 
         case 3:
-            packetdataserializer.writeFloat(((Float) watchableobject.b()).floatValue());
+            packetdataserializer.writeFloat(((Number) watchableobject.b()).floatValue());
             break;
 
         case 4:
@@ -254,6 +313,7 @@ public class DataWatcher {
             packetdataserializer.writeInt(chunkcoordinates.z);
         }
     }
+    // Spigot end
 
     public static List b(PacketDataSerializer packetdataserializer) {
         ArrayList arraylist = null;

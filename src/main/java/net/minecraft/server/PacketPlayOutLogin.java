@@ -54,6 +54,13 @@ public class PacketPlayOutLogin extends Packet {
         packetdataserializer.writeByte(this.e.a());
         packetdataserializer.writeByte(this.f);
         packetdataserializer.a(this.g.name());
+
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 29 )
+        {
+            packetdataserializer.writeBoolean( false );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

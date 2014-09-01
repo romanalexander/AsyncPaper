@@ -12,9 +12,20 @@ public class PacketPlayInBlockDig extends Packet {
 
     public void a(PacketDataSerializer packetdataserializer) {
         this.e = packetdataserializer.readUnsignedByte();
-        this.a = packetdataserializer.readInt();
-        this.b = packetdataserializer.readUnsignedByte();
-        this.c = packetdataserializer.readInt();
+        // Spigot start
+        if ( packetdataserializer.version < 16)
+        {
+            this.a = packetdataserializer.readInt();
+            this.b = packetdataserializer.readUnsignedByte();
+            this.c = packetdataserializer.readInt();
+        } else
+        {
+            long position = packetdataserializer.readLong();
+            a = packetdataserializer.readPositionX( position );
+            b = packetdataserializer.readPositionY( position );
+            c = packetdataserializer.readPositionZ( position );
+        }
+        // Spigot end
         this.face = packetdataserializer.readUnsignedByte();
     }
 

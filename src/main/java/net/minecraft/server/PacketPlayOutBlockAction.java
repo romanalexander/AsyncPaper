@@ -30,9 +30,17 @@ public class PacketPlayOutBlockAction extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeShort(this.b);
-        packetdataserializer.writeInt(this.c);
+        // Spigot start
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeShort( this.b );
+            packetdataserializer.writeInt( this.c );
+        } else
+        {
+            packetdataserializer.writePosition( a, b, c );
+        }
+        // Spigot end
         packetdataserializer.writeByte(this.d);
         packetdataserializer.writeByte(this.e);
         packetdataserializer.b(Block.getId(this.f) & 4095);

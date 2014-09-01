@@ -27,11 +27,22 @@ public class PacketPlayOutBlockChange extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeByte(this.b);
-        packetdataserializer.writeInt(this.c);
-        packetdataserializer.b(Block.getId(this.block));
-        packetdataserializer.writeByte(this.data);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 25 )
+        {
+            packetdataserializer.writeInt( this.a );
+            packetdataserializer.writeByte( this.b );
+            packetdataserializer.writeInt( this.c );
+            packetdataserializer.b( Block.getId( this.block ) );
+            packetdataserializer.writeByte(this.data);
+        } else
+        {
+            packetdataserializer.writePosition( a, b, c );
+            int id = Block.getId( this.block );
+            data = org.spigotmc.SpigotDebreakifier.getCorrectedData( id, data );
+            packetdataserializer.b( (id << 4) | this.data );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

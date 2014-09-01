@@ -8,6 +8,7 @@ public class PacketPlayOutEntityTeleport extends Packet {
     private int d;
     private byte e;
     private byte f;
+    private boolean onGround; // Spigot - protocol patch
 
     public PacketPlayOutEntityTeleport() {}
 
@@ -20,13 +21,14 @@ public class PacketPlayOutEntityTeleport extends Packet {
         this.f = (byte) ((int) (entity.pitch * 256.0F / 360.0F));
     }
 
-    public PacketPlayOutEntityTeleport(int i, int j, int k, int l, byte b0, byte b1) {
+    public PacketPlayOutEntityTeleport(int i, int j, int k, int l, byte b0, byte b1, boolean onGround) { // Spigot - protocol patch
         this.a = i;
         this.b = j;
         this.c = k;
         this.d = l;
         this.e = b0;
         this.f = b1;
+        this.onGround = onGround; // Spigot - protocol patch
     }
 
     public void a(PacketDataSerializer packetdataserializer) {
@@ -39,12 +41,26 @@ public class PacketPlayOutEntityTeleport extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
+        // Spigot start - protocol
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.a );
+        } else
+        {
+            packetdataserializer.b( a );
+        }
+        // Spigot end
         packetdataserializer.writeInt(this.b);
         packetdataserializer.writeInt(this.c);
         packetdataserializer.writeInt(this.d);
         packetdataserializer.writeByte(this.e);
         packetdataserializer.writeByte(this.f);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 22 )
+        {
+            packetdataserializer.writeBoolean( onGround );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

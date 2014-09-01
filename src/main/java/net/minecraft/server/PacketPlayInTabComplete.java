@@ -16,6 +16,14 @@ public class PacketPlayInTabComplete extends Packet {
 
     public void a(PacketDataSerializer packetdataserializer) throws IOException {
         this.a = packetdataserializer.c(32767);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 37 )
+        {
+            if (packetdataserializer.readBoolean()) {
+                long position = packetdataserializer.readLong();
+            }
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {

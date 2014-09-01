@@ -34,10 +34,40 @@ public class PacketPlayOutSpawnEntityPainting extends Packet {
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
         packetdataserializer.b(this.a);
         packetdataserializer.a(this.f);
-        packetdataserializer.writeInt(this.b);
-        packetdataserializer.writeInt(this.c);
-        packetdataserializer.writeInt(this.d);
-        packetdataserializer.writeInt(this.e);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 28 )
+        {
+            // North: 0   256
+            // West:  64  192
+            // South: 128 128
+            // East:  192 320
+            switch ( e ) {
+                case 0:
+                    d += 1;
+                    break;
+                case 1:
+                    b -= 1;
+                    break;
+                case 2:
+                    d -= 1;
+                    break;
+                case 3:
+                    b += 1;
+                    break;
+            }
+        }
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.b );
+            packetdataserializer.writeInt( this.c );
+            packetdataserializer.writeInt( this.d );
+            packetdataserializer.writeInt( this.e );
+        } else
+        {
+            packetdataserializer.writePosition( b, c, d );
+            packetdataserializer.writeByte( e );
+        }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

@@ -24,6 +24,8 @@ import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 // Spigot start
 import com.google.common.collect.ImmutableSet;
+import org.spigotmc.SpigotCompressor;
+import org.spigotmc.SpigotDecompressor;
 // Spigot end
 
 public class NetworkManager extends SimpleChannelInboundHandler {
@@ -53,7 +55,7 @@ public class NetworkManager extends SimpleChannelInboundHandler {
     private boolean r;
     // Spigot Start
     public static final AttributeKey<Integer> protocolVersion = new AttributeKey<Integer>("protocol_version");
-    public static final ImmutableSet<Integer> SUPPORTED_VERSIONS = ImmutableSet.of(4, 5);
+    public static final ImmutableSet<Integer> SUPPORTED_VERSIONS = ImmutableSet.of(4, 5, 47);
     public static final int CURRENT_VERSION = 5;
     public static int getVersion(Channel attr)
     {
@@ -244,4 +246,18 @@ public class NetworkManager extends SimpleChannelInboundHandler {
         return this.m.remoteAddress();
     }
     // Spigot End
+
+
+    // Spigot start - protocol patch
+    public void enableCompression() {
+        // Fix ProtocolLib compatibility
+        if ( m.pipeline().get("protocol_lib_decoder") != null ) {
+            m.pipeline().addBefore( "protocol_lib_decoder", "decompress", new SpigotDecompressor() );
+        } else {
+            m.pipeline().addBefore( "decoder", "decompress", new SpigotDecompressor() );
+        }
+
+        m.pipeline().addBefore( "encoder", "compress", new SpigotCompressor() );
+    }
+    // Spigot end
 }

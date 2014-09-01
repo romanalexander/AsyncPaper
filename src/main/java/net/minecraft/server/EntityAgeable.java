@@ -73,11 +73,11 @@ public abstract class EntityAgeable extends EntityCreature {
 
     protected void c() {
         super.c();
-        this.datawatcher.a(12, new Integer(0));
+        this.datawatcher.a(12, new org.spigotmc.ProtocolData.IntByte(0, (byte) 0)); // Spigot - protocol patch
     }
 
     public int getAge() {
-        return this.datawatcher.getInt(12);
+        return this.datawatcher.getIntByte(12).value; // Spigot - protocol patch
     }
 
     public void a(int i) {
@@ -92,7 +92,7 @@ public abstract class EntityAgeable extends EntityCreature {
     }
 
     public void setAge(int i) {
-        this.datawatcher.watch(12, Integer.valueOf(i));
+        this.datawatcher.watch(12, new org.spigotmc.ProtocolData.IntByte(i, (byte) ( i < 0 ? -1 : (i >= 6000 ? 1 : 0)))); // Spigot - protocol patch
         this.a(this.isBaby());
     }
 

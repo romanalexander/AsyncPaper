@@ -12,7 +12,15 @@ public class PacketPlayInCustomPayload extends Packet {
 
     public void a(PacketDataSerializer packetdataserializer) throws IOException { // CraftBukkit - added throws
         this.tag = packetdataserializer.c(20);
-        this.length = packetdataserializer.readShort();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 29 )
+        {
+            this.length = packetdataserializer.readShort();
+        } else
+        {
+            this.length = packetdataserializer.readableBytes();
+        }
+        // Spigot end
         if (this.length > 0 && this.length < 32767) {
             this.data = new byte[this.length];
             packetdataserializer.readBytes(this.data);

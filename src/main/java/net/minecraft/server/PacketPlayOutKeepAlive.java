@@ -19,7 +19,15 @@ public class PacketPlayOutKeepAlive extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.a);
+        // Spigot start
+        if ( packetdataserializer.version >= 32 )
+        {
+            packetdataserializer.b( this.a );
+        } else
+        {
+            packetdataserializer.writeInt( this.a );
+        }
+        // Spigot end
     }
 
     public boolean a() {

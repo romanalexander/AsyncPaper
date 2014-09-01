@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 // CraftBukkit end
+import org.spigotmc.ProtocolData; // Spigot - protocol patch
 
 public abstract class EntityHuman extends EntityLiving implements ICommandListener {
 
@@ -89,9 +90,10 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
 
     protected void c() {
         super.c();
-        this.datawatcher.a(16, Byte.valueOf((byte) 0));
+        this.datawatcher.a( 16, new ProtocolData.DualByte( (byte) 0, (byte) 0 ) ); // Spigot - protocol patch, handle metadata usage change (show cape -> collisions)
         this.datawatcher.a(17, Float.valueOf(0.0F));
         this.datawatcher.a(18, Integer.valueOf(0));
+        this.datawatcher.a( 10, new ProtocolData.HiddenByte( (byte) 0 ) ); // Spigot - protocol patch, handle new metadata value
     }
 
     public boolean by() {
@@ -1224,15 +1226,23 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
         return this.sleeping && this.sleepTicks >= 100;
     }
 
-    protected void b(int i, boolean flag) {
-        byte b0 = this.datawatcher.getByte(16);
-
+    // Spigot start - protocol patch, handle metadata usage change (show cape -> collisions)
+    protected void b(int i, boolean flag, int version) {
+        ProtocolData.DualByte db = this.datawatcher.getDualByte( 16 );
+        byte b0 = version >= 16 ? db.value2 : db.value;
         if (flag) {
-            this.datawatcher.watch(16, Byte.valueOf((byte) (b0 | 1 << i)));
+            b0 = (byte) ( b0 | 1 << i );
         } else {
-            this.datawatcher.watch(16, Byte.valueOf((byte) (b0 & ~(1 << i))));
+            b0 = (byte) (b0 & ~(1 << i));
         }
+        if (version >= 16) {
+            db.value2 = b0;
+        } else {
+            db.value = b0;
+        }
+        this.datawatcher.watch(16, db);
     }
+    // Spigot end
 
     public void b(IChatBaseComponent ichatbasecomponent) {}
 

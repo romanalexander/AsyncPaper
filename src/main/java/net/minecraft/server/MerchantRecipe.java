@@ -5,8 +5,8 @@ public class MerchantRecipe {
     private ItemStack buyingItem1;
     private ItemStack buyingItem2;
     private ItemStack sellingItem;
-    private int uses;
-    private int maxUses;
+    public int uses; // Spigot - protocol patch
+    public int maxUses; // Spigot - protocol patch
 
     public MerchantRecipe(NBTTagCompound nbttagcompound) {
         this.a(nbttagcompound);

@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
+import java.util.UUID;
 
 import net.minecraft.util.com.google.common.base.Charsets;
 import net.minecraft.util.io.netty.buffer.ByteBuf;
@@ -15,6 +16,15 @@ import net.minecraft.util.io.netty.buffer.ByteBufAllocator;
 import net.minecraft.util.io.netty.buffer.ByteBufProcessor;
 
 import org.bukkit.craftbukkit.inventory.CraftItemStack; // CraftBukkit
+
+// Spigot start - protocol patch
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import net.minecraft.util.io.netty.buffer.Unpooled;
+import net.minecraft.util.io.netty.buffer.ByteBufInputStream;
+import net.minecraft.util.io.netty.buffer.ByteBufOutputStream;
+import org.spigotmc.SpigotComponentReverter;
+// Spigot end
 
 public class PacketDataSerializer extends ByteBuf {
 
@@ -30,6 +40,32 @@ public class PacketDataSerializer extends ByteBuf {
     public PacketDataSerializer(ByteBuf bytebuf, int version) {
         this.a = bytebuf;
         this.version = version;
+    }
+
+    public void writePosition(int x, int y, int z) {
+        writeLong( ( ( (long) x & 0x3FFFFFFL ) << 38 )
+                | ( ( (long) y & 0xFFFL ) << 26 )
+                | ( (long) z & 0x3FFFFFFL ) );
+    }
+
+    public int readPositionX(long val)
+    {
+        return (int) ( val >> 38 );
+    }
+
+    public int readPositionY(long val)
+    {
+        return (int) (val << 26 >> 52);
+    }
+
+    public int readPositionZ(long val)
+    {
+        return (int) (val << 38 >> 38);
+    }
+
+    public void writeUUID(UUID uuid) {
+        writeLong( uuid.getMostSignificantBits() );
+        writeLong( uuid.getLeastSignificantBits() );
     }
     // Spigot End
 
@@ -63,35 +99,75 @@ public class PacketDataSerializer extends ByteBuf {
         this.writeByte(i);
     }
 
-    public void a(NBTTagCompound nbttagcompound) {
-        if (nbttagcompound == null) {
-            this.writeShort(-1);
-        } else {
-            byte[] abyte = NBTCompressedStreamTools.a(nbttagcompound);
+    // Spigot start - protocol patch
+    public void a(NBTTagCompound nbttagcompound)
+    {
+        if ( version < 28 )
+        {
+            if ( nbttagcompound == null )
+            {
+                this.writeShort( -1 );
+            } else
+            {
+                byte[] abyte = NBTCompressedStreamTools.a( nbttagcompound );
 
-            this.writeShort((short) abyte.length);
-            this.writeBytes(abyte);
+                this.writeShort( (short) abyte.length );
+                this.writeBytes( abyte );
+            }
+        } else
+        {
+            if ( nbttagcompound == null )
+            {
+                this.writeByte( 0 );
+            } else
+            {
+                ByteBufOutputStream out = new ByteBufOutputStream( Unpooled.buffer() );
+                NBTCompressedStreamTools.a( nbttagcompound, (java.io.DataOutput) new DataOutputStream( out ) );
+                writeBytes( out.buffer() );
+                out.buffer().release();
+            }
         }
     }
 
     public NBTTagCompound b() {
-        short short1 = this.readShort();
+        if ( version < 28 )
+        {
+            short short1 = this.readShort();
 
-        if (short1 < 0) {
-            return null;
+            if ( short1 < 0 )
+            {
+                return null;
+            } else
+            {
+                byte[] abyte = new byte[ short1 ];
+
+                this.readBytes( abyte );
+                return NBTCompressedStreamTools.a( abyte, new NBTReadLimiter( 2097152L ) );
+            }
         } else {
-            byte[] abyte = new byte[short1];
-
-            this.readBytes(abyte);
-            return NBTCompressedStreamTools.a(abyte, new NBTReadLimiter(2097152L));
+            int index = readerIndex();
+            if (readByte() == 0) {
+                return null;
+            }
+            readerIndex(index);
+            return NBTCompressedStreamTools.a( new DataInputStream( new ByteBufInputStream( a ) ) );
         }
     }
+    // Spigot end
 
     public void a(ItemStack itemstack) {
         if (itemstack == null || itemstack.getItem() == null) { // CraftBukkit - NPE fix itemstack.getItem()
             this.writeShort(-1);
         } else {
-            this.writeShort(Item.getId(itemstack.getItem()));
+            // Spigot start - protocol patch
+            if ( version >= 47 )
+            {
+                this.writeShort( org.spigotmc.SpigotDebreakifier.getItemId( Item.getId( itemstack.getItem() ) ) );
+            } else
+            {
+                this.writeShort( Item.getId( itemstack.getItem() ) );
+            }
+            // Spigot end
             this.writeByte(itemstack.count);
             this.writeShort(itemstack.getData());
             NBTTagCompound nbttagcompound = null;
@@ -103,6 +179,31 @@ public class PacketDataSerializer extends ByteBuf {
                 // Spigot end
                 nbttagcompound = itemstack.tag;
             }
+
+            // Spigot start - protocol patch
+            if (nbttagcompound != null && version >= 29 )
+            {
+                if ( itemstack.getItem() == Items.WRITTEN_BOOK && nbttagcompound.hasKeyOfType("pages", 9) )
+                {
+                    nbttagcompound = (NBTTagCompound) nbttagcompound.clone();
+                    NBTTagList nbttaglist = nbttagcompound.getList( "pages", 8 );
+                    NBTTagList newList = new NBTTagList();
+                    for (int i = 0; i < nbttaglist.size(); ++i)
+                    {
+                        IChatBaseComponent[] parts = org.bukkit.craftbukkit.util.CraftChatMessage.fromString( nbttaglist.getString( i ) );
+                        IChatBaseComponent root = parts[0];
+                        for ( int i1 = 1; i1 < parts.length; i1++ )
+                        {
+                            IChatBaseComponent c = parts[ i1 ];
+                            root.a( "\n" );
+                            root.addSibling( c );
+                        }
+                        newList.add( new NBTTagString( ChatSerializer.a( root ) ) );
+                    }
+                    nbttagcompound.set( "pages", newList );
+                }
+            }
+            // Spigot end
 
             this.a(nbttagcompound);
         }
@@ -120,6 +221,24 @@ public class PacketDataSerializer extends ByteBuf {
             itemstack.tag = this.b();
             // CraftBukkit start
             if (itemstack.tag != null) {
+
+                // Spigot start - protocol patch
+                if ( version >= 29
+                        && itemstack.getItem() == Items.WRITTEN_BOOK
+                        && itemstack.tag.hasKeyOfType("pages", 9) )
+                {
+                    NBTTagList nbttaglist = itemstack.tag.getList( "pages", 8 );
+                    NBTTagList newList = new NBTTagList();
+                    for (int i = 0; i < nbttaglist.size(); ++i)
+                    {
+                        IChatBaseComponent s = ChatSerializer.a( nbttaglist.getString( i ) );
+                        String newString = SpigotComponentReverter.toLegacy( s );
+                        newList.add( new NBTTagString( newString ) );
+                    }
+                    itemstack.tag.set( "pages", newList );
+                }
+                // Spigot end
+
                 CraftItemStack.setItemMeta(itemstack, CraftItemStack.getItemMeta(itemstack));
             }
             // CraftBukkit end

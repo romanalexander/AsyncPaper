@@ -16,6 +16,10 @@ public class EntityItemFrame extends EntityHanging {
     protected void c() {
         this.getDataWatcher().add(2, 5);
         this.getDataWatcher().a(3, Byte.valueOf((byte) 0));
+        // Spigot start - protocol patch
+        this.getDataWatcher().add(8, 5);
+        this.getDataWatcher().a(9, Byte.valueOf((byte) 0));
+        // Spigot end
     }
 
     public boolean damageEntity(DamageSource damagesource, float f) {
@@ -99,6 +103,10 @@ public class EntityItemFrame extends EntityHanging {
 
         this.getDataWatcher().watch(2, itemstack);
         this.getDataWatcher().update(2);
+        // Spigot start - protocol patch
+        this.getDataWatcher().watch(8, itemstack);
+        this.getDataWatcher().update(8);
+        // Spigot end
     }
 
     public int getRotation() {
@@ -107,6 +115,7 @@ public class EntityItemFrame extends EntityHanging {
 
     public void setRotation(int i) {
         this.getDataWatcher().watch(3, Byte.valueOf((byte) (i % 4)));
+        this.getDataWatcher().watch(9, Byte.valueOf((byte) ((i % 4) * 2))); // Spigot - protocol patch
     }
 
     public void b(NBTTagCompound nbttagcompound) {

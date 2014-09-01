@@ -11,6 +11,11 @@ public class PacketPlayInSettings extends Packet {
     private EnumDifficulty e;
     private boolean f;
 
+    // Spigot start - protocol patch
+    public int version;
+    public int flags;
+    // Spigot end
+
     public PacketPlayInSettings() {}
 
     public void a(PacketDataSerializer packetdataserializer) throws IOException {
@@ -18,8 +23,17 @@ public class PacketPlayInSettings extends Packet {
         this.b = packetdataserializer.readByte();
         this.c = EnumChatVisibility.a(packetdataserializer.readByte());
         this.d = packetdataserializer.readBoolean();
-        this.e = EnumDifficulty.getById(packetdataserializer.readByte());
-        this.f = packetdataserializer.readBoolean();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.e = EnumDifficulty.getById( packetdataserializer.readByte() );
+            this.f = packetdataserializer.readBoolean();
+        } else
+        {
+            flags = packetdataserializer.readUnsignedByte();
+        }
+        version = packetdataserializer.version;
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {

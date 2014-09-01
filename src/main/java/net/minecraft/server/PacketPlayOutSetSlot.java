@@ -2,8 +2,8 @@ package net.minecraft.server;
 
 public class PacketPlayOutSetSlot extends Packet {
 
-    private int a;
-    private int b;
+    public int a; // Spigot
+    public int b; // Spigot
     private ItemStack c;
 
     public PacketPlayOutSetSlot() {}

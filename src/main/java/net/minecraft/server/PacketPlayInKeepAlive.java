@@ -11,7 +11,15 @@ public class PacketPlayInKeepAlive extends Packet {
     }
 
     public void a(PacketDataSerializer packetdataserializer) {
-        this.a = packetdataserializer.readInt();
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            this.a = packetdataserializer.readInt();
+        } else
+        {
+            this.a = packetdataserializer.a();
+        }
+        // Spigot end
     }
 
     public void b(PacketDataSerializer packetdataserializer) {

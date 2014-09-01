@@ -1,13 +1,16 @@
 package org.bukkit.craftbukkit;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import joptsimple.OptionParser;
@@ -18,7 +21,7 @@ public class Main {
     public static boolean useJline = true;
     public static boolean useConsole = true;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         // Spigot Start
         File lock = new File( ".update-lock" );
         if ( !new File( "update-lock" ).exists() && !lock.exists()  && System.getProperty( "IReallyKnowWhatIAmDoingThisUpdate" ) == null )
@@ -37,6 +40,32 @@ public class Main {
                 Thread.sleep( TimeUnit.SECONDS.toMillis( 10 ) );
             } catch ( InterruptedException ex )
             {
+            }
+        }
+
+        System.err.println( "This Spigot build supports Minecraft clients both of versions 1.7.x and of 1.8.x.\n"
+                + "*** It is imperative that backups be taken before running this build on your server! ***\n"
+                + "Please report any such issues to http://www.spigotmc.org/, stating your client, server, and if applicable BungeeCord versions.\n"
+                + "*** Any bug reports not running the very latest versions of these softwares will be ignored ***\n\n" );
+
+        Enumeration<URL> resources = Main.class.getClassLoader().getResources( "META-INF/MANIFEST.MF" );
+        while ( resources.hasMoreElements() )
+        {
+            Manifest manifest = new Manifest( resources.nextElement().openStream() );
+            String ts = manifest.getMainAttributes().getValue( "Timestamp" );
+            if ( ts != null )
+            {
+                Date buildDate = new SimpleDateFormat( "yyyyMMdd-hhmm" ).parse( ts );
+
+                Calendar cal = Calendar.getInstance();
+                cal.add( Calendar.DAY_OF_YEAR, -2 );
+                if ( buildDate.before(cal.getTime() ) )
+                {
+                    System.err.println( "WARNING: This build is more than 2 days old and there are likely updates available!" );
+                    System.err.println( "You will get no support with this build unless you update from http://ci.md-5.net/job/Spigot/" );
+                    System.err.println( "The server will start in 10 seconds!" );
+                    Thread.sleep( TimeUnit.SECONDS.toMillis( 10 ) );
+                }
             }
         }
         // Spigot End

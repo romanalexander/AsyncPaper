@@ -28,9 +28,17 @@ public class PacketPlayOutBlockBreakAnimation extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) {
         packetdataserializer.b(this.a);
-        packetdataserializer.writeInt(this.b);
-        packetdataserializer.writeInt(this.c);
-        packetdataserializer.writeInt(this.d);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.b );
+            packetdataserializer.writeInt( this.c );
+            packetdataserializer.writeInt( this.d );
+        } else
+        {
+            packetdataserializer.writePosition( b, c, d );
+        }
+        // Spigot end
         packetdataserializer.writeByte(this.e);
     }
 

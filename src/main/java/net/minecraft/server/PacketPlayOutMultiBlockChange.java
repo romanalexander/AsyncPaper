@@ -13,26 +13,44 @@ public class PacketPlayOutMultiBlockChange extends Packet {
     private ChunkCoordIntPair b;
     private byte[] c;
     private int d;
+    // Spigot start - protocol patch
+    private short[] ashort;
+    private int[] blocks;
+    private Chunk chunk;
+    // Spigot end
 
     public PacketPlayOutMultiBlockChange() {}
 
     public PacketPlayOutMultiBlockChange(int i, short[] ashort, Chunk chunk) {
+        // Spigot start
+        this.ashort = ashort;
+        this.chunk = chunk;
+        // Spigot end
         this.b = new ChunkCoordIntPair(chunk.locX, chunk.locZ);
         this.d = i;
         int j = 4 * i;
 
-        try {
-            ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream(j);
-            DataOutputStream dataoutputstream = new DataOutputStream(bytearrayoutputstream);
+        try
+        {
+            ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream( j );
+            DataOutputStream dataoutputstream = new DataOutputStream( bytearrayoutputstream );
 
+            // Spigot start
+            blocks = new int[i];
             for (int k = 0; k < i; ++k) {
                 int l = ashort[k] >> 12 & 15;
                 int i1 = ashort[k] >> 8 & 15;
                 int j1 = ashort[k] & 255;
 
                 dataoutputstream.writeShort(ashort[k]);
-                dataoutputstream.writeShort((short) ((Block.getId(chunk.getType(l, j1, i1)) & 4095) << 4 | chunk.getData(l, j1, i1) & 15));
+                int blockId = Block.getId( chunk.getType( l, j1, i1 ) );
+                int data = chunk.getData( l, j1, i1 );
+                data = org.spigotmc.SpigotDebreakifier.getCorrectedData( blockId, data );
+                int id = ( blockId & 4095 ) << 4 | data & 15;
+                dataoutputstream.writeShort((short) id);
+                blocks[k] = id;
             }
+            // Spigot end
 
             this.c = bytearrayoutputstream.toByteArray();
             if (this.c.length != j) {
@@ -56,15 +74,31 @@ public class PacketPlayOutMultiBlockChange extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) {
-        packetdataserializer.writeInt(this.b.x);
-        packetdataserializer.writeInt(this.b.z);
-        packetdataserializer.writeShort((short) this.d);
-        if (this.c != null) {
-            packetdataserializer.writeInt(this.c.length);
-            packetdataserializer.writeBytes(this.c);
+        // Spigot start - protocol patch
+        if (packetdataserializer.version < 25)
+        {
+            packetdataserializer.writeInt( this.b.x );
+            packetdataserializer.writeInt( this.b.z );
+            packetdataserializer.writeShort( (short) this.d );
+            if ( this.c != null )
+            {
+                packetdataserializer.writeInt( this.c.length );
+                packetdataserializer.writeBytes( this.c );
+            } else
+            {
+                packetdataserializer.writeInt( 0 );
+            }
         } else {
-            packetdataserializer.writeInt(0);
+            packetdataserializer.writeInt( this.b.x );
+            packetdataserializer.writeInt( this.b.z );
+            packetdataserializer.b( this.d );
+            for ( int i = 0; i < d; i++ )
+            {
+                packetdataserializer.writeShort( ashort[ i ] );
+                packetdataserializer.b( blocks[ i ] );
+            }
         }
+        // Spigot end
     }
 
     public void a(PacketPlayOutListener packetplayoutlistener) {

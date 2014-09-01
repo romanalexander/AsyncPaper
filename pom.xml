@@ -146,6 +146,7 @@
               <Specification-Version>${api.version}</Specification-Version>
               <Specification-Vendor>Bukkit Team</Specification-Vendor>
               <Sealed>true</Sealed>
+              <Timestamp>${maven.build.timestamp}</Timestamp>
             </manifestEntries>
             <manifestSections>
               <manifestSection>

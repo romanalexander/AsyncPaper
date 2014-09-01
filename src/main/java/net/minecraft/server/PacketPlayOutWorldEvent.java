@@ -31,9 +31,17 @@ public class PacketPlayOutWorldEvent extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) {
         packetdataserializer.writeInt(this.a);
-        packetdataserializer.writeInt(this.c);
-        packetdataserializer.writeByte(this.d & 255);
-        packetdataserializer.writeInt(this.e);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeInt( this.c );
+            packetdataserializer.writeByte( this.d & 255 );
+            packetdataserializer.writeInt( this.e );
+        } else
+        {
+            packetdataserializer.writePosition( c, d, e );
+        }
+        // Spigot end
         packetdataserializer.writeInt(this.b);
         packetdataserializer.writeBoolean(this.f);
     }

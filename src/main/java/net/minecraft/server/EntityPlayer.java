@@ -26,6 +26,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 // CraftBukkit end
+import org.spigotmc.ProtocolData; // Spigot - protocol patch
 
 public class EntityPlayer extends EntityHuman implements ICrafting {
 
@@ -233,7 +234,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
             }
 
             if (!arraylist.isEmpty()) {
-                this.playerConnection.sendPacket(new PacketPlayOutMapChunkBulk(arraylist));
+                this.playerConnection.sendPacket(new PacketPlayOutMapChunkBulk(arraylist, this.playerConnection.networkManager.getVersion())); // Spigot - protocol patch
                 Iterator iterator2 = arraylist1.iterator();
 
                 while (iterator2.hasNext()) {
@@ -594,7 +595,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
         // CraftBukkit end
 
         this.nextContainerCounter();
-        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 1, "Crafting", 9, true));
+        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 1, "Crafting", 0, true)); // Spigot - protocol patch
         this.activeContainer = container; // CraftBukkit - Use container we passed to event
         this.activeContainer.windowId = this.containerCounter;
         this.activeContainer.addSlotListener(this);
@@ -609,7 +610,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
         // CraftBukkit end
 
         this.nextContainerCounter();
-        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 4, s == null ? "" : s, 9, s != null));
+        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 4, s == null ? "" : s, 0, s != null)); // Spigot - protocol patch
         this.activeContainer = container; // CraftBukkit - Use container we passed to event
         this.activeContainer.windowId = this.containerCounter;
         this.activeContainer.addSlotListener(this);
@@ -624,7 +625,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
         // CraftBukkit end
 
         this.nextContainerCounter();
-        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 8, "Repairing", 9, true));
+        this.playerConnection.sendPacket(new PacketPlayOutOpenWindow(this.containerCounter, 8, "Repairing", 0, true)); // Spigot - protocol patch
         this.activeContainer = container; // CraftBukkit - Use container we passed to event
         this.activeContainer.windowId = this.containerCounter;
         this.activeContainer.addSlotListener(this);
@@ -764,7 +765,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
         MerchantRecipeList merchantrecipelist = imerchant.getOffers(this);
 
         if (merchantrecipelist != null) {
-            PacketDataSerializer packetdataserializer = new PacketDataSerializer(Unpooled.buffer());
+            PacketDataSerializer packetdataserializer = new PacketDataSerializer(Unpooled.buffer(), playerConnection.networkManager.getVersion()); // Spigot
 
             try {
                 packetdataserializer.writeInt(this.containerCounter);
@@ -821,6 +822,22 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
     }
 
     public void setContainerData(Container container, int i, int j) {
+        // Spigot start - protocol patch
+        if ( container instanceof ContainerFurnace && playerConnection.networkManager.getVersion() >= 47 )
+        {
+            switch ( i ) {
+                case 0:
+                    i = 2;
+                    this.playerConnection.sendPacket(new PacketPlayOutWindowData(container.windowId, 3, 200));
+                    break;
+                case 1:
+                    i = 0;
+                    break;
+                case 2:
+                    i = 1;
+            }
+        }
+        // Spigot end
         this.playerConnection.sendPacket(new PacketPlayOutWindowData(container.windowId, i, j));
     }
 
@@ -1004,7 +1021,16 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
             this.server.a(packetplayinsettings.g());
         }
 
-        this.b(1, !packetplayinsettings.h());
+        // Spigot start - protocol patch, handle metadata usage change (show cape -> collisions)
+        if (packetplayinsettings.version < 16)
+        {
+            this.b( 1, !packetplayinsettings.h(), packetplayinsettings.version );
+        } else
+        {
+            this.b( 1, false, packetplayinsettings.version );
+            datawatcher.watch( 10, new ProtocolData.HiddenByte( (byte) packetplayinsettings.flags ) );
+        }
+        // Spigot end
     }
 
     public EnumChatVisibility getChatFlags() {
@@ -1013,6 +1039,12 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
 
     public void setResourcePack(String s) {
         this.playerConnection.sendPacket(new PacketPlayOutCustomPayload("MC|RPack", s.getBytes(Charsets.UTF_8)));
+        // Spigot start - protocol patch
+        if ( playerConnection.networkManager.getVersion() >= 36 )
+        {
+            playerConnection.sendPacket( new org.spigotmc.ProtocolInjector.PacketPlayResourcePackSend( s, "thinkislazy" ) );
+        }
+        // Spigot end
     }
 
     public ChunkCoordinates getChunkCoordinates() {

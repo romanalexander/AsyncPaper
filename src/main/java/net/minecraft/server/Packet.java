@@ -26,12 +26,39 @@ public abstract class Packet {
     }
 
     public static void a(ByteBuf bytebuf, byte[] abyte) {
-        bytebuf.writeShort(abyte.length);
+        // Spigot start - protocol patch
+        if (bytebuf instanceof PacketDataSerializer)
+        {
+            PacketDataSerializer packetDataSerializer = (PacketDataSerializer) bytebuf;
+            if (packetDataSerializer.version >= 20) {
+                packetDataSerializer.b( abyte.length );
+            } else {
+                bytebuf.writeShort( abyte.length );
+            }
+        } else
+        {
+            bytebuf.writeShort( abyte.length );
+        }
+        // Spigot end
         bytebuf.writeBytes(abyte);
     }
 
     public static byte[] a(ByteBuf bytebuf) throws IOException { // CraftBukkit - added throws
-        short short1 = bytebuf.readShort();
+        // Spigot start - protocol patch
+        short short1 = 0;
+        if (bytebuf instanceof PacketDataSerializer)
+        {
+            PacketDataSerializer packetDataSerializer = (PacketDataSerializer) bytebuf;
+            if (packetDataSerializer.version >= 20) {
+                short1 = (short) packetDataSerializer.a();
+            } else {
+                short1 = bytebuf.readShort();
+            }
+        } else
+        {
+            short1 = bytebuf.readShort();
+        }
+        // Spigot end
 
         if (short1 < 0) {
             throw new IOException("Key was smaller than nothing!  Weird key!");

@@ -758,6 +758,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
 
     public static void main(final OptionSet options) { // CraftBukkit - replaces main(String[] astring)
         DispenserRegistry.b();
+        org.spigotmc.ProtocolInjector.inject();
 
         try {
             /* CraftBukkit start - Replace everything

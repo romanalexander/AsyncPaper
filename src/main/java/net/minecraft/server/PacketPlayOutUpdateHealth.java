@@ -22,7 +22,15 @@ public class PacketPlayOutUpdateHealth extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) {
         packetdataserializer.writeFloat(this.a);
-        packetdataserializer.writeShort(this.b);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version < 16 )
+        {
+            packetdataserializer.writeShort( this.b );
+        } else
+        {
+            packetdataserializer.b( this.b );
+        }
+        // Spigot end
         packetdataserializer.writeFloat(this.c);
     }
 

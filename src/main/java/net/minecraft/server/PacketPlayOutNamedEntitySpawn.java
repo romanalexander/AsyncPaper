@@ -64,8 +64,10 @@ public class PacketPlayOutNamedEntitySpawn extends Packet {
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException { // CraftBukkit - added throws
         packetdataserializer.b(this.a);
-        UUID uuid = this.b.getId();
 
+        UUID uuid = this.b.getId();
+        // Spigot start - protocol patch
+        if (packetdataserializer.version < 20) {
         packetdataserializer.a( uuid == null ? "" : ( ( packetdataserializer.version >= 5 ) ? uuid.toString() : uuid.toString().replaceAll( "-", "" ) ) ); // Spigot
         packetdataserializer.a(this.b.getName().length() > 16 ? this.b.getName().substring(0, 16) : this.b.getName()); // CraftBukkit - Limit name length to 16 characters
         if (packetdataserializer.version >= 5 ) { // Spigot
@@ -79,14 +81,26 @@ public class PacketPlayOutNamedEntitySpawn extends Packet {
             packetdataserializer.a(property.getValue());
             packetdataserializer.a(property.getSignature());
         }
-        } // Spigot
+        }
+        } else
+        {
+            packetdataserializer.writeUUID( uuid );
+        }
+        // Spigot end
 
         packetdataserializer.writeInt(this.c);
         packetdataserializer.writeInt(this.d);
         packetdataserializer.writeInt(this.e);
         packetdataserializer.writeByte(this.f);
         packetdataserializer.writeByte(this.g);
-        packetdataserializer.writeShort(this.h);
+        // Spigot start - protocol patch
+        if ( packetdataserializer.version >= 47 )
+        {
+            packetdataserializer.writeShort( org.spigotmc.SpigotDebreakifier.getItemId( this.h ) );
+        } else
+        {
+            packetdataserializer.writeShort( this.h );
+        }
         this.i.a(packetdataserializer);
     }
 

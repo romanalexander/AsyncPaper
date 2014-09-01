@@ -60,6 +60,13 @@ public class MerchantRecipeList extends ArrayList {
             }
 
             packetdataserializer.writeBoolean(merchantrecipe.g());
+            // Spigot start - protocol patch
+            if ( packetdataserializer.version >= 28 )
+            {
+                packetdataserializer.writeInt( merchantrecipe.uses );
+                packetdataserializer.writeInt( merchantrecipe.maxUses );
+            }
+            // Spigot end
         }
     }
 

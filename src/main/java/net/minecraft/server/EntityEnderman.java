@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.event.entity.EntityTeleportEvent;
 // CraftBukkit end
+import org.spigotmc.ProtocolData; // Spigot - protocol patch
 
 public class EntityEnderman extends EntityMonster {
 
@@ -33,7 +34,7 @@ public class EntityEnderman extends EntityMonster {
 
     protected void c() {
         super.c();
-        this.datawatcher.a(16, new Byte((byte) 0));
+        this.datawatcher.a( 16, new ProtocolData.ByteShort( (short) 0 ) ); // Spigot - protocol patch, handle metadata change
         this.datawatcher.a(17, new Byte((byte) 0));
         this.datawatcher.a(18, new Byte((byte) 0));
     }
@@ -315,11 +316,11 @@ public class EntityEnderman extends EntityMonster {
     }
 
     public void setCarried(Block block) {
-        this.datawatcher.watch(16, Byte.valueOf((byte) (Block.getId(block) & 255)));
+        this.datawatcher.watch( 16, new ProtocolData.ByteShort( (short) Block.getId( block ) ) ); // Spigot - protocol patch, handle metadata change
     }
 
     public Block getCarried() {
-        return Block.getById(this.datawatcher.getByte(16));
+        return Block.getById(this.datawatcher.getShort( 16 )); // Spigot - protocol patch, handle metadata change
     }
 
     public void setCarriedData(int i) {

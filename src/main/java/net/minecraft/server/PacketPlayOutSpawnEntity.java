@@ -84,6 +84,39 @@ public class PacketPlayOutSpawnEntity extends Packet {
     public void b(PacketDataSerializer packetdataserializer) {
         packetdataserializer.b(this.a);
         packetdataserializer.writeByte(this.j);
+        // Spigot start - protocol patch
+        if ( j == 71 && packetdataserializer.version >= 28 )
+        {
+            // North: 0   256
+            // West:  64  192
+            // South: 128 128
+            // East:  192 320
+            switch ( k ) {
+                case 0:
+                    d += 32;
+                    i = 0;
+                    break;
+                case 1:
+                    b -= 32;
+                    i = 64;
+                    break;
+                case 2:
+                    d -= 32;
+                    i = 128;
+                    break;
+                case 3:
+                    b += 32;
+                    i = 192;
+                    break;
+            }
+        }
+        if ( j == 70 && packetdataserializer.version >= 36 )
+        {
+            int id = k & 0xFFFF;
+            int data = k >> 16;
+            k = id | ( data << 12 );
+        }
+        // Spigot end
         packetdataserializer.writeInt(this.b);
         packetdataserializer.writeInt(this.c);
         packetdataserializer.writeInt(this.d);
