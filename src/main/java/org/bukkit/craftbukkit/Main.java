@@ -48,26 +48,6 @@ public class Main {
                 + "Please report any such issues to http://www.spigotmc.org/, stating your client, server, and if applicable BungeeCord versions.\n"
                 + "*** Any bug reports not running the very latest versions of these softwares will be ignored ***\n\n" );
 
-        Enumeration<URL> resources = Main.class.getClassLoader().getResources( "META-INF/MANIFEST.MF" );
-        while ( resources.hasMoreElements() )
-        {
-            Manifest manifest = new Manifest( resources.nextElement().openStream() );
-            String ts = manifest.getMainAttributes().getValue( "Timestamp" );
-            if ( ts != null )
-            {
-                Date buildDate = new SimpleDateFormat( "yyyyMMdd-hhmm" ).parse( ts );
-
-                Calendar cal = Calendar.getInstance();
-                cal.add( Calendar.DAY_OF_YEAR, -2 );
-                if ( buildDate.before(cal.getTime() ) )
-                {
-                    System.err.println( "WARNING: This build is more than 2 days old and there are likely updates available!" );
-                    System.err.println( "You will get no support with this build unless you update from http://ci.md-5.net/job/Spigot/" );
-                    System.err.println( "The server will start in 10 seconds!" );
-                    Thread.sleep( TimeUnit.SECONDS.toMillis( 10 ) );
-                }
-            }
-        }
         // Spigot End
         // Todo: Installation script
         OptionParser parser = new OptionParser() {
