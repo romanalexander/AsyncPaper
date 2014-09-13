@@ -1,10 +1,14 @@
 package net.minecraft.server;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
+
 import java.io.IOException;
 
 public class PacketPlayOutChat extends Packet {
 
     private IChatBaseComponent a;
+    public BaseComponent[] components; // Spigot - Update 20140909b
     private boolean b;
 
     public PacketPlayOutChat() {
@@ -26,7 +30,16 @@ public class PacketPlayOutChat extends Packet {
     }
 
     public void b(PacketDataSerializer packetdataserializer) throws IOException {
-        packetdataserializer.a(ChatSerializer.a(this.a));
+        // Spigot start - Update 20140909b
+        if (components != null)
+        {
+            packetdataserializer.a( ComponentSerializer.toString(components) );
+        }
+        else {
+            packetdataserializer.a( ChatSerializer.a(a) );
+        }
+        // Spigot end
+
         // Spigot start - protocol patch
         if ( packetdataserializer.version >= 16 )
         {

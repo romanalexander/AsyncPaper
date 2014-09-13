@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.ChunkCoordinates;
 import net.minecraft.server.CommandAchievement;
 import net.minecraft.server.CommandBan;
@@ -1836,6 +1837,24 @@ public final class CraftServer implements Server {
         public YamlConfiguration getConfig()
         {
             return org.spigotmc.SpigotConfig.config;
+        }
+
+        @Override
+        public void broadcast( BaseComponent component )
+        {
+            for ( Player player : getOnlinePlayers() )
+            {
+                player.spigot().sendMessage( component );
+            }
+        }
+
+        @Override
+        public void broadcast( BaseComponent... components )
+        {
+            for ( Player player : getOnlinePlayers() )
+            {
+                player.spigot().sendMessage( components );
+            }
         }
     };
 
