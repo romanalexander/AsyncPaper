@@ -33,6 +33,20 @@ public class PacketPlayOutEntityTeleport extends Packet {
         this.heightCorrection = heightCorrection;  // Spigot Update - 20140916a
     }
 
+    /**
+     * PaperSpigot - Backwards compatible PacketPlayOutEntityTeleport contructor
+     */
+    public PacketPlayOutEntityTeleport(int i, int j, int k, int l, byte b0, byte b1, boolean onGround) {
+        this(i, j, k, l, b0, b1, onGround, false);
+    }
+
+    /**
+     * PaperSpigot - Backwards compatible PacketPlayOutEntityTeleport contructor
+     */
+    public PacketPlayOutEntityTeleport(int i, int j, int k, int l, byte b0, byte b1) {
+        this(i, j, k, l, b0, b1, false, false);
+    }
+
     public void a(PacketDataSerializer packetdataserializer) {
         this.a = packetdataserializer.readInt();
         this.b = packetdataserializer.readInt();
