@@ -147,7 +147,7 @@ public class EntityTrackerEntry {
                             this.scanPlayers(new java.util.ArrayList(this.trackedPlayers));
                         }
                         // CraftBukkit end
-                        object = new PacketPlayOutEntityTeleport(this.tracker.getId(), i, j, k, (byte) l, (byte) i1, tracker.onGround); // Spigot - protocol patch
+                        object = new PacketPlayOutEntityTeleport(this.tracker.getId(), i, j, k, (byte) l, (byte) i1, tracker.onGround, tracker instanceof EntityFallingBlock || tracker instanceof EntityTNTPrimed); // Spigot - protocol patch // Spigot Update - 20140916a
                     }
                 }
 

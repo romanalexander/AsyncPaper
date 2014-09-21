@@ -116,6 +116,12 @@ public class PacketPlayOutSpawnEntity extends Packet {
             int data = k >> 16;
             k = id | ( data << 12 );
         }
+
+        if ( ( j == 50 || j == 70 || j == 74 ) && packetdataserializer.version >= 16 ) // Spigot Update - 20140916a
+        {
+            c -= 16;
+        }
+
         // Spigot end
         packetdataserializer.writeInt(this.b);
         packetdataserializer.writeInt(this.c);
