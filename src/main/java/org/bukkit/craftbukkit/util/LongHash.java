@@ -10,6 +10,6 @@ public class LongHash {
     }
 
     public static int lsw(long l) {
-        return (int) (l) + Integer.MIN_VALUE; // Spigot - remove redundant &
+        return (int) (l & -1L) + Integer.MIN_VALUE; // Spigot - remove redundant & // Spigot Update - 20140921a
     }
 }

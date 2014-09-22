@@ -199,6 +199,8 @@ public class NetworkManager extends SimpleChannelInboundHandler {
     public void close(IChatBaseComponent ichatbasecomponent) {
         // Spigot Start
         this.preparing = false;
+        this.k.clear(); // Spigot Update - 20140921a
+        this.l.clear(); // Spigot Update - 20140921a
         // Spigot End
         if (this.m.isOpen()) {
             this.m.close();
