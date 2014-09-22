@@ -160,10 +160,10 @@ public class Main {
                 }
             }
 
-            System.err.println( "This Spigot build supports Minecraft clients both of versions 1.7.x and of 1.8.x.\n"
+            System.err.println( "This PaperSpigot build only supports Minecraft 1.7.x and 1.8.x clients!\n"
                     + "*** It is imperative that backups be taken before running this build on your server! ***\n"
-                    + "Please report any such issues to http://www.spigotmc.org/, stating your client, server, and if applicable BungeeCord versions.\n"
-                    + "*** Any bug reports not running the very latest versions of these softwares will be ignored ***\n\n" );
+                    + "Please report issues directly to Paper, and always ensure you're up-to-date!\n"
+                    + "*** Any bug reports not running the very latest version of the software will be ignored ***\n\n" );
 
             // Spigot end
 
