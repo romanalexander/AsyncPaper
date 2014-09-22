@@ -2847,6 +2847,34 @@ public abstract class World implements IBlockAccess {
         return entityhuman;
     }
 
+    // PaperSpigot start - Find players with the spawning flag
+    public EntityHuman findNearbyPlayerWhoAffectsSpawning(Entity entity, double radius) {
+        return this.findNearbyPlayerWhoAffectsSpawning(entity.locX, entity.locY, entity.locZ, radius);
+    }
+
+    public EntityHuman findNearbyPlayerWhoAffectsSpawning(double x, double y, double z, double radius) {
+        double nearestRadius = - 1.0D;
+        EntityHuman entityHuman = null;
+
+        for (int i = 0; i < this.players.size(); ++i) {
+            EntityHuman nearestPlayer = (EntityHuman) this.players.get(i);
+
+            if (nearestPlayer == null || nearestPlayer.dead || !nearestPlayer.affectsSpawning) {
+                continue;
+            }
+
+            double distance = nearestPlayer.e(x, y, z);
+
+            if ((radius < 0.0D || distance < radius * radius) && (nearestRadius == -1.0D || distance < nearestRadius)) {
+                nearestRadius = distance;
+                entityHuman = nearestPlayer;
+            }
+        }
+
+        return entityHuman;
+    }
+    // PaperSpigot end
+
     public EntityHuman a(String s) {
         for (int i = 0; i < this.players.size(); ++i) {
             EntityHuman entityhuman = (EntityHuman) this.players.get(i);

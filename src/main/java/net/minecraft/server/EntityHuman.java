@@ -42,6 +42,7 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
     public boolean sleeping; // protected -> public
     public boolean fauxSleeping;
     public String spawnWorld = "";
+    public boolean affectsSpawning = true; // PaperSpigot
 
     @Override
     public CraftHumanEntity getBukkitEntity() {

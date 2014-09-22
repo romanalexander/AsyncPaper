@@ -55,6 +55,10 @@ public final class SpawnerCreature {
 
             for (i = 0; i < worldserver.players.size(); ++i) {
                 EntityHuman entityhuman = (EntityHuman) worldserver.players.get(i);
+                // PaperSpigot start - Affects spawning API
+                if (!entityhuman.affectsSpawning)
+                    continue;
+                // PaperSpigot end
                 int k = MathHelper.floor(entityhuman.locX / 16.0D);
 
                 j = MathHelper.floor(entityhuman.locZ / 16.0D);
@@ -154,7 +158,7 @@ public final class SpawnerCreature {
                                                     float f1 = (float) i3;
                                                     float f2 = (float) j3 + 0.5F;
 
-                                                    if (worldserver.findNearbyPlayer((double) f, (double) f1, (double) f2, 24.0D) == null) {
+                                                    if (worldserver.findNearbyPlayerWhoAffectsSpawning((double) f, (double) f1, (double) f2, 24.0D) == null) { // PaperSpigot
                                                         float f3 = f - (float) chunkcoordinates.x;
                                                         float f4 = f1 - (float) chunkcoordinates.y;
                                                         float f5 = f2 - (float) chunkcoordinates.z;

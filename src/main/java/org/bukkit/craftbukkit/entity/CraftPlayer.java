@@ -1449,6 +1449,17 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
             packet.components = components;
             getHandle().playerConnection.sendPacket( packet );
         }
+
+        // PaperSpigot start - Add affects spawning API
+        public void setAffectsSpawning(boolean affects) {
+            getHandle().affectsSpawning = affects;
+        }
+
+        public boolean getAffectsSpawning() {
+            return getHandle().affectsSpawning;
+        }
+        // PaperSpigot end
+
     };
 
     public Player.Spigot spigot()

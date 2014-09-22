@@ -46,7 +46,7 @@ public abstract class MobSpawnerAbstract {
     }
 
     public boolean f() {
-        return this.a().findNearbyPlayer((double) this.b() + 0.5D, (double) this.c() + 0.5D, (double) this.d() + 0.5D, (double) this.requiredPlayerRange) != null;
+        return this.a().findNearbyPlayerWhoAffectsSpawning((double) this.b() + 0.5D, (double) this.c() + 0.5D, (double) this.d() + 0.5D, (double) this.requiredPlayerRange) != null; // PaperSpigot
     }
 
     public void g() {
