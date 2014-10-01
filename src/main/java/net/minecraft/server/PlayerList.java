@@ -285,11 +285,17 @@ public abstract class PlayerList {
 
         // CraftBukkit start - sendAll above replaced with this loop
         PacketPlayOutPlayerInfo packet = PacketPlayOutPlayerInfo.addPlayer( entityplayer ); // Spigot - protocol patch
+        PacketPlayOutPlayerInfo displayPacket = PacketPlayOutPlayerInfo.updateDisplayName( entityplayer ); // Spigot Update - 20140927a
         for (int i = 0; i < this.players.size(); ++i) {
             EntityPlayer entityplayer1 = (EntityPlayer) this.players.get(i);
 
             if (entityplayer1.getBukkitEntity().canSee(entityplayer.getBukkitEntity())) {
                 entityplayer1.playerConnection.sendPacket(packet);
+                // Spigot start - Update 20140927a
+                if ( entityplayer1.playerConnection.networkManager.getVersion() > 28 ) {
+                    entityplayer1.playerConnection.sendPacket( displayPacket );
+                }
+                // Spigot end
             }
         }
         // CraftBukkit end
@@ -303,6 +309,11 @@ public abstract class PlayerList {
             }
             // .name -> .listName
             entityplayer.playerConnection.sendPacket(PacketPlayOutPlayerInfo.addPlayer( entityplayer1 )); // Spigot - protocol patch
+            // Spigot start - Update 20140927a
+            if ( entityplayer.playerConnection.networkManager.getVersion() > 28 ) {
+                entityplayer.playerConnection.sendPacket( PacketPlayOutPlayerInfo.updateDisplayName( entityplayer1 ) );
+            }
+            // Spigot end
             // CraftBukkit end
         }
     }
