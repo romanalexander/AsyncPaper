@@ -325,7 +325,7 @@ public class EntityTrackerEntry {
                     {
                         entityplayer.playerConnection.sendPacket( PacketPlayOutPlayerInfo.addPlayer( (EntityPlayer) tracker ) );
 
-                        if ( entityplayer.playerConnection.networkManager.getVersion() > 28 ) { // Spigot Update - 20140927a
+                        if ( !entityplayer.getName().equals( entityplayer.listName ) && entityplayer.playerConnection.networkManager.getVersion() > 28 ) { // Spigot Update - 20140927a // Spigot Update - 20141001a
                             entityplayer.playerConnection.sendPacket( PacketPlayOutPlayerInfo.updateDisplayName( (EntityPlayer) this.tracker ) );
                         }
                     }

@@ -291,8 +291,8 @@ public abstract class PlayerList {
 
             if (entityplayer1.getBukkitEntity().canSee(entityplayer.getBukkitEntity())) {
                 entityplayer1.playerConnection.sendPacket(packet);
-                // Spigot start - Update 20140927a
-                if ( entityplayer1.playerConnection.networkManager.getVersion() > 28 ) {
+                // Spigot start - Update 20140927a // Update - 20141001a
+                if ( !entityplayer.getName().equals( entityplayer.listName ) && entityplayer1.playerConnection.networkManager.getVersion() > 28 ) {
                     entityplayer1.playerConnection.sendPacket( displayPacket );
                 }
                 // Spigot end
@@ -309,8 +309,8 @@ public abstract class PlayerList {
             }
             // .name -> .listName
             entityplayer.playerConnection.sendPacket(PacketPlayOutPlayerInfo.addPlayer( entityplayer1 )); // Spigot - protocol patch
-            // Spigot start - Update 20140927a
-            if ( entityplayer.playerConnection.networkManager.getVersion() > 28 ) {
+            // Spigot start - Update 20140927a // Update - 20141001a
+            if ( !entityplayer.getName().equals( entityplayer.listName ) && entityplayer.playerConnection.networkManager.getVersion() > 28 ) {
                 entityplayer.playerConnection.sendPacket( PacketPlayOutPlayerInfo.updateDisplayName( entityplayer1 ) );
             }
             // Spigot end

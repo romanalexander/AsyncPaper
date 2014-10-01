@@ -8,16 +8,22 @@ public class PacketPlayOutPosition extends Packet {
     private float d;
     private float e;
     private boolean f;
+    private byte relativeBitMask; // Spigot Update - 20141001a
 
     public PacketPlayOutPosition() {}
 
     public PacketPlayOutPosition(double d0, double d1, double d2, float f, float f1, boolean flag) {
+        this(d0, d1, d2, f, f1, flag, (byte)0);
+    }
+
+    public PacketPlayOutPosition(double d0, double d1, double d2, float f, float f1, boolean flag, byte relativeBitMask) {
         this.a = d0;
         this.b = d1;
         this.c = d2;
         this.d = f;
         this.e = f1;
         this.f = flag;
+        this.relativeBitMask = relativeBitMask;
     }
 
     public void a(PacketDataSerializer packetdataserializer) {
@@ -41,7 +47,7 @@ public class PacketPlayOutPosition extends Packet {
             packetdataserializer.writeBoolean( this.f );
         } else
         {
-            packetdataserializer.writeByte( 0 );
+            packetdataserializer.writeByte( this.relativeBitMask );
         }
         // Spigot end
     }

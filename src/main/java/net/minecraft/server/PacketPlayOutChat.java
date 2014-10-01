@@ -10,6 +10,7 @@ public class PacketPlayOutChat extends Packet {
     private IChatBaseComponent a;
     public BaseComponent[] components; // Spigot - Update 20140909b
     private boolean b;
+    private int pos; // Spigot - Update 20141001a
 
     public PacketPlayOutChat() {
         this.b = true;
@@ -19,10 +20,19 @@ public class PacketPlayOutChat extends Packet {
         this(ichatbasecomponent, true);
     }
 
+    public PacketPlayOutChat(IChatBaseComponent ichatbasecomponent, int pos) {
+        this(ichatbasecomponent, pos, true);
+    }
+
     public PacketPlayOutChat(IChatBaseComponent ichatbasecomponent, boolean flag) {
+        this(ichatbasecomponent, 0, flag);
+    }
+
+    public PacketPlayOutChat(IChatBaseComponent ichatbasecomponent, int pos, boolean flag) {
         this.b = true;
         this.a = ichatbasecomponent;
         this.b = flag;
+        this.pos = pos;
     }
 
     public void a(PacketDataSerializer packetdataserializer) throws IOException {
@@ -43,7 +53,7 @@ public class PacketPlayOutChat extends Packet {
         // Spigot start - protocol patch
         if ( packetdataserializer.version >= 16 )
         {
-            packetdataserializer.writeByte(0);
+            packetdataserializer.writeByte( this.pos );
         }
         // Spigot end
     }
