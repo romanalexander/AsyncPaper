@@ -49,6 +49,39 @@ public abstract class PlayerList {
     private static final SimpleDateFormat h = new SimpleDateFormat("yyyy-MM-dd \'at\' HH:mm:ss z");
     private final MinecraftServer server;
     public final List players = new java.util.concurrent.CopyOnWriteArrayList(); // CraftBukkit - ArrayList -> CopyOnWriteArrayList: Iterator safety
+    // PaperSpigot start - Player lookup improvements
+    public final Map<String, EntityPlayer> playerMap = new java.util.HashMap<String, EntityPlayer>() {
+        @Override
+        public EntityPlayer put(String key, EntityPlayer value) {
+            return super.put(key.toLowerCase(), value);
+        }
+
+        @Override
+        public EntityPlayer get(Object key) {
+            // put the .playerConnection check done in other places here
+            EntityPlayer player = super.get(key instanceof String ? ((String)key).toLowerCase() : key);
+            return (player != null && player.playerConnection != null) ? player : null;
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return get(key) != null;
+        }
+
+        @Override
+        public EntityPlayer remove(Object key) {
+            return super.remove(key instanceof String ? ((String)key).toLowerCase() : key);
+        }
+    };
+    public final Map<UUID, EntityPlayer> uuidMap = new java.util.HashMap<UUID, EntityPlayer>() {
+        @Override
+        public EntityPlayer get(Object key) {
+            // put the .playerConnection check done in other places here
+            EntityPlayer player = super.get(key instanceof String ? ((String)key).toLowerCase() : key);
+            return (player != null && player.playerConnection != null) ? player : null;
+        }
+    };
+    // PaperSpigot end
     private final GameProfileBanList j;
     private final IpBanList k;
     private final OpList operators;
@@ -258,6 +291,8 @@ public abstract class PlayerList {
         cserver.detectListNameConflict(entityplayer); // CraftBukkit
         // this.sendAll(new PacketPlayOutPlayerInfo(entityplayer.getName(), true, 1000)); // CraftBukkit - replaced with loop below
         this.players.add(entityplayer);
+        this.playerMap.put(entityplayer.getName(), entityplayer); // PaperSpigot
+        this.uuidMap.put(entityplayer.getUniqueID(), entityplayer); // PaperSpigot
         WorldServer worldserver = this.server.getWorldServer(entityplayer.dimension);
 
         // CraftBukkit start
@@ -344,6 +379,8 @@ public abstract class PlayerList {
         worldserver.kill(entityplayer);
         worldserver.getPlayerChunkMap().removePlayer(entityplayer);
         this.players.remove(entityplayer);
+        this.uuidMap.remove(entityplayer.getUniqueID()); // PaperSpigot
+        this.playerMap.remove(entityplayer.getName()); // PaperSpigot
         this.n.remove(entityplayer.getUniqueID());
         ChunkIOExecutor.adjustPoolSize(this.getPlayerCount()); // CraftBukkit
 
@@ -424,6 +461,7 @@ public abstract class PlayerList {
 
         EntityPlayer entityplayer;
 
+        /* // PaperSpigot start - Use exact lookup below
         for (int i = 0; i < this.players.size(); ++i) {
             entityplayer = (EntityPlayer) this.players.get(i);
             if (entityplayer.getUniqueID().equals(uuid)) {
@@ -435,6 +473,9 @@ public abstract class PlayerList {
 
         while (iterator.hasNext()) {
             entityplayer = (EntityPlayer) iterator.next();
+        */
+        if ((entityplayer = uuidMap.get(uuid)) != null) {
+            // PaperSpigot end
             entityplayer.playerConnection.disconnect("You logged in from another location");
         }
 
@@ -952,6 +993,7 @@ public abstract class PlayerList {
     }
 
     public EntityPlayer getPlayer(String s) {
+        if (true) { return playerMap.get(s); } // PaperSpigot
         Iterator iterator = this.players.iterator();
 
         EntityPlayer entityplayer;
