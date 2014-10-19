@@ -1842,6 +1842,17 @@ public final class CraftServer implements Server {
             return org.spigotmc.SpigotConfig.config;
         }
 
+        // PaperSpigot start - Add getTPS (Further improve tick loop)
+        @Override
+        public double[] getTPS() {
+            return new double[] {
+                    MinecraftServer.getServer().tps1.getAverage(),
+                    MinecraftServer.getServer().tps5.getAverage(),
+                    MinecraftServer.getServer().tps15.getAverage()
+            };
+        }
+        // PaperSpigot end
+
         @Override
         public void broadcast( BaseComponent component )
         {

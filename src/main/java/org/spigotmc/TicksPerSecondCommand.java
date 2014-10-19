@@ -1,8 +1,7 @@
 package org.spigotmc;
 
-import com.google.common.base.Joiner;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,18 +25,21 @@ public class TicksPerSecondCommand extends Command
             return true;
         }
 
-        StringBuilder sb = new StringBuilder( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " );
-        for ( double tps : MinecraftServer.getServer().recentTps )
-        {
-            sb.append( format( tps ) );
-            sb.append( ", " );
+        // PaperSpigot start - Further improve tick handling
+        double[] tps = Bukkit.spigot().getTPS();
+        String[] tpsAvg = new String[tps.length];
+
+        for ( int i = 0; i < tps.length; i++) {
+            tpsAvg[i] = format( tps[i] );
         }
-        sender.sendMessage( sb.substring( 0, sb.length() - 2 ) );
+
+        sender.sendMessage( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + StringUtils.join(tpsAvg, ", "));
+        // PaperSpigot end
 
         return true;
     }
 
-    private String format(double tps)
+    private static String format(double tps) // PaperSpigot - made static
     {
         return ( ( tps > 18.0 ) ? ChatColor.GREEN : ( tps > 16.0 ) ? ChatColor.YELLOW : ChatColor.RED ).toString()
                 + ( ( tps > 20.0 ) ? "*" : "" ) + Math.min( Math.round( tps * 100.0 ) / 100.0, 20.0 );
