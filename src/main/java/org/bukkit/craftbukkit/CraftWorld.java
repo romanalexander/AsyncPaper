@@ -687,12 +687,18 @@ public class CraftWorld implements World {
     }
 
     public void save() {
+        // PaperSpigot start - Improved autosave
+        save(true);
+    }
+
+    public void save(boolean forceSave) {
+        // PaperSpigot end
         this.server.checkSaveState();
         try {
             boolean oldSave = world.savingDisabled;
 
             world.savingDisabled = false;
-            world.save(true, null);
+            world.save(forceSave, null); // PaperSpigot
 
             world.savingDisabled = oldSave;
         } catch (ExceptionWorldConflict ex) {

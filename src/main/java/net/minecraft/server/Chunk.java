@@ -910,7 +910,7 @@ public class Chunk {
             if (this.o && this.world.getTime() != this.lastSaved || this.n) {
                 return true;
             }
-        } else if (this.o && this.world.getTime() >= this.lastSaved + 600L) {
+        } else if (this.o && this.world.getTime() >= this.lastSaved + MinecraftServer.getServer().autosavePeriod * 4) { // PaperSpigot - Only save if we've passed 2 auto save intervals without modification
             return true;
         }
 
