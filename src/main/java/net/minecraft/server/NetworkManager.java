@@ -154,11 +154,12 @@ public class NetworkManager extends SimpleChannelInboundHandler {
 
     private void i() {
         if (this.m != null && this.m.isOpen()) {
-            while (!this.l.isEmpty()) {
-                QueuedPacket queuedpacket = (QueuedPacket) this.l.poll();
-
+            // PaperSpigot  start - Improve Network Manager packet handling
+            QueuedPacket queuedpacket;
+            while ((queuedpacket = (QueuedPacket) this.l.poll()) != null) {
                 this.b(QueuedPacket.a(queuedpacket), QueuedPacket.b(queuedpacket));
             }
+            // PaperSpigot end
         }
     }
 
@@ -175,8 +176,10 @@ public class NetworkManager extends SimpleChannelInboundHandler {
         }
 
         if (this.o != null) {
-            for (int i = 1000; !this.k.isEmpty() && i >= 0; --i) {
-                Packet packet = (Packet) this.k.poll();
+            // PaperSpigot start - Improve Network Manager packet handling - Configurable packets per player per tick processing
+            Packet packet;
+            for (int i = org.github.paperspigot.PaperSpigotConfig.maxPacketsPerPlayer; (packet = (Packet) this.k.poll()) != null && i >= 0; --i) {
+                // PaperSpigot end
 
                 // CraftBukkit start
                 if (!this.isConnected() || !this.m.config().isAutoRead()) {
