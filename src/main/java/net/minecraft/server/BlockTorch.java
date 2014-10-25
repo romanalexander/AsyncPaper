@@ -32,7 +32,8 @@ public class BlockTorch extends Block {
         } else {
             Block block = world.getType(i, j, k);
 
-            return block == Blocks.FENCE || block == Blocks.NETHER_FENCE || block == Blocks.GLASS || block == Blocks.COBBLE_WALL;
+            // PaperSpigot - Allow torch placement on stained glass as well
+            return world.paperSpigotConfig.lessPickyTorches ? block == Blocks.FENCE || block == Blocks.NETHER_FENCE || block == Blocks.GLASS || block == Blocks.STAINED_GLASS || block == Blocks.COBBLE_WALL : block == Blocks.FENCE || block == Blocks.NETHER_FENCE || block == Blocks.GLASS || block == Blocks.COBBLE_WALL;
         }
     }
 

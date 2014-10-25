@@ -188,4 +188,12 @@ public class PaperSpigotWorldConfig
         removeUnloadedTNTEntities = getBoolean( "remove-unloaded.tnt-entities", true );
         removeUnloadedFallingBlocks = getBoolean( "remove-unloaded.falling-blocks", true );
     }
+
+    public boolean boatsDropBoats;
+    public boolean lessPickyTorches;
+    private void mechanicsChanges()
+    {
+        boatsDropBoats = getBoolean( "game-mechanics.boats-drop-boats", false );
+        lessPickyTorches = getBoolean( "game-mechanics.less-picky-torch-placement", false );
+    }
 }
