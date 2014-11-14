@@ -1752,6 +1752,12 @@ public class PlayerConnection implements PacketPlayInListener {
     }
 
     public void a(PacketPlayInTabComplete packetplayintabcomplete) {
+        // Spigot start - Update 20141113a
+        if (PlayerConnection.chatSpamField.addAndGet(this, 20) > 200 && !this.minecraftServer.getPlayerList().isOp(this.player.getProfile())) {
+            this.disconnect("disconnect.spam");
+            return;
+        }
+        // Spigot end
         ArrayList arraylist = Lists.newArrayList();
         Iterator iterator = this.minecraftServer.a(this.player, packetplayintabcomplete.c()).iterator();
 
