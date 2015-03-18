@@ -16,20 +16,31 @@ public class EntityFallingBlock extends Entity {
     private int fallHurtMax;
     private float fallHurtAmount;
     public NBTTagCompound tileEntityData;
+    public org.bukkit.Location sourceLoc; // PaperSpigot
 
+    // PaperSpigot start - Add FallingBlock and TNT source location API
     public EntityFallingBlock(World world) {
+        this(null, world);
+    }
+
+    public EntityFallingBlock(org.bukkit.Location loc, World world) {
         super(world);
+        sourceLoc = loc;
+    // PaperSpigot end
         this.dropItem = true;
         this.fallHurtMax = 40;
         this.fallHurtAmount = 2.0F;
     }
 
-    public EntityFallingBlock(World world, double d0, double d1, double d2, Block block) {
-        this(world, d0, d1, d2, block, 0);
+    // PaperSpigot start - Add FallingBlock and TNT source location API
+    public EntityFallingBlock(org.bukkit.Location loc, World world, double d0, double d1, double d2, Block block) {
+        this(loc, world, d0, d1, d2, block, 0);
     }
 
-    public EntityFallingBlock(World world, double d0, double d1, double d2, Block block, int i) {
+    public EntityFallingBlock(org.bukkit.Location loc, World world, double d0, double d1, double d2, Block block, int i) {
         super(world);
+        sourceLoc = loc;
+    // PaperSpigot end
         this.dropItem = true;
         this.fallHurtMax = 40;
         this.fallHurtAmount = 2.0F;
@@ -203,6 +214,13 @@ public class EntityFallingBlock extends Entity {
         if (this.tileEntityData != null) {
             nbttagcompound.set("TileEntityData", this.tileEntityData);
         }
+        // PaperSpigot start - Add FallingBlock and TNT source location API
+        if (sourceLoc != null) {
+            nbttagcompound.setInt("SourceLoc_x", sourceLoc.getBlockX());
+            nbttagcompound.setInt("SourceLoc_y", sourceLoc.getBlockY());
+            nbttagcompound.setInt("SourceLoc_z", sourceLoc.getBlockZ());
+        }
+        // PaperSpigot end
     }
 
     protected void a(NBTTagCompound nbttagcompound) {
@@ -233,6 +251,14 @@ public class EntityFallingBlock extends Entity {
         if (this.id.getMaterial() == Material.AIR) {
             this.id = Blocks.SAND;
         }
+        // PaperSpigot start - Add FallingBlock and TNT source location API
+        if (nbttagcompound.hasKey("SourceLoc_x")) {
+            int srcX = nbttagcompound.getInt("SourceLoc_x");
+            int srcY = nbttagcompound.getInt("SourceLoc_y");
+            int srcZ = nbttagcompound.getInt("SourceLoc_z");
+            sourceLoc = new org.bukkit.Location(world.getWorld(), srcX, srcY, srcZ);
+        }
+        // PaperSpigot end
     }
 
     public void a(boolean flag) {

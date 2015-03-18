@@ -47,4 +47,11 @@ public class CraftFallingSand extends CraftEntity implements FallingSand {
     public void setDropItem(boolean drop) {
         getHandle().dropItem = drop;
     }
+
+    // PaperSpigot start - Add FallingBlock and TNT source location API
+    @Override
+    public org.bukkit.Location getSourceLoc() {
+        return getHandle().sourceLoc;
+    }
+    // PaperSpigot end
 }

@@ -29,7 +29,10 @@ public class BlockDragonEgg extends Block {
 
             if (!BlockFalling.instaFall && world.b(i - b0, j - b0, k - b0, i + b0, j + b0, k + b0)) {
                 // CraftBukkit - added data
-                EntityFallingBlock entityfallingblock = new EntityFallingBlock(world, (double) ((float) i + 0.5F), (double) ((float) j + 0.5F), (double) ((float) k + 0.5F), this, world.getData(i, j, k));
+                // PaperSpigot start - Add FallingBlock and TNT source location API
+                org.bukkit.Location loc = new org.bukkit.Location(world.getWorld(), (double) ((float) i + 0.5F), (double) ((float) j + 0.5F), (double) ((float) k + 0.5F));
+                EntityFallingBlock entityfallingblock = new EntityFallingBlock(loc, world, (double) ((float) i + 0.5F), (double) ((float) j + 0.5F), (double) ((float) k + 0.5F), this, world.getData(i, j, k));
+                // PaperSpigot end
 
                 world.addEntity(entityfallingblock);
             } else {

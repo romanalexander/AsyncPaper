@@ -861,7 +861,10 @@ public class CraftWorld implements World {
         double y = location.getBlockY() + 0.5;
         double z = location.getBlockZ() + 0.5;
 
-        EntityFallingBlock entity = new EntityFallingBlock(world, x, y, z, net.minecraft.server.Block.getById(material.getId()), data);
+        // PaperSpigot start - Add FallingBlock and TNT source location API
+        location = location.clone();
+        EntityFallingBlock entity = new EntityFallingBlock(location, world, x, y, z, net.minecraft.server.Block.getById(material.getId()), data);
+        // PaperSpigot end
         entity.ticksLived = 1;
 
         world.addEntity(entity, SpawnReason.CUSTOM);
@@ -896,7 +899,10 @@ public class CraftWorld implements World {
             int type = world.getTypeId((int) x, (int) y, (int) z);
             int data = world.getData((int) x, (int) y, (int) z);
 
-            entity = new EntityFallingBlock(world, x + 0.5, y + 0.5, z + 0.5, net.minecraft.server.Block.getById(type), data);
+            // PaperSpigot start - Add FallingBlock and TNT source location API
+            location = location.clone();
+            entity = new EntityFallingBlock(location, world, x + 0.5, y + 0.5, z + 0.5, net.minecraft.server.Block.getById(type), data);
+            // PaperSpigot end
         } else if (Projectile.class.isAssignableFrom(clazz)) {
             if (Snowball.class.isAssignableFrom(clazz)) {
                 entity = new EntitySnowball(world, x, y, z);
@@ -1066,7 +1072,10 @@ public class CraftWorld implements World {
                 throw new IllegalArgumentException("Cannot spawn hanging entity for " + clazz.getName() + " at " + location);
             }
         } else if (TNTPrimed.class.isAssignableFrom(clazz)) {
-            entity = new EntityTNTPrimed(world, x, y, z, null);
+            // PaperSpigot start - Add FallingBlock and TNT source location API
+            org.bukkit.Location loc = new org.bukkit.Location(world.getWorld(), x, y, z);
+            entity = new EntityTNTPrimed(loc, world, x, y, z, null);
+            // PaperSpigot end
         } else if (ExperienceOrb.class.isAssignableFrom(clazz)) {
             entity = new EntityExperienceOrb(world, x, y, z, 0);
         } else if (Weather.class.isAssignableFrom(clazz)) {
