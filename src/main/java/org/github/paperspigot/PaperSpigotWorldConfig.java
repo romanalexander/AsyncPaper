@@ -216,6 +216,13 @@ public class PaperSpigotWorldConfig
         log( "World async lighting: " + useAsyncLighting );
     }
 
+    public boolean quickWaterDraining;
+    private void quickWaterDraining()
+    {
+        quickWaterDraining = getBoolean( "quick-water-draining", false); // Water will process immediately
+        log( "World uses quick water draining: " + quickWaterDraining);
+    }
+
     public boolean generateCanyon;
     public boolean generateCaves;
     public boolean generateDungeon;
@@ -235,4 +242,5 @@ public class PaperSpigotWorldConfig
         generateTemple = getBoolean( "generator-settings.temple", true );
         generateVillage = getBoolean( "generator-settings.village", true );
     }
+
 }

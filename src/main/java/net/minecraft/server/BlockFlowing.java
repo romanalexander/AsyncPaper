@@ -83,7 +83,8 @@ public class BlockFlowing extends BlockFluids {
                 }
             } else {
                 l = j1;
-                if (j1 < 0) {
+                if (j1 < 0 || (this.a(world, i, j - 1, k, b1) > -1 && this.material != Material.LAVA && world.paperSpigotConfig.quickWaterDraining)) {
+                    world.applyPhysics(i, j, k, this);
                     world.setAir(i, j, k);
                 } else {
                     world.setData(i, j, k, j1, 2);
