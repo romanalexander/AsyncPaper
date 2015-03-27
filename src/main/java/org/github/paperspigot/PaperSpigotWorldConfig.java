@@ -191,10 +191,12 @@ public class PaperSpigotWorldConfig
 
     public boolean boatsDropBoats;
     public boolean lessPickyTorches;
+    public boolean disablePlayerCrits;
     private void mechanicsChanges()
     {
         boatsDropBoats = getBoolean( "game-mechanics.boats-drop-boats", false );
         lessPickyTorches = getBoolean( "game-mechanics.less-picky-torch-placement", false );
+        disablePlayerCrits = getBoolean( "game-mechanics.disable-player-crits", false);
     }
 
     public int tickNextTickListCap;
