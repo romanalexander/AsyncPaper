@@ -1,18 +1,13 @@
 package net.minecraft.server;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.Callable;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.Bukkit;
 
-import org.bukkit.Bukkit; // CraftBukkit
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Chunk {
 
@@ -29,7 +24,7 @@ public class Chunk {
     public final int locZ;
     private boolean w;
     public Map tileEntities;
-    public List[] entitySlices;
+    public final List[] entitySlices;
     public boolean done;
     public boolean lit;
     public boolean m;
@@ -40,7 +35,22 @@ public class Chunk {
     public int r;
     public long s;
     private int x;
+    private final AtomicLong lastKnownEntitySlicesTick = new AtomicLong();
+    private final List[] lastKnownEntitySlices;
+
     protected net.minecraft.util.gnu.trove.map.hash.TObjectIntHashMap<Class> entityCount = new net.minecraft.util.gnu.trove.map.hash.TObjectIntHashMap<Class>(); // Spigot
+
+    public List[] getReadOnlySlices() {
+        synchronized(lastKnownEntitySlicesTick) {
+            if(lastKnownEntitySlicesTick.get() != world.worldData.getDayTime()) {
+                for (int iter = 0; iter < entitySlices.length; iter++) {
+                    lastKnownEntitySlices[iter] = new ArrayList(entitySlices[iter]);
+                }
+                lastKnownEntitySlicesTick.set(world.worldData.getDayTime());
+            }
+        }
+        return lastKnownEntitySlices;
+    }
 
     // CraftBukkit start - Neighbor loaded cache for chunk lighting and entity ticking
     private int neighbors = 0x1 << 12;
@@ -75,9 +85,10 @@ public class Chunk {
         this.v = new byte[256];
         this.b = new int[256];
         this.c = new boolean[256];
-        this.tileEntities = new HashMap();
+        this.tileEntities = new ConcurrentHashMap();
         this.x = 4096;
         this.entitySlices = new List[16];
+        this.lastKnownEntitySlices = new List[16];
         this.world = world;
         this.locX = i;
         this.locZ = j;
@@ -647,7 +658,9 @@ public class Chunk {
         entity.ah = this.locX;
         entity.ai = k;
         entity.aj = this.locZ;
-        this.entitySlices[k].add(entity);
+        synchronized (this.entitySlices) {
+            this.entitySlices[k].add(entity);
+        }
         // Spigot start - increment creature type count
         // Keep this synced up with World.a(Class)
         if (entity instanceof EntityInsentient) {
@@ -656,11 +669,9 @@ public class Chunk {
                 return;
             }
         }
-        for ( EnumCreatureType creatureType : EnumCreatureType.values() )
-        {
-            if ( creatureType.a().isAssignableFrom( entity.getClass() ) )
-            {
-                this.entityCount.adjustOrPutValue( creatureType.a(), 1, 1 );
+        for (EnumCreatureType creatureType : EnumCreatureType.values()) {
+            if (creatureType.a().isAssignableFrom(entity.getClass())) {
+                this.entityCount.adjustOrPutValue(creatureType.a(), 1, 1);
             }
         }
         // Spigot end
@@ -679,7 +690,9 @@ public class Chunk {
             i = this.entitySlices.length - 1;
         }
 
-        this.entitySlices[i].remove(entity);
+        synchronized (this.entitySlices) {
+            this.entitySlices[i].remove(entity);
+        }
         // Spigot start - decrement creature type count
         // Keep this synced up with World.a(Class)
         if (entity instanceof EntityInsentient) {
@@ -688,11 +701,9 @@ public class Chunk {
                 return;
             }
         }
-        for ( EnumCreatureType creatureType : EnumCreatureType.values() )
-        {
-            if ( creatureType.a().isAssignableFrom( entity.getClass() ) )
-            {
-                this.entityCount.adjustValue( creatureType.a(), -1 );
+        for (EnumCreatureType creatureType : EnumCreatureType.values()) {
+            if (creatureType.a().isAssignableFrom(entity.getClass())) {
+                this.entityCount.adjustValue(creatureType.a(), -1);
             }
         }
         // Spigot end
@@ -785,69 +796,66 @@ public class Chunk {
     public void addEntities() {
         this.d = true;
         this.world.a(this.tileEntities.values());
+        synchronized (this.entitySlices) {
+            for (int i = 0; i < this.entitySlices.length; ++i) {
+                Iterator iterator = this.entitySlices[i].iterator();
 
-        for (int i = 0; i < this.entitySlices.length; ++i) {
-            Iterator iterator = this.entitySlices[i].iterator();
+                while (iterator.hasNext()) {
+                    Entity entity = (Entity) iterator.next();
 
-            while (iterator.hasNext()) {
-                Entity entity = (Entity) iterator.next();
+                    entity.X();
+                }
 
-                entity.X();
+                this.world.a(this.entitySlices[i]);
             }
-
-            this.world.a(this.entitySlices[i]);
         }
     }
 
     public void removeEntities() {
-        this.d = false;
-        Iterator iterator = this.tileEntities.values().iterator();
+        synchronized(this.entitySlices) {
+            this.d = false;
+            Iterator iterator = this.tileEntities.values().iterator();
 
-        while (iterator.hasNext()) {
-            TileEntity tileentity = (TileEntity) iterator.next();
-            // Spigot Start
-            if ( tileentity instanceof IInventory )
-            {
-                for ( org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>( (List) ( (IInventory) tileentity ).getViewers() ) )
-                {
-                    if ( h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity )
-                    {
-                       ( (org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
-                    }
-                }
-            }
-            // Spigot End
-
-            this.world.a(tileentity);
-        }
-
-        for (int i = 0; i < this.entitySlices.length; ++i) {
-            // CraftBukkit start
-            java.util.Iterator<Object> iter = this.entitySlices[i].iterator();
-            while (iter.hasNext()) {
-                Entity entity = (Entity) iter.next();
+            while (iterator.hasNext()) {
+                TileEntity tileentity = (TileEntity) iterator.next();
                 // Spigot Start
-                if ( entity instanceof IInventory )
-                {
-                    for ( org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>( (List) ( (IInventory) entity ).getViewers() ) )
-                    {
-                        if ( h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity )
-                        {
-                           ( (org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
+                if (tileentity instanceof IInventory) {
+                    for (org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>((List) ((IInventory) tileentity).getViewers())) {
+                        if (h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity) {
+                            ((org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
                         }
                     }
                 }
                 // Spigot End
 
-                // Do not pass along players, as doing so can get them stuck outside of time.
-                // (which for example disables inventory icon updates and prevents block breaking)
-                if (entity instanceof EntityPlayer) {
-                    iter.remove();
-                }
+                this.world.a(tileentity);
             }
-            // CraftBukkit end
 
-            this.world.b(this.entitySlices[i]);
+            for (int i = 0; i < this.entitySlices.length; ++i) {
+                // CraftBukkit start
+                java.util.Iterator<Object> iter = this.entitySlices[i].iterator();
+                while (iter.hasNext()) {
+                    Entity entity = (Entity) iter.next();
+                    // Spigot Start
+                    if (entity instanceof IInventory) {
+                        for (org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>((List) ((IInventory) entity).getViewers())) {
+                            if (h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity) {
+                                ((org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
+                            }
+                        }
+                    }
+                    // Spigot End
+
+                    // Do not pass along players, as doing so can get them stuck outside of time.
+                    // (which for example disables inventory icon updates and prevents block breaking)
+                    if (entity instanceof EntityPlayer) {
+                        iter.remove();
+                    }
+                }
+                // CraftBukkit end
+
+                this.world.b(this.entitySlices[i]);
+            }
         }
     }
 
@@ -856,6 +864,7 @@ public class Chunk {
     }
 
     public void a(Entity entity, AxisAlignedBB axisalignedbb, List list, IEntitySelector ientityselector) {
+
         int i = MathHelper.floor((axisalignedbb.b - 2.0D) / 16.0D);
         int j = MathHelper.floor((axisalignedbb.e + 2.0D) / 16.0D);
 
@@ -863,10 +872,14 @@ public class Chunk {
         j = MathHelper.a(j, 0, this.entitySlices.length - 1);
 
         for (int k = i; k <= j; ++k) {
-            List list1 = this.entitySlices[k];
+            List list1 = getReadOnlySlices()[k];
 
             for (int l = 0; l < list1.size(); ++l) {
                 Entity entity1 = (Entity) list1.get(l);
+
+                if(entity1 == null) {
+                    continue;
+                }
 
                 if (entity1 != entity && entity1.boundingBox.b(axisalignedbb) && (ientityselector == null || ientityselector.a(entity1))) {
                     list.add(entity1);
@@ -882,6 +895,7 @@ public class Chunk {
                     }
                 }
             }
+
         }
     }
 
@@ -893,16 +907,20 @@ public class Chunk {
         j = MathHelper.a(j, 0, this.entitySlices.length - 1);
 
         for (int k = i; k <= j; ++k) {
-            List list1 = this.entitySlices[k];
+            List list1 = getReadOnlySlices()[k];
 
             for (int l = 0; l < list1.size(); ++l) {
                 Entity entity = (Entity) list1.get(l);
+                if(entity == null) {
+                    continue;
+                }
 
                 if (oclass.isAssignableFrom(entity.getClass()) && entity.boundingBox.b(axisalignedbb) && (ientityselector == null || ientityselector.a(entity))) {
                     list.add(entity);
                 }
             }
         }
+
     }
 
     public boolean a(boolean flag) {

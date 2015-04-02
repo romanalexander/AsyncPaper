@@ -1,67 +1,57 @@
 package net.minecraft.server;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-
-// PaperSpigot start
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import net.minecraft.util.com.google.common.util.concurrent.ThreadFactoryBuilder;
-// PaperSpigot end
-
-// CraftBukkit start
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockState;
-import org.bukkit.craftbukkit.util.CraftMagicNumbers;
-import org.bukkit.craftbukkit.util.LongHashSet;
-import org.bukkit.craftbukkit.SpigotTimings; // Spigot
-import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.SpigotTimings;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
-import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.generator.ChunkGenerator;
+import org.github.paperspigot.NamedThreadFactory;
+import org.github.paperspigot.PaperPhaser;
+import org.github.paperspigot.PaperPhaserProvider;
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
+
+// CraftBukkit start
 // CraftBukkit end
 
 public abstract class World implements IBlockAccess {
 
     public boolean d;
     // Spigot start - guard entity list from removals
-    public List entityList = new ArrayList()
-    {
+    public List entityList = new ArrayList() {
         @Override
-        public Object remove(int index)
-        {
+        public boolean add(Object o) {
             guard();
-            return super.remove( index );
+            return super.add(o);
         }
 
         @Override
-        public boolean remove(Object o)
-        {
+        public Object remove(int index) {
             guard();
-            return super.remove( o );
+            return super.remove(index);
         }
 
-        private void guard()
-        {
-            if ( guardEntityList )
-            {
-                throw new java.util.ConcurrentModificationException();
-            }
+        @Override
+        public boolean remove(Object o) {
+            guard();
+            return super.remove(o);
+        }
+
+        private void guard() {
+//            guardEntityList.unlock();
         }
     };
+
     // Spigot end
     protected List f = new ArrayList();
     public Set tileEntityList = new org.spigotmc.WorldTileEntityList(this); // CraftBukkit - ArrayList -> HashSet
@@ -101,18 +91,18 @@ public abstract class World implements IBlockAccess {
     // Added the following
     public boolean captureBlockStates = false;
     public boolean captureTreeGeneration = false;
-    public ArrayList<BlockState> capturedBlockStates= new ArrayList<BlockState>();
+    public ArrayList<BlockState> capturedBlockStates = new ArrayList<BlockState>();
     public long ticksPerAnimalSpawns;
     public long ticksPerMonsterSpawns;
     public boolean populating;
     private int tickPosition;
     // CraftBukkit end
-    private ArrayList L;
+    // private ArrayList L;
     private boolean M;
     int[] I;
 
     // Spigot start
-    private boolean guardEntityList;
+    public final ReentrantLock guardEntityList = new ReentrantLock();
     protected final net.minecraft.util.gnu.trove.map.hash.TLongShortHashMap chunkTickList;
     protected float growthOdds = 100;
     protected float modifiedOdds = 100;
@@ -120,22 +110,20 @@ public abstract class World implements IBlockAccess {
     public static boolean haveWeSilencedAPhysicsCrash;
     public static String blockLocation;
     public List<TileEntity> triggerHoppersList = new ArrayList<TileEntity>(); // Spigot, When altHopperTicking, tile entities being added go through here.
+    public static boolean ignoreAsyncModifications = false;
 
-    public static long chunkToKey(int x, int z)
-    {
-        long k = ( ( ( (long) x ) & 0xFFFF0000L ) << 16 ) | ( ( ( (long) x ) & 0x0000FFFFL ) << 0 );
-        k     |= ( ( ( (long) z ) & 0xFFFF0000L ) << 32 ) | ( ( ( (long) z ) & 0x0000FFFFL ) << 16 );
+    public static long chunkToKey(int x, int z) {
+        long k = ((((long) x) & 0xFFFF0000L) << 16) | ((((long) x) & 0x0000FFFFL) << 0);
+        k |= ((((long) z) & 0xFFFF0000L) << 32) | ((((long) z) & 0x0000FFFFL) << 16);
         return k;
     }
 
-    public static int keyToX(long k)
-    {
-        return (int) ( ( ( k >> 16 ) & 0xFFFF0000 ) | ( k & 0x0000FFFF ) );
+    public static int keyToX(long k) {
+        return (int) (((k >> 16) & 0xFFFF0000) | (k & 0x0000FFFF));
     }
 
-    public static int keyToZ(long k)
-    {
-        return (int) ( ( ( k >> 32 ) & 0xFFFF0000L ) | ( ( k >> 16 ) & 0x0000FFFF ) );
+    public static int keyToZ(long k) {
+        return (int) (((k >> 32) & 0xFFFF0000L) | ((k >> 16) & 0x0000FFFF));
     }
 
     // Spigot Start - Hoppers need to be born ticking.
@@ -151,7 +139,7 @@ public abstract class World implements IBlockAccess {
         }
         triggerHoppersList.clear();
     }
-    
+
     // Helper method for altHopperTicking. Updates chests at the specified location,
     // accounting for double chests. Updating the chest will update adjacent hoppers.
     public void updateChestAndHoppers(int a, int b, int c) {
@@ -162,7 +150,7 @@ public abstract class World implements IBlockAccess {
                 tile.scheduleTicks();
             }
             for (int i = 2; i < 6; i++) {
-            	// Facing class provides arrays for direction offset.
+                // Facing class provides arrays for direction offset.
                 if (this.getType(a + Facing.b[i], b, c + Facing.d[i]) == block) {
                     tile = this.getTileEntity(a + Facing.b[i], b, c + Facing.d[i]);
                     if (tile instanceof TileEntityChest) {
@@ -221,8 +209,8 @@ public abstract class World implements IBlockAccess {
 
     // Changed signature - added gen and env
     public World(IDataManager idatamanager, String s, WorldSettings worldsettings, WorldProvider worldprovider, MethodProfiler methodprofiler, ChunkGenerator gen, org.bukkit.World.Environment env) {
-        this.spigotConfig = new org.spigotmc.SpigotWorldConfig( s ); // Spigot
-        this.paperSpigotConfig = new org.github.paperspigot.PaperSpigotWorldConfig( s ); // PaperSpigot
+        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(s); // Spigot
+        this.paperSpigotConfig = new org.github.paperspigot.PaperSpigotWorldConfig(s); // PaperSpigot
         this.generator = gen;
         this.world = new CraftWorld((WorldServer) this, gen, env);
         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
@@ -230,15 +218,15 @@ public abstract class World implements IBlockAccess {
         // CraftBukkit end
         this.keepSpawnInMemory = this.paperSpigotConfig.keepSpawnInMemory; // PaperSpigot
         // Spigot start
-        this.chunkTickRadius = (byte) ( ( this.getServer().getViewDistance() < 7 ) ? this.getServer().getViewDistance() : 7 );
-        this.chunkTickList = new net.minecraft.util.gnu.trove.map.hash.TLongShortHashMap( spigotConfig.chunksPerTick * 5, 0.7f, Long.MIN_VALUE, Short.MIN_VALUE );
-        this.chunkTickList.setAutoCompactionFactor( 0 );
+        this.chunkTickRadius = (byte) ((this.getServer().getViewDistance() < 7) ? this.getServer().getViewDistance() : 7);
+        this.chunkTickList = new net.minecraft.util.gnu.trove.map.hash.TLongShortHashMap(spigotConfig.chunksPerTick * 5, 0.7f, Long.MIN_VALUE, Short.MIN_VALUE);
+        this.chunkTickList.setAutoCompactionFactor(0);
         // Spigot end
 
         this.K = this.random.nextInt(12000);
         this.allowMonsters = true;
         this.allowAnimals = true;
-        this.L = new ArrayList();
+        // this.L = new ArrayList();
         this.I = new int['\u8000'];
         this.dataManager = idatamanager;
         this.methodProfiler = methodprofiler;
@@ -293,6 +281,7 @@ public abstract class World implements IBlockAccess {
         this.a();
 
         this.getServer().addWorld(this.world); // CraftBukkit
+        entityService = new ThreadPoolExecutor(paperSpigotConfig.entityThreads, paperSpigotConfig.entityThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("entity-worker"));
     }
 
     protected abstract IChunkProvider j();
@@ -312,15 +301,14 @@ public abstract class World implements IBlockAccess {
     }
 
     // Spigot start
-    public Block getType(int i, int j, int k)
-    {
-        return getType( i, j, k, true );
+    public Block getType(int i, int j, int k) {
+        return getType(i, j, k, true);
     }
 
     public Block getType(int i, int j, int k, boolean useCaptured) {
         // CraftBukkit start - tree generation
         if (captureTreeGeneration && useCaptured) {
-    // Spigot end
+            // Spigot end
             Iterator<BlockState> it = capturedBlockStates.iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
@@ -451,7 +439,7 @@ public abstract class World implements IBlockAccess {
                 if (flag && !this.captureBlockStates) { // Don't notify clients or update physics while capturing blockstates
                     // Modularize client and physic updates
                     this.notifyAndUpdatePhysics(i, j, k, chunk, block1, block, i1);
-                // CraftBukkit end
+                    // CraftBukkit end
                 }
                 // Spigot start - If this block is changing to that which a chest beneath it
                 // becomes able to be opened, then the chest must be updated.
@@ -470,8 +458,7 @@ public abstract class World implements IBlockAccess {
     }
 
     // CraftBukkit start - Split off from original setTypeAndData(int i, int j, int k, Block block, int l, int i1) method in order to directly send client and physic updates
-    public void notifyAndUpdatePhysics(int i, int j, int k, Chunk chunk, Block oldBlock, Block newBlock, int flag)
-    {
+    public void notifyAndUpdatePhysics(int i, int j, int k, Chunk chunk, Block oldBlock, Block newBlock, int flag) {
         // should be isReady()
         if ((flag & 2) != 0 && (chunk == null || chunk.isReady())) { // allow chunk to be null here as chunk.isReady() is false when we send our notification during block placement
             this.notify(i, j, k);
@@ -838,7 +825,7 @@ public abstract class World implements IBlockAccess {
                     // PaperSpigot start - Configurable async light updates
                     Chunk chunk = this.getChunkIfLoaded(i >> 4, k >> 4);
                     if (chunk != null) {
-                    // PaperSpigot end
+                        // PaperSpigot end
                         chunk.a(enumskyblock, i & 15, j, k & 15, l);
 
                         for (int i1 = 0; i1 < this.u.size(); ++i1) {
@@ -1053,7 +1040,8 @@ public abstract class World implements IBlockAccess {
         }
     }
 
-    public void a(double d0, double d1, double d2, String s, float f, float f1, boolean flag) {}
+    public void a(double d0, double d1, double d2, String s, float f, float f1, boolean flag) {
+    }
 
     public void a(String s, int i, int j, int k) {
         for (int l = 0; l < this.u.size(); ++l) {
@@ -1078,7 +1066,7 @@ public abstract class World implements IBlockAccess {
     }
 
     public boolean addEntity(Entity entity, SpawnReason spawnReason) { // Changed signature, added SpawnReason
-        org.spigotmc.AsyncCatcher.catchOp( "entity add"); // Spigot
+        org.spigotmc.AsyncCatcher.catchOp("entity add"); // Spigot
         if (entity == null) return false;
         // CraftBukkit end
 
@@ -1097,7 +1085,7 @@ public abstract class World implements IBlockAccess {
             boolean isMonster = entity instanceof EntityMonster || entity instanceof EntityGhast || entity instanceof EntitySlime;
 
             if (spawnReason != SpawnReason.CUSTOM) {
-                if (isAnimal && !allowAnimals || isMonster && !allowMonsters)  {
+                if (isAnimal && !allowAnimals || isMonster && !allowMonsters) {
                     entity.dead = true;
                     return false;
                 }
@@ -1133,23 +1121,27 @@ public abstract class World implements IBlockAccess {
             return false;
         }
         // CraftBukkit end
+        guardEntityList.lock();
+        try {
+            if (!flag && !this.isChunkLoaded(i, j)) {
+                entity.dead = true; // CraftBukkit
+                return false;
+            } else {
+                if (entity instanceof EntityHuman) {
+                    EntityHuman entityhuman = (EntityHuman) entity;
 
-        if (!flag && !this.isChunkLoaded(i, j)) {
-            entity.dead = true; // CraftBukkit
-            return false;
-        } else {
-            if (entity instanceof EntityHuman) {
-                EntityHuman entityhuman = (EntityHuman) entity;
+                    this.players.add(entityhuman);
+                    this.everyoneSleeping();
+                    this.b(entity);
+                }
 
-                this.players.add(entityhuman);
-                this.everyoneSleeping();
-                this.b(entity);
+                this.getChunkAt(i, j).a(entity);
+                this.entityList.add(entity);
+                this.a(entity);
+                return true;
             }
-
-            this.getChunkAt(i, j).a(entity);
-            this.entityList.add(entity);
-            this.a(entity);
-            return true;
+        } finally {
+            guardEntityList.unlock();
         }
     }
 
@@ -1182,16 +1174,12 @@ public abstract class World implements IBlockAccess {
         if (entity instanceof EntityHuman) {
             this.players.remove(entity);
             // Spigot start
-            for ( Object o : worldMaps.c )
-            {
-                if ( o instanceof WorldMap )
-                {
+            for (Object o : worldMaps.c) {
+                if (o instanceof WorldMap) {
                     WorldMap map = (WorldMap) o;
-                    map.i.remove( entity );
-                    for ( Iterator<WorldMapHumanTracker> iter = (Iterator<WorldMapHumanTracker>) map.f.iterator(); iter.hasNext(); )
-                    {
-                        if ( iter.next().trackee == entity )
-                        {
+                    map.i.remove(entity);
+                    for (Iterator<WorldMapHumanTracker> iter = (Iterator<WorldMapHumanTracker>) map.f.iterator(); iter.hasNext(); ) {
+                        if (iter.next().trackee == entity) {
                             iter.remove();
                         }
                     }
@@ -1203,14 +1191,15 @@ public abstract class World implements IBlockAccess {
     }
 
     public void removeEntity(Entity entity) {
-        org.spigotmc.AsyncCatcher.catchOp( "entity remove"); // Spigot
+        org.spigotmc.AsyncCatcher.catchOp("entity remove"); // Spigot
         entity.die();
         if (entity instanceof EntityHuman) {
             this.players.remove(entity);
             this.everyoneSleeping();
         }
         // Spigot start
-        if (!guardEntityList) { // It will get removed after the tick if we are ticking
+        guardEntityList.lock();
+        try {
             int i = entity.ah;
             int j = entity.aj;
             if (entity.ag && this.isChunkLoaded(i, j)) {
@@ -1225,6 +1214,8 @@ public abstract class World implements IBlockAccess {
                 this.entityList.remove(index);
             }
             // CraftBukkit end
+        } finally {
+            guardEntityList.unlock();
         }
         // Spigot end
 
@@ -1236,7 +1227,7 @@ public abstract class World implements IBlockAccess {
     }
 
     public List getCubes(Entity entity, AxisAlignedBB axisalignedbb) {
-        this.L.clear();
+        List L = new ArrayList();
         int i = MathHelper.floor(axisalignedbb.a);
         int j = MathHelper.floor(axisalignedbb.d + 1.0D);
         int k = MathHelper.floor(axisalignedbb.b);
@@ -1245,35 +1236,28 @@ public abstract class World implements IBlockAccess {
         int j1 = MathHelper.floor(axisalignedbb.f + 1.0D);
 
         // Spigot start
-        int ystart = ( ( k - 1 ) < 0 ) ? 0 : ( k - 1 );
-        for ( int chunkx = ( i >> 4 ); chunkx <= ( ( j - 1 ) >> 4 ); chunkx++ )
-        {
+        int ystart = ((k - 1) < 0) ? 0 : (k - 1);
+        for (int chunkx = (i >> 4); chunkx <= ((j - 1) >> 4); chunkx++) {
             int cx = chunkx << 4;
-            for ( int chunkz = ( i1 >> 4 ); chunkz <= ( ( j1 - 1 ) >> 4 ); chunkz++ )
-            {
-                if ( !this.isChunkLoaded( chunkx, chunkz ) )
-                {
+            for (int chunkz = (i1 >> 4); chunkz <= ((j1 - 1) >> 4); chunkz++) {
+                if (!this.isChunkLoaded(chunkx, chunkz)) {
                     entity.inUnloadedChunk = true; // PaperSpigot - Remove entities in unloaded chunks
                     continue;
                 }
                 int cz = chunkz << 4;
-                Chunk chunk = this.getChunkAt( chunkx, chunkz );
+                Chunk chunk = this.getChunkAt(chunkx, chunkz);
                 // Compute ranges within chunk
-                int xstart = ( i < cx ) ? cx : i;
-                int xend = ( j < ( cx + 16 ) ) ? j : ( cx + 16 );
-                int zstart = ( i1 < cz ) ? cz : i1;
-                int zend = ( j1 < ( cz + 16 ) ) ? j1 : ( cz + 16 );
+                int xstart = (i < cx) ? cx : i;
+                int xend = (j < (cx + 16)) ? j : (cx + 16);
+                int zstart = (i1 < cz) ? cz : i1;
+                int zend = (j1 < (cz + 16)) ? j1 : (cz + 16);
                 // Loop through blocks within chunk
-                for ( int x = xstart; x < xend; x++ )
-                {
-                    for ( int z = zstart; z < zend; z++ )
-                    {
-                        for ( int y = ystart; y < l; y++ )
-                        {
-                            Block block = chunk.getType(x - cx, y, z - cz );
-                            if ( block != null )
-                            {
-                                block.a( this, x, y, z, axisalignedbb, this.L, entity );
+                for (int x = xstart; x < xend; x++) {
+                    for (int z = zstart; z < zend; z++) {
+                        for (int y = ystart; y < l; y++) {
+                            Block block = chunk.getType(x - cx, y, z - cz);
+                            if (block != null) {
+                                block.a(this, x, y, z, axisalignedbb, L, entity);
                             }
                         }
                     }
@@ -1289,20 +1273,20 @@ public abstract class World implements IBlockAccess {
             AxisAlignedBB axisalignedbb1 = ((Entity) list.get(j2)).J();
 
             if (axisalignedbb1 != null && axisalignedbb1.b(axisalignedbb)) {
-                this.L.add(axisalignedbb1);
+                L.add(axisalignedbb1);
             }
 
             axisalignedbb1 = entity.h((Entity) list.get(j2));
             if (axisalignedbb1 != null && axisalignedbb1.b(axisalignedbb)) {
-                this.L.add(axisalignedbb1);
+                L.add(axisalignedbb1);
             }
         }
 
-        return this.L;
+        return L;
     }
 
     public List a(AxisAlignedBB axisalignedbb) {
-        this.L.clear();
+        List L = new ArrayList();
         int i = MathHelper.floor(axisalignedbb.a);
         int j = MathHelper.floor(axisalignedbb.d + 1.0D);
         int k = MathHelper.floor(axisalignedbb.b);
@@ -1322,13 +1306,13 @@ public abstract class World implements IBlockAccess {
                             block = Blocks.BEDROCK;
                         }
 
-                        block.a(this, k1, i2, l1, axisalignedbb, this.L, (Entity) null);
+                        block.a(this, k1, i2, l1, axisalignedbb, L, (Entity) null);
                     }
                 }
             }
         }
 
-        return this.L;
+        return L;
     }
 
     public int a(float f) {
@@ -1385,12 +1369,16 @@ public abstract class World implements IBlockAccess {
         return -1;
     }
 
-    public void a(int i, int j, int k, Block block, int l) {}
+    public void a(int i, int j, int k, Block block, int l) {
+    }
 
-    public void a(int i, int j, int k, Block block, int l, int i1) {}
+    public void a(int i, int j, int k, Block block, int l, int i1) {
+    }
 
-    public void b(int i, int j, int k, Block block, int l, int i1) {}
+    public void b(int i, int j, int k, Block block, int l, int i1) {
+    }
 
+    private ThreadPoolExecutor entityService;
     public void tickEntities() {
         this.methodProfiler.a("entities");
         this.methodProfiler.a("global");
@@ -1400,36 +1388,50 @@ public abstract class World implements IBlockAccess {
         CrashReport crashreport;
         CrashReportSystemDetails crashreportsystemdetails;
 
-        for (i = 0; i < this.i.size(); ++i) {
-            entity = (Entity) this.i.get(i);
-            // CraftBukkit start - Fixed an NPE
-            if (entity == null) {
+        ignoreAsyncModifications = true;
+        PaperPhaserProvider phaserProvider = new PaperPhaserProvider();
+        for (Iterator listerator = this.i.iterator(); listerator.hasNext(); ) {
+            final Entity innerEntity = (Entity) listerator.next();
+            if (innerEntity == null || innerEntity.dead) {
+                listerator.remove();
                 continue;
             }
-            // CraftBukkit end
 
-            try {
-                ++entity.ticksLived;
-                entity.h();
-            } catch (Throwable throwable) {
-                crashreport = CrashReport.a(throwable, "Ticking entity");
-                crashreportsystemdetails = crashreport.a("Entity being ticked");
-                if (entity == null) {
-                    crashreportsystemdetails.a("Entity", "~~NULL~~");
-                } else {
-                    entity.a(crashreportsystemdetails);
+            final PaperPhaser phaserInner = phaserProvider.getAndRegister();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ++innerEntity.ticksLived;
+                        innerEntity.h();
+                    } catch (Throwable throwable) {
+                        CrashReport crashreport = CrashReport.a(throwable, "Ticking entity");
+                        CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Entity being ticked");
+                        innerEntity.a(crashreportsystemdetails);
+
+                        throw new ReportedException(crashreport);
+                    } finally {
+                        phaserInner.arrive();
+                    }
                 }
-
-                throw new ReportedException(crashreport);
+            };
+            if(innerEntity instanceof EntityInsentient) {
+                entityService.submit(runnable);
+            } else {
+                runnable.run();
             }
 
-            if (entity.dead) {
-                this.i.remove(i--);
-            }
         }
+        phaserProvider.await();
+        ignoreAsyncModifications = false;
 
         this.methodProfiler.c("remove");
-        this.entityList.removeAll(this.f);
+        guardEntityList.lock();
+        try {
+            this.entityList.removeAll(this.f);
+        } finally {
+            guardEntityList.unlock();
+        }
 
         int j;
         int k;
@@ -1452,60 +1454,78 @@ public abstract class World implements IBlockAccess {
 
         org.spigotmc.ActivationRange.activateEntities(this); // Spigot
         timings.entityTick.startTiming(); // Spigot
-        guardEntityList = true; // Spigot
-        // CraftBukkit start - Use field for loop variable
-        for (this.tickPosition = 0; this.tickPosition < this.entityList.size(); ++this.tickPosition) {
-            entity = (Entity) this.entityList.get(this.tickPosition);
-            if (entity.vehicle != null) {
-                if (!entity.vehicle.dead && entity.vehicle.passenger == entity) {
-                    continue;
-                }
-
-                entity.vehicle.passenger = null;
-                entity.vehicle = null;
-            }
-
-            this.methodProfiler.a("tick");
-            if (!entity.dead) {
-                try {
-                    SpigotTimings.tickEntityTimer.startTiming(); // Spigot
-                    this.playerJoinedWorld(entity);
-                    SpigotTimings.tickEntityTimer.stopTiming(); // Spigot
-                } catch (Throwable throwable1) {
-                    // PaperSpigot start
-                    SpigotTimings.tickEntityTimer.stopTiming(); // Spigot
-                    System.err.println("Entity threw exception at " + entity.world.getWorld().getName()+":"+entity.locX +"," + entity.locY+","+entity.locZ);
-                    throwable1.printStackTrace();
-                    entity.dead = true;
-                    continue;
-                    /*
-                    crashreport = CrashReport.a(throwable1, "Ticking entity");
-                    crashreportsystemdetails = crashreport.a("Entity being ticked");
-                    entity.a(crashreportsystemdetails);
-                    throw new ReportedException(crashreport);
-                    */
-                    // PaperSpigot end
-                }
-            }
-
-            this.methodProfiler.b();
-            this.methodProfiler.a("remove");
-            if (entity.dead) {
-                j = entity.ah;
-                k = entity.aj;
-                if (entity.ag && this.isChunkLoaded(j, k)) {
-                    this.getChunkAt(j, k).b(entity);
-                }
-
-                guardEntityList = false; // Spigot
-                this.entityList.remove(this.tickPosition--); // CraftBukkit - Use field for loop variable
-                guardEntityList = true; // Spigot
-                this.b(entity);
-            }
-
-            this.methodProfiler.b();
+        Iterator listerator;
+        try {
+            guardEntityList.lock(); // Spigot
+            listerator = new ArrayList<>(entityList).iterator();
+        } finally {
+            guardEntityList.unlock();
         }
-        guardEntityList = false; // Spigot
+
+        // CraftBukkit start - Use field for loop variable
+        ignoreAsyncModifications = true;
+        phaserProvider = new PaperPhaserProvider();
+        while (listerator.hasNext()) {
+            final Entity innerEntity = (Entity) listerator.next();
+            if (innerEntity.vehicle != null) {
+                if (!innerEntity.vehicle.dead && innerEntity.vehicle.passenger == innerEntity) {
+                    continue;
+                }
+
+                innerEntity.vehicle.passenger = null;
+                innerEntity.vehicle = null;
+            }
+
+            final PaperPhaser phaserInner = phaserProvider.getAndRegister();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!innerEntity.dead) {
+                            World.this.playerJoinedWorld(innerEntity);
+                        }
+                    } catch (Throwable throwable1) {
+                        throwable1.printStackTrace();
+                        CrashReport crashreport = CrashReport.a(throwable1, "Ticking entity");
+                        CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Entity being ticked");
+                        innerEntity.a(crashreportsystemdetails);
+                        throw new ReportedException(crashreport);
+                    } finally {
+                        phaserInner.arrive();
+                    }
+                }
+            };
+            if(innerEntity instanceof EntityInsentient) {
+                entityService.submit(runnable);
+            } else {
+                runnable.run();
+            }
+
+        }
+        phaserProvider.await();
+        ignoreAsyncModifications = false;
+
+        this.methodProfiler.a("remove");
+        guardEntityList.lock(); // Spigot
+        try {
+            for (Iterator iterator = entityList.iterator(); iterator.hasNext(); ) {
+                Object o = iterator.next();
+                final Entity innerEntity = (Entity) o;
+                if (innerEntity.dead) {
+                    j = innerEntity.ah;
+                    k = innerEntity.aj;
+                    if (innerEntity.ag && this.isChunkLoaded(j, k)) {
+                        this.getChunkAt(j, k).b(innerEntity);
+                    }
+                    iterator.remove(); // CraftBukkit - Use field for loop variable
+                    this.b(innerEntity);
+                }
+            }
+
+        } finally {
+            guardEntityList.unlock();
+        }
+        this.methodProfiler.b();
 
         timings.entityTick.stopTiming(); // Spigot
         this.methodProfiler.c("blockEntities");
@@ -1519,10 +1539,12 @@ public abstract class World implements IBlockAccess {
         // Spigot End
 
         this.initializeHoppers(); // Spigot - Initializes hoppers which have been added recently.
-        Iterator iterator = this.tileEntityList.iterator();
 
-        while (iterator.hasNext()) {
-            TileEntity tileentity = (TileEntity) iterator.next();
+        ignoreAsyncModifications = true;
+        final Set<TileEntity> tileEntitiesToRemove = Collections.synchronizedSet(new HashSet<TileEntity>());
+        phaserProvider = new PaperPhaserProvider();
+        for (Iterator iterator = this.tileEntityList.iterator(); iterator.hasNext(); ) {
+            final TileEntity tileentity = (TileEntity) iterator.next();
             // Spigot start
             if (tileentity == null) {
                 getServer().getLogger().severe("Spigot has detected a null entity and has removed it, preventing a crash");
@@ -1531,39 +1553,52 @@ public abstract class World implements IBlockAccess {
             }
             // Spigot end
 
-            if (!tileentity.r() && tileentity.o() && this.isLoaded(tileentity.x, tileentity.y, tileentity.z)) {
-                try {
-                    tileentity.tickTimer.startTiming(); // Spigot
-                    tileentity.h();
-                    tileentity.tickTimer.stopTiming(); // Spigot
-                } catch (Throwable throwable2) {
-                    // PaperSpigot start
-                    tileentity.tickTimer.stopTiming(); // Spigot
-                    System.err.println("TileEntity threw exception at " + tileentity.world.getWorld().getName()+":"+tileentity.x +"," + tileentity.y+","+tileentity.z);
-                    throwable2.printStackTrace();
-                    iterator.remove();
-                    continue;
-                    /*
-                    crashreport = CrashReport.a(throwable2, "Ticking block entity");
-                    crashreportsystemdetails = crashreport.a("Block entity being ticked");
-                    tileentity.a(crashreportsystemdetails);
-                    throw new ReportedException(crashreport);
-                    */
-                    // PaperSpigot end
-                }
-            }
+            final PaperPhaser phaserInner = phaserProvider.getAndRegister();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!tileentity.r() && tileentity.o() && World.this.isLoaded(tileentity.x, tileentity.y, tileentity.z)) {
+                            try {
+                                tileentity.tickTimer.startTiming(); // Spigot
+                                tileentity.h();
+                                tileentity.tickTimer.stopTiming(); // Spigot
+                            } catch (Throwable throwable2) {
+                                tileentity.tickTimer.stopTiming(); // Spigot
+                                CrashReport crashreport = CrashReport.a(throwable2, "Ticking block entity");
+                                CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block entity being ticked");
+                                tileentity.a(crashreportsystemdetails);
+                                throw new ReportedException(crashreport);
+                            }
+                        }
 
-            if (tileentity.r()) {
-                iterator.remove();
-                if (this.isChunkLoaded(tileentity.x >> 4, tileentity.z >> 4)) {
-                    Chunk chunk = this.getChunkAt(tileentity.x >> 4, tileentity.z >> 4);
+                        if (tileentity.r()) {
+                            tileEntitiesToRemove.add(tileentity);
+                            if (World.this.isChunkLoaded(tileentity.x >> 4, tileentity.z >> 4)) {
+                                Chunk chunk = World.this.getChunkAt(tileentity.x >> 4, tileentity.z >> 4);
 
-                    if (chunk != null) {
-                        chunk.f(tileentity.x & 15, tileentity.y, tileentity.z & 15);
+                                if (chunk != null) {
+                                    chunk.f(tileentity.x & 15, tileentity.y, tileentity.z & 15);
+                                }
+                            }
+                        }
+                    } finally {
+                        phaserInner.arrive();
                     }
                 }
+            };
+
+            if(tileentity instanceof TileEntityPiston) {
+                runnable.run();
+            } else {
+                entityService.submit(Executors.callable(runnable, Void.TYPE));
             }
+
         }
+        phaserProvider.await();
+        ignoreAsyncModifications = false;
+
+        this.tileEntityList.removeAll(tileEntitiesToRemove);
 
         timings.tileEntityTick.stopTiming(); // Spigot
         timings.tileEntityPending.startTiming(); // Spigot
@@ -2242,17 +2277,16 @@ public abstract class World implements IBlockAccess {
         // Spigot start
         int optimalChunks = spigotConfig.chunksPerTick;
         // Quick conditions to allow us to exist early
-        if ( optimalChunks <= 0 || players.isEmpty() )
-        {
+        if (optimalChunks <= 0 || players.isEmpty()) {
             return;
         }
         // Keep chunks with growth inside of the optimal chunk range
-        int chunksPerPlayer = Math.min( 200, Math.max( 1, (int) ( ( ( optimalChunks - players.size() ) / (double) players.size() ) + 0.5 ) ) );
+        int chunksPerPlayer = Math.min(200, Math.max(1, (int) (((optimalChunks - players.size()) / (double) players.size()) + 0.5)));
         int randRange = 3 + chunksPerPlayer / 30;
         // Limit to normal tick radius - including view distance
-        randRange = ( randRange > chunkTickRadius ) ? chunkTickRadius : randRange;
+        randRange = (randRange > chunkTickRadius) ? chunkTickRadius : randRange;
         // odds of growth happening vs growth happening in vanilla
-        this.growthOdds = this.modifiedOdds = Math.max( 35, Math.min( 100, ( ( chunksPerPlayer + 1 ) * 100F ) / 15F ) );
+        this.growthOdds = this.modifiedOdds = Math.max(35, Math.min(100, ((chunksPerPlayer + 1) * 100F) / 15F));
         // Spigot end
         for (i = 0; i < this.players.size(); ++i) {
             entityhuman = (EntityHuman) this.players.get(i);
@@ -2261,19 +2295,17 @@ public abstract class World implements IBlockAccess {
             l = this.p();
 
             // Spigot start - Always update the chunk the player is on
-            long key = chunkToKey( j, k );
-            int existingPlayers = Math.max( 0, chunkTickList.get( key ) ); // filter out -1
+            long key = chunkToKey(j, k);
+            int existingPlayers = Math.max(0, chunkTickList.get(key)); // filter out -1
             chunkTickList.put(key, (short) (existingPlayers + 1));
 
             // Check and see if we update the chunks surrounding the player this tick
-            for ( int chunk = 0; chunk < chunksPerPlayer; chunk++ )
-            {
-                int dx = ( random.nextBoolean() ? 1 : -1 ) * random.nextInt( randRange );
-                int dz = ( random.nextBoolean() ? 1 : -1 ) * random.nextInt( randRange );
-                long hash = chunkToKey( dx + j, dz + k );
-                if ( !chunkTickList.contains( hash ) && this.isChunkLoaded( dx + j, dz + k ) )
-                {
-                    chunkTickList.put( hash, (short) -1 ); // no players
+            for (int chunk = 0; chunk < chunksPerPlayer; chunk++) {
+                int dx = (random.nextBoolean() ? 1 : -1) * random.nextInt(randRange);
+                int dz = (random.nextBoolean() ? 1 : -1) * random.nextInt(randRange);
+                long hash = chunkToKey(dx + j, dz + k);
+                if (!chunkTickList.contains(hash) && this.isChunkLoaded(dx + j, dz + k)) {
+                    chunkTickList.put(hash, (short) -1); // no players
                 }
             }
             // Spigot End
@@ -2455,7 +2487,7 @@ public abstract class World implements IBlockAccess {
     }
 
     // PaperSpigot start - Configurable async light updates
-    private ExecutorService service = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("PaperSpigot - Lighting Thread").build());
+    private ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
     public boolean c(final EnumSkyBlock enumskyblock, final int i, final int j, final int k) {
         Callable<Boolean> callable = new Callable<Boolean>() {
             @Override
@@ -2582,7 +2614,7 @@ public abstract class World implements IBlockAccess {
         } else {
             try {
                 return callable.call();
-            } catch(Exception ignore) {
+            } catch (Exception ignore) {
             }
         }
         return true;
@@ -2672,43 +2704,52 @@ public abstract class World implements IBlockAccess {
 
     public int a(Class oclass) {
         int i = 0;
+        guardEntityList.lock();
+        try {
+            for (int j = 0; j < this.entityList.size(); ++j) {
+                Entity entity = (Entity) this.entityList.get(j);
 
-        for (int j = 0; j < this.entityList.size(); ++j) {
-            Entity entity = (Entity) this.entityList.get(j);
+                // CraftBukkit start - Split out persistent check, don't apply it to special persistent mobs
+                if (entity instanceof EntityInsentient) {
+                    EntityInsentient entityinsentient = (EntityInsentient) entity;
+                    if (entityinsentient.isTypeNotPersistent() && entityinsentient.isPersistent()) {
+                        continue;
+                    }
+                }
 
-            // CraftBukkit start - Split out persistent check, don't apply it to special persistent mobs
-            if (entity instanceof EntityInsentient) {
-                EntityInsentient entityinsentient = (EntityInsentient) entity;
-                if (entityinsentient.isTypeNotPersistent() && entityinsentient.isPersistent()) {
-                    continue;
+                if (oclass.isAssignableFrom(entity.getClass())) {
+                    // if ((!(entity instanceof EntityInsentient) || !((EntityInsentient) entity).isPersistent()) && oclass.isAssignableFrom(entity.getClass())) {
+                    // CraftBukkit end
+                    ++i;
                 }
             }
-
-            if (oclass.isAssignableFrom(entity.getClass())) {
-            // if ((!(entity instanceof EntityInsentient) || !((EntityInsentient) entity).isPersistent()) && oclass.isAssignableFrom(entity.getClass())) {
-                // CraftBukkit end
-                ++i;
-            }
+        } finally {
+            guardEntityList.unlock();
         }
 
         return i;
     }
 
     public void a(List list) {
-        org.spigotmc.AsyncCatcher.catchOp( "entity world add"); // Spigot
+        org.spigotmc.AsyncCatcher.catchOp("entity world add"); // Spigot
         // CraftBukkit start
         // this.entityList.addAll(list);
         Entity entity = null;
-
-        for (int i = 0; i < list.size(); ++i) {
-            entity = (Entity) list.get(i);
-            if (entity == null) {
-                continue;
+        guardEntityList.lock();
+        try {
+            for (int i = 0; i < list.size(); ++i) {
+                entity = (Entity) list.get(i);
+                if (entity == null) {
+                    continue;
+                }
+                this.entityList.add(entity);
+                // CraftBukkit end
+                this.a((Entity) list.get(i));
             }
-            this.entityList.add(entity);
-            // CraftBukkit end
-            this.a((Entity) list.get(i));
+        } finally {
+            guardEntityList.unlock();
         }
+
     }
 
     public void b(List list) {
@@ -2910,7 +2951,7 @@ public abstract class World implements IBlockAccess {
     }
 
     public EntityHuman findNearbyPlayerWhoAffectsSpawning(double x, double y, double z, double radius) {
-        double nearestRadius = - 1.0D;
+        double nearestRadius = -1.0D;
         EntityHuman entityHuman = null;
 
         for (int i = 0; i < this.players.size(); ++i) {
@@ -2988,7 +3029,8 @@ public abstract class World implements IBlockAccess {
         return true;
     }
 
-    public void broadcastEntityEffect(Entity entity, byte b0) {}
+    public void broadcastEntityEffect(Entity entity, byte b0) {
+    }
 
     public IChunkProvider L() {
         return this.chunkProvider;
@@ -3010,7 +3052,8 @@ public abstract class World implements IBlockAccess {
         return this.worldData.getGameRules();
     }
 
-    public void everyoneSleeping() {}
+    public void everyoneSleeping() {
+    }
 
     // CraftBukkit start
     // Calls the method that checks to see if players are sleeping

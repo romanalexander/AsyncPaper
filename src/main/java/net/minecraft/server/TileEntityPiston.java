@@ -49,7 +49,7 @@ public class TileEntityPiston extends TileEntity {
         return this.n + (this.m - this.n) * f;
     }
 
-    private void a(float f, float f1) {
+    private synchronized void a(float f, float f1) {
         if (this.k) {
             f = 1.0F - f;
         } else {

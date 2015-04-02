@@ -1,6 +1,7 @@
 package org.spigotmc;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.World;
 
 public class AsyncCatcher
 {
@@ -9,7 +10,7 @@ public class AsyncCatcher
 
     public static void catchOp(String reason)
     {
-        if ( enabled && Thread.currentThread() != MinecraftServer.getServer().primaryThread )
+        if ( enabled && !MinecraftServer.ignoreAsyncModifications && !World.ignoreAsyncModifications && Thread.currentThread() != MinecraftServer.getServer().primaryThread )
         {
             throw new IllegalStateException( "Asynchronous " + reason + "!" );
         }

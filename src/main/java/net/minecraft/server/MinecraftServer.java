@@ -1,22 +1,7 @@
 package net.minecraft.server;
 
-import java.awt.GraphicsEnvironment;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.net.Proxy;
-import java.security.KeyPair;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import javax.imageio.ImageIO;
-
+import jline.console.ConsoleReader;
+import joptsimple.OptionSet;
 import net.minecraft.util.com.google.common.base.Charsets;
 import net.minecraft.util.com.mojang.authlib.GameProfile;
 import net.minecraft.util.com.mojang.authlib.GameProfileRepository;
@@ -29,18 +14,32 @@ import net.minecraft.util.io.netty.handler.codec.base64.Base64;
 import net.minecraft.util.org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-// CraftBukkit start
-import java.io.IOException;
-
-import jline.console.ConsoleReader;
-import joptsimple.OptionSet;
-
 import org.bukkit.World.Environment;
-import org.bukkit.craftbukkit.SpigotTimings; // Spigot
+import org.bukkit.craftbukkit.SpigotTimings;
 import org.bukkit.craftbukkit.util.Waitable;
 import org.bukkit.event.server.RemoteServerCommandEvent;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.github.paperspigot.NamedThreadFactory;
+import org.github.paperspigot.PaperPhaser;
+import org.github.paperspigot.PaperPhaserProvider;
+import org.github.paperspigot.PaperSpigotConfig;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.Proxy;
+import java.security.KeyPair;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+// CraftBukkit start
 // CraftBukkit end
 
 public abstract class MinecraftServer implements ICommandListener, Runnable, IMojangStatistics {
@@ -48,6 +47,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
     private static final Logger i = LogManager.getLogger();
     private static final File a = new File("usercache.json");
     private static MinecraftServer j;
+    public static boolean ignoreAsyncModifications = false;
     public Convertable convertable; // CraftBukkit - private final -> public
     private final MojangStatisticsGenerator l = new MojangStatisticsGenerator("server", this, ar());
     public File universe; // CraftBukkit - private final -> public
@@ -688,6 +688,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         org.spigotmc.CustomTimingsHandler.tick(); // Spigot
     }
 
+    private ThreadPoolExecutor worldService = new ThreadPoolExecutor(PaperSpigotConfig.worldThreads, PaperSpigotConfig.worldThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("world-worker"));
     public void v() {
         this.methodProfiler.a("levels");
 
@@ -717,72 +718,66 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         }
         SpigotTimings.timeUpdateTimer.stopTiming(); // Spigot
 
-        int i;
-
-        for (i = 0; i < this.worlds.size(); ++i) {
-            long j = System.nanoTime();
-
-            // if (i == 0 || this.getAllowNether()) {
-                WorldServer worldserver = this.worlds.get(i);
-
-                this.methodProfiler.a(worldserver.getWorldData().getName());
-                this.methodProfiler.a("pools");
-                this.methodProfiler.b();
-                /* Drop global time updates
-                if (this.ticks % 20 == 0) {
-                    this.methodProfiler.a("timeSync");
-                    this.t.a(new PacketPlayOutUpdateTime(worldserver.getTime(), worldserver.getDayTime(), worldserver.getGameRules().getBoolean("doDaylightCycle")), worldserver.worldProvider.dimension);
-                    this.methodProfiler.b();
-                }
-                // CraftBukkit end */
-
-                this.methodProfiler.a("tick");
-
-                CrashReport crashreport;
-
-                try {
-                    worldserver.timings.doTick.startTiming(); // Spigot
-                    worldserver.doTick();
-                    worldserver.timings.doTick.stopTiming(); // Spigot
-                } catch (Throwable throwable) {
-                    // Spigot Start
+        PaperPhaserProvider phaserProvider = new PaperPhaserProvider();
+        MinecraftServer.ignoreAsyncModifications = true;
+        for (final WorldServer world : this.worlds) {
+            final PaperPhaser phaser = phaserProvider.getAndRegister();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
                     try {
-                    crashreport = CrashReport.a(throwable, "Exception ticking world");
-                    } catch (Throwable t){
-                        throw new RuntimeException("Error generating crash report", t);
+                        MinecraftServer.this.methodProfiler.a(world.getWorldData().getName());
+                        MinecraftServer.this.methodProfiler.a("pools");
+                        MinecraftServer.this.methodProfiler.b();
+                        MinecraftServer.this.methodProfiler.a("tick");
+                        CrashReport crashreport;
+                        try {
+                            world.timings.doTick.startTiming(); // Spigot
+                            world.doTick();
+                            world.timings.doTick.stopTiming(); // Spigot
+                        } catch (Throwable throwable) {
+                            // Spigot Start
+                            try {
+                                crashreport = CrashReport.a(throwable, "Exception ticking world");
+                            } catch (Throwable t) {
+                                throw new RuntimeException("Error generating crash report", t);
+                            }
+                            // Spigot End
+                            world.a(crashreport);
+                            throw new ReportedException(crashreport);
+                        }
+                        try {
+                            world.timings.tickEntities.startTiming(); // Spigot
+                            world.tickEntities();
+                            world.timings.tickEntities.stopTiming(); // Spigot
+                        } catch (Throwable throwable1) {
+                            // Spigot Start
+                            try {
+                                crashreport = CrashReport.a(throwable1, "Exception ticking world entities");
+                            } catch (Throwable t) {
+                                throw new RuntimeException("Error generating crash report", t);
+                            }
+                            // Spigot End
+                            world.a(crashreport);
+                            throw new ReportedException(crashreport);
+                        }
+                        MinecraftServer.this.methodProfiler.b();
+                        MinecraftServer.this.methodProfiler.a("tracker");
+                        world.timings.tracker.startTiming(); // Spigot
+                        world.getTracker().updatePlayers();
+                        world.timings.tracker.stopTiming(); // Spigot
+                        MinecraftServer.this.methodProfiler.b();
+                        MinecraftServer.this.methodProfiler.b();
+                    } finally {
+
+                        phaser.arrive();
                     }
-                    // Spigot End
-                    worldserver.a(crashreport);
-                    throw new ReportedException(crashreport);
                 }
-
-                try {
-                    worldserver.timings.tickEntities.startTiming(); // Spigot
-                    worldserver.tickEntities();
-                    worldserver.timings.tickEntities.stopTiming(); // Spigot
-                } catch (Throwable throwable1) {
-                    // Spigot Start
-                    try {
-                    crashreport = CrashReport.a(throwable1, "Exception ticking world entities");
-                    } catch (Throwable t){
-                        throw new RuntimeException("Error generating crash report", t);
-                    }
-                    // Spigot End
-                    worldserver.a(crashreport);
-                    throw new ReportedException(crashreport);
-                }
-
-                this.methodProfiler.b();
-                this.methodProfiler.a("tracker");
-                worldserver.timings.tracker.startTiming(); // Spigot
-                worldserver.getTracker().updatePlayers();
-                worldserver.timings.tracker.stopTiming(); // Spigot
-                this.methodProfiler.b();
-                this.methodProfiler.b();
-            // } // CraftBukkit
-
-            // this.h[i][this.ticks % 100] = System.nanoTime() - j; // CraftBukkit
+            };
+            worldService.submit(runnable);
         }
+        phaserProvider.await();
+        MinecraftServer.ignoreAsyncModifications = false;
 
         this.methodProfiler.c("connection");
         SpigotTimings.connectionTimer.startTiming(); // Spigot
@@ -795,8 +790,8 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         this.methodProfiler.c("tickables");
 
         SpigotTimings.tickablesTimer.startTiming(); // Spigot
-        for (i = 0; i < this.n.size(); ++i) {
-            ((IUpdatePlayerListBox) this.n.get(i)).a();
+        for (Object aN : this.n) {
+            ((IUpdatePlayerListBox) aN).a();
         }
         SpigotTimings.tickablesTimer.stopTiming(); // Spigot
 

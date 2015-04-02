@@ -1,9 +1,8 @@
 package net.minecraft.server;
 
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // CraftBukkit start
 import org.bukkit.Bukkit;
@@ -47,7 +46,7 @@ public abstract class Entity {
     // PaperSpigot end
     // CraftBukkit end
 
-    private static int entityCount;
+    private static AtomicInteger entityCount = new AtomicInteger(1);
     private int id;
     public double j;
     public boolean k;
@@ -140,7 +139,7 @@ public abstract class Entity {
     }
 
     public Entity(World world) {
-        this.id = entityCount++;
+        this.id = entityCount.getAndIncrement();
         this.j = 1.0D;
         this.boundingBox = AxisAlignedBB.a(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
         this.J = true;
@@ -513,7 +512,8 @@ public abstract class Entity {
                 }
             }
 
-            List list = this.world.getCubes(this, this.boundingBox.a(d0, d1, d2));
+            List list = new ArrayList<>(this.world.getCubes(this, this.boundingBox.a(d0, d1, d2)));
+            list.removeAll(Collections.singleton(null));
 
             for (int i = 0; i < list.size(); ++i) {
                 d1 = ((AxisAlignedBB) list.get(i)).b(this.boundingBox, d1);

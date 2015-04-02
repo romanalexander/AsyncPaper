@@ -1,10 +1,8 @@
 package net.minecraft.server;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +11,7 @@ public class EntityTracker {
 
     private static final Logger a = LogManager.getLogger();
     private final WorldServer world;
-    private Set c = new HashSet();
+    private Set c = Collections.newSetFromMap(new ConcurrentHashMap());
     public IntHashMap trackedEntities = new IntHashMap(); // CraftBukkit - private -> public
     private int e;
 

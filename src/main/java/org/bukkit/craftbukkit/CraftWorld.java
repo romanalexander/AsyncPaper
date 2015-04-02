@@ -1,26 +1,9 @@
 package org.bukkit.craftbukkit;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-
 import net.minecraft.server.*;
-
 import org.apache.commons.lang.Validate;
-import org.bukkit.BlockChangeDelegate;
-import org.bukkit.Bukkit;
+import org.bukkit.*;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Difficulty;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -28,17 +11,16 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.block.CraftBlockState;
-import org.bukkit.craftbukkit.entity.*;
+import org.bukkit.craftbukkit.entity.CraftItem;
+import org.bukkit.craftbukkit.entity.CraftLightningStrike;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.metadata.BlockMetadataStore;
-import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.craftbukkit.util.LongHash;
 import org.bukkit.entity.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.minecart.ExplosiveMinecart;
-import org.bukkit.entity.minecart.HopperMinecart;
+import org.bukkit.entity.minecart.*;
 import org.bukkit.entity.minecart.PoweredMinecart;
-import org.bukkit.entity.minecart.SpawnerMinecart;
 import org.bukkit.entity.minecart.StorageMinecart;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.weather.ThunderChangeEvent;
@@ -51,6 +33,9 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.StandardMessenger;
 import org.bukkit.util.Vector;
+
+import java.io.File;
+import java.util.*;
 
 public class CraftWorld implements World {
     public static final int CUSTOM_DIMENSION_OFFSET = 10;
@@ -180,7 +165,7 @@ public class CraftWorld implements World {
     }
 
     public boolean unloadChunkRequest(int x, int z, boolean safe) {
-        org.spigotmc.AsyncCatcher.catchOp( "chunk unload"); // Spigot
+        org.spigotmc.AsyncCatcher.catchOp("chunk unload"); // Spigot
         if (safe && isChunkInUse(x, z)) {
             return false;
         }
@@ -191,7 +176,7 @@ public class CraftWorld implements World {
     }
 
     public boolean unloadChunk(int x, int z, boolean save, boolean safe) {
-        org.spigotmc.AsyncCatcher.catchOp( "chunk unload"); // Spigot
+        org.spigotmc.AsyncCatcher.catchOp("chunk unload"); // Spigot
         if (safe && isChunkInUse(x, z)) {
             return false;
         }
@@ -208,7 +193,7 @@ public class CraftWorld implements World {
             world.chunkProviderServer.saveChunkNOP(chunk);
         }
 
-        world.chunkProviderServer.unloadQueue.remove(x, z);
+        world.chunkProviderServer.unloadQueue.remove(LongHash.toLong(x, z));
         world.chunkProviderServer.chunks.remove(LongHash.toLong(x, z));
 
         return true;
@@ -217,7 +202,7 @@ public class CraftWorld implements World {
     public boolean regenerateChunk(int x, int z) {
         unloadChunk(x, z, false, false);
 
-        world.chunkProviderServer.unloadQueue.remove(x, z);
+        world.chunkProviderServer.unloadQueue.remove(LongHash.toLong(x, z));
 
         net.minecraft.server.Chunk chunk = null;
 
@@ -266,7 +251,7 @@ public class CraftWorld implements World {
             return world.chunkProviderServer.getChunkAt(x, z) != null;
         }
 
-        world.chunkProviderServer.unloadQueue.remove(x, z);
+        world.chunkProviderServer.unloadQueue.remove(LongHash.toLong(x, z));
         net.minecraft.server.Chunk chunk = world.chunkProviderServer.chunks.get(LongHash.toLong(x, z));
 
         if (chunk == null) {
@@ -600,16 +585,21 @@ public class CraftWorld implements World {
     public List<Entity> getEntities() {
         List<Entity> list = new ArrayList<Entity>();
 
-        for (Object o : world.entityList) {
-            if (o instanceof net.minecraft.server.Entity) {
-                net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
-                Entity bukkitEntity = mcEnt.getBukkitEntity();
+        world.guardEntityList.lock();
+        try {
+            for (Object o : world.entityList) {
+                if (o instanceof net.minecraft.server.Entity) {
+                    net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
+                    Entity bukkitEntity = mcEnt.getBukkitEntity();
 
-                // Assuming that bukkitEntity isn't null
-                if (bukkitEntity != null) {
-                    list.add(bukkitEntity);
+                    // Assuming that bukkitEntity isn't null
+                    if (bukkitEntity != null) {
+                        list.add(bukkitEntity);
+                    }
                 }
             }
+        } finally {
+            world.guardEntityList.unlock();
         }
 
         return list;
@@ -618,16 +608,21 @@ public class CraftWorld implements World {
     public List<LivingEntity> getLivingEntities() {
         List<LivingEntity> list = new ArrayList<LivingEntity>();
 
-        for (Object o : world.entityList) {
-            if (o instanceof net.minecraft.server.Entity) {
-                net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
-                Entity bukkitEntity = mcEnt.getBukkitEntity();
+        world.guardEntityList.lock();
+        try {
+            for (Object o : world.entityList) {
+                if (o instanceof net.minecraft.server.Entity) {
+                    net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
+                    Entity bukkitEntity = mcEnt.getBukkitEntity();
 
-                // Assuming that bukkitEntity isn't null
-                if (bukkitEntity != null && bukkitEntity instanceof LivingEntity) {
-                    list.add((LivingEntity) bukkitEntity);
+                    // Assuming that bukkitEntity isn't null
+                    if (bukkitEntity != null && bukkitEntity instanceof LivingEntity) {
+                        list.add((LivingEntity) bukkitEntity);
+                    }
                 }
             }
+        } finally {
+            world.guardEntityList.unlock();
         }
 
         return list;
@@ -643,20 +638,25 @@ public class CraftWorld implements World {
     public <T extends Entity> Collection<T> getEntitiesByClass(Class<T> clazz) {
         Collection<T> list = new ArrayList<T>();
 
-        for (Object entity: world.entityList) {
-            if (entity instanceof net.minecraft.server.Entity) {
-                Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
+        world.guardEntityList.lock();
+        try {
+            for (Object entity : world.entityList) {
+                if (entity instanceof net.minecraft.server.Entity) {
+                    Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
 
-                if (bukkitEntity == null) {
-                    continue;
-                }
+                    if (bukkitEntity == null) {
+                        continue;
+                    }
 
-                Class<?> bukkitClass = bukkitEntity.getClass();
+                    Class<?> bukkitClass = bukkitEntity.getClass();
 
-                if (clazz.isAssignableFrom(bukkitClass)) {
-                    list.add((T) bukkitEntity);
+                    if (clazz.isAssignableFrom(bukkitClass)) {
+                        list.add((T) bukkitEntity);
+                    }
                 }
             }
+        } finally {
+            world.guardEntityList.unlock();
         }
 
         return list;
@@ -665,23 +665,28 @@ public class CraftWorld implements World {
     public Collection<Entity> getEntitiesByClasses(Class<?>... classes) {
         Collection<Entity> list = new ArrayList<Entity>();
 
-        for (Object entity: world.entityList) {
-            if (entity instanceof net.minecraft.server.Entity) {
-                Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
+        world.guardEntityList.lock();
+        try {
+            for (Object entity : world.entityList) {
+                if (entity instanceof net.minecraft.server.Entity) {
+                    Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
 
-                if (bukkitEntity == null) {
-                    continue;
-                }
+                    if (bukkitEntity == null) {
+                        continue;
+                    }
 
-                Class<?> bukkitClass = bukkitEntity.getClass();
+                    Class<?> bukkitClass = bukkitEntity.getClass();
 
-                for (Class<?> clazz : classes) {
-                    if (clazz.isAssignableFrom(bukkitClass)) {
-                        list.add(bukkitEntity);
-                        break;
+                    for (Class<?> clazz : classes) {
+                        if (clazz.isAssignableFrom(bukkitClass)) {
+                            list.add(bukkitEntity);
+                            break;
+                        }
                     }
                 }
             }
+        } finally {
+            world.guardEntityList.unlock();
         }
 
         return list;
@@ -689,16 +694,20 @@ public class CraftWorld implements World {
 
     public List<Player> getPlayers() {
         List<Player> list = new ArrayList<Player>();
+        world.guardEntityList.lock();
+        try {
+            for (Object o : world.entityList) {
+                if (o instanceof net.minecraft.server.Entity) {
+                    net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
+                    Entity bukkitEntity = mcEnt.getBukkitEntity();
 
-        for (Object o : world.entityList) {
-            if (o instanceof net.minecraft.server.Entity) {
-                net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
-                Entity bukkitEntity = mcEnt.getBukkitEntity();
-
-                if ((bukkitEntity != null) && (bukkitEntity instanceof Player)) {
-                    list.add((Player) bukkitEntity);
+                    if ((bukkitEntity != null) && (bukkitEntity instanceof Player)) {
+                        list.add((Player) bukkitEntity);
+                    }
                 }
             }
+        } finally {
+            world.guardEntityList.unlock();
         }
 
         return list;
@@ -1339,7 +1348,7 @@ public class CraftWorld implements World {
             }
 
             // Already unloading?
-            if (cps.unloadQueue.contains(chunk.locX, chunk.locZ)) {
+            if (cps.unloadQueue.contains(LongHash.toLong(chunk.locX, chunk.locZ))) {
                 continue;
             }
 

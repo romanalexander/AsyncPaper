@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import net.minecraft.server.MinecraftServer;
+import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -33,6 +34,10 @@ public class PaperSpigotConfig
     static int version;
     static Map<String, Command> commands;
     /*========================================================================*/
+
+    static {
+        init();
+    }
 
     public static void init()
     {
@@ -174,5 +179,17 @@ public class PaperSpigotConfig
     private static void maxPacketsPerPlayer()
     {
         maxPacketsPerPlayer = getInt( "max-packets-per-player", 1000 );
+    }
+
+    public static int worldThreads;
+    private static void concurrencyThreads()
+    {
+        worldThreads = getInt("concurrency.world-threads", 1);
+        log( "World processing threads: " + worldThreads);
+    }
+
+    private static void log(String s)
+    {
+        LogManager.getLogger().info( s );
     }
 }
