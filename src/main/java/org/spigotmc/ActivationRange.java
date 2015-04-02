@@ -12,6 +12,7 @@ import net.minecraft.server.EntityComplexPart;
 import net.minecraft.server.EntityCreature;
 import net.minecraft.server.EntityEnderCrystal;
 import net.minecraft.server.EntityEnderDragon;
+import net.minecraft.server.EntityFallingBlock; // PaperSpigot
 import net.minecraft.server.EntityFireball;
 import net.minecraft.server.EntityFireworks;
 import net.minecraft.server.EntityHuman;
@@ -262,6 +263,15 @@ public class ActivationRange
     public static boolean checkIfActive(Entity entity)
     {
         SpigotTimings.checkIfActiveTimer.startTiming();
+
+        // PaperSpigot start - EAR backport
+        // Never safe to skip fireworks or entities not yet added to chunk and we don't skip falling blocks
+        if ( !entity.isAddedToChunk() || entity instanceof EntityFireworks || entity instanceof EntityFallingBlock ) {
+            SpigotTimings.checkIfActiveTimer.stopTiming();
+            return true;
+        }
+        // PaperSpigot end
+
         boolean isActive = entity.activatedTick >= MinecraftServer.currentTick || entity.defaultActivationState;
 
         // Should this entity tick?
