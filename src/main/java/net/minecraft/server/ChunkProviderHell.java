@@ -183,8 +183,10 @@ public class ChunkProviderHell implements IChunkProvider {
 
         this.a(i, j, ablock);
         this.b(i, j, ablock);
-        this.t.a(this, this.o, i, j, ablock);
-        this.c.a(this, this.o, i, j, ablock);
+        // PaperSpigot start
+        if (this.o.paperSpigotConfig.generateCaves) this.t.a(this, this.o, i, j, ablock);
+        if (this.o.paperSpigotConfig.generateFortress) this.c.a(this, this.o, i, j, ablock);
+        // PaperSpigot end
         Chunk chunk = new Chunk(this.o, ablock, i, j);
         BiomeBase[] abiomebase = this.o.getWorldChunkManager().getBiomeBlock((BiomeBase[]) null, i * 16, j * 16, 16, 16);
         byte[] abyte = chunk.m();
@@ -321,7 +323,7 @@ public class ChunkProviderHell implements IChunkProvider {
         int k = i * 16;
         int l = j * 16;
 
-        this.c.a(this.o, this.i, i, j);
+        if (this.o.paperSpigotConfig.generateFortress) this.c.a(this.o, this.i, i, j); // PaperSpigot
 
         int i1;
         int j1;
@@ -440,6 +442,6 @@ public class ChunkProviderHell implements IChunkProvider {
     }
 
     public void recreateStructures(int i, int j) {
-        this.c.a(this, this.o, i, j, (Block[]) null);
+        if (this.o.paperSpigotConfig.generateFortress) this.c.a(this, this.o, i, j, (Block[]) null); // PaperSpigot
     }
 }

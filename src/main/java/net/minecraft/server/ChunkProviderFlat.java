@@ -26,7 +26,7 @@ public class ChunkProviderFlat implements IChunkProvider {
         if (flag) {
             Map map = this.e.b();
 
-            if (map.containsKey("village")) {
+            if (world.paperSpigotConfig.generateVillage && map.containsKey("village")) { // PaperSpigot
                 Map map1 = (Map) map.get("village");
 
                 if (!map1.containsKey("size")) {
@@ -36,15 +36,15 @@ public class ChunkProviderFlat implements IChunkProvider {
                 this.f.add(new WorldGenVillage(map1));
             }
 
-            if (map.containsKey("biome_1")) {
+            if (world.paperSpigotConfig.generateTemple && map.containsKey("biome_1")) { // PaperSpigot
                 this.f.add(new WorldGenLargeFeature((Map) map.get("biome_1")));
             }
 
-            if (map.containsKey("mineshaft")) {
+            if (world.paperSpigotConfig.generateMineshaft && map.containsKey("mineshaft")) { // PaperSpigot
                 this.f.add(new WorldGenMineshaft((Map) map.get("mineshaft")));
             }
 
-            if (map.containsKey("stronghold")) {
+            if (world.paperSpigotConfig.generateStronghold && map.containsKey("stronghold")) { // PaperSpigot
                 this.f.add(new WorldGenStronghold((Map) map.get("stronghold")));
             }
         }
@@ -58,7 +58,7 @@ public class ChunkProviderFlat implements IChunkProvider {
             this.j = new WorldGenLakes(Blocks.STATIONARY_LAVA);
         }
 
-        this.h = this.e.b().containsKey("dungeon");
+        this.h = world.paperSpigotConfig.generateDungeon && this.e.b().containsKey("dungeon");
         Iterator iterator = this.e.c().iterator();
 
         while (iterator.hasNext()) {

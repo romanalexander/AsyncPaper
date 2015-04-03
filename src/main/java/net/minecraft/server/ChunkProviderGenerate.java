@@ -149,13 +149,17 @@ public class ChunkProviderGenerate implements IChunkProvider {
         this.a(i, j, ablock);
         this.z = this.n.getWorldChunkManager().getBiomeBlock(this.z, i * 16, j * 16, 16, 16);
         this.a(i, j, ablock, abyte, this.z);
-        this.t.a(this, this.n, i, j, ablock);
-        this.y.a(this, this.n, i, j, ablock);
+        // PaperSpigot start
+        if (this.n.paperSpigotConfig.generateCaves) this.t.a(this, this.n, i, j, ablock);
+        if (this.n.paperSpigotConfig.generateCanyon) this.y.a(this, this.n, i, j, ablock);
+        // PaperSpigot end
         if (this.o) {
-            this.w.a(this, this.n, i, j, ablock);
-            this.v.a(this, this.n, i, j, ablock);
-            this.u.a(this, this.n, i, j, ablock);
-            this.x.a(this, this.n, i, j, ablock);
+            // PaperSpigot start
+            if (this.n.paperSpigotConfig.generateMineshaft) this.w.a(this, this.n, i, j, ablock);
+            if (this.n.paperSpigotConfig.generateVillage) this.v.a(this, this.n, i, j, ablock);
+            if (this.n.paperSpigotConfig.generateStronghold) this.u.a(this, this.n, i, j, ablock);
+            if (this.n.paperSpigotConfig.generateTemple) this.x.a(this, this.n, i, j, ablock);
+            // PaperSpigot end
         }
 
         Chunk chunk = new Chunk(this.n, ablock, abyte, i, j);
@@ -294,10 +298,12 @@ public class ChunkProviderGenerate implements IChunkProvider {
         boolean flag = false;
 
         if (this.o) {
-            this.w.a(this.n, this.i, i, j);
-            flag = this.v.a(this.n, this.i, i, j);
-            this.u.a(this.n, this.i, i, j);
-            this.x.a(this.n, this.i, i, j);
+            // PaperSpigot start
+            if (this.n.paperSpigotConfig.generateMineshaft) this.w.a(this.n, this.i, i, j);
+            if (this.n.paperSpigotConfig.generateVillage) flag = this.v.a(this.n, this.i, i, j);
+            if (this.n.paperSpigotConfig.generateStronghold) this.u.a(this.n, this.i, i, j);
+            if (this.n.paperSpigotConfig.generateTemple) this.x.a(this.n, this.i, i, j);
+            // PaperSpigot end
         }
 
         int k1;
@@ -320,13 +326,17 @@ public class ChunkProviderGenerate implements IChunkProvider {
             }
         }
 
-        for (k1 = 0; k1 < 8; ++k1) {
-            l1 = k + this.i.nextInt(16) + 8;
-            i2 = this.i.nextInt(256);
-            int j2 = l + this.i.nextInt(16) + 8;
+        // PaperSpigot start
+        if (this.n.paperSpigotConfig.generateDungeon) {
+            for (k1 = 0; k1 < 8; ++k1) {
+                l1 = k + this.i.nextInt(16) + 8;
+                i2 = this.i.nextInt(256);
+                int j2 = l + this.i.nextInt(16) + 8;
 
-            (new WorldGenDungeons()).generate(this.n, this.i, l1, i2, j2);
+                (new WorldGenDungeons()).generate(this.n, this.i, l1, i2, j2);
+            }
         }
+        // PaperSpigot end
 
         biomebase.a(this.n, this.i, k, l);
         SpawnerCreature.a(this.n, biomebase, k + 8, l + 8, 16, 16, this.i);
@@ -383,10 +393,12 @@ public class ChunkProviderGenerate implements IChunkProvider {
 
     public void recreateStructures(int i, int j) {
         if (this.o) {
-            this.w.a(this, this.n, i, j, (Block[]) null);
-            this.v.a(this, this.n, i, j, (Block[]) null);
-            this.u.a(this, this.n, i, j, (Block[]) null);
-            this.x.a(this, this.n, i, j, (Block[]) null);
+            // PaperSpigot start
+            if (this.n.paperSpigotConfig.generateMineshaft) this.w.a(this, this.n, i, j, (Block[]) null);
+            if (this.n.paperSpigotConfig.generateVillage) this.v.a(this, this.n, i, j, (Block[]) null);
+            if (this.n.paperSpigotConfig.generateStronghold) this.u.a(this, this.n, i, j, (Block[]) null);
+            if (this.n.paperSpigotConfig.generateTemple) this.x.a(this, this.n, i, j, (Block[]) null);
+            // PaperSpigot end
         }
     }
 }

@@ -215,4 +215,24 @@ public class PaperSpigotWorldConfig
         useAsyncLighting = getBoolean( "use-async-lighting", false );
         log( "World async lighting: " + useAsyncLighting );
     }
+
+    public boolean generateCanyon;
+    public boolean generateCaves;
+    public boolean generateDungeon;
+    public boolean generateFortress;
+    public boolean generateMineshaft;
+    public boolean generateStronghold;
+    public boolean generateTemple;
+    public boolean generateVillage;
+    private void generatorSettings()
+    {
+        generateCanyon = getBoolean( "generator-settings.canyon", true );
+        generateCaves = getBoolean( "generator-settings.caves", true );
+        generateDungeon = getBoolean( "generator-settings.dungeon", true );
+        generateFortress = getBoolean( "generator-settings.fortress", true );
+        generateMineshaft = getBoolean( "generator-settings.mineshaft", true );
+        generateStronghold = getBoolean( "generator-settings.stronghold", true );
+        generateTemple = getBoolean( "generator-settings.temple", true );
+        generateVillage = getBoolean( "generator-settings.village", true );
+    }
 }
