@@ -83,6 +83,9 @@ public abstract class EntityProjectile extends Entity implements IProjectile {
         this.S = this.locX;
         this.T = this.locY;
         this.U = this.locZ;
+
+        world.paperSpigotConfig.loadUnloadedChunks(this);
+
         super.h();
         if (this.shake > 0) {
             --this.shake;
