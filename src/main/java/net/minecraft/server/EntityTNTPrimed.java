@@ -1,6 +1,6 @@
 package net.minecraft.server;
 
-import org.bukkit.event.entity.ExplosionPrimeEvent; // CraftBukkit
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 
 public class EntityTNTPrimed extends Entity {
 
@@ -53,6 +53,9 @@ public class EntityTNTPrimed extends Entity {
 
     public void h() {
         if (world.spigotConfig.currentPrimedTnt++ > world.spigotConfig.maxTntTicksPerTick) { return; } // Spigot
+
+        world.paperSpigotConfig.loadUnloadedChunks(this);
+
         this.lastX = this.locX;
         this.lastY = this.locY;
         this.lastZ = this.locZ;

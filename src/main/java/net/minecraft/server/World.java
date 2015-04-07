@@ -1249,10 +1249,8 @@ public abstract class World implements IBlockAccess {
         for ( int chunkx = ( i >> 4 ); chunkx <= ( ( j - 1 ) >> 4 ); chunkx++ )
         {
             int cx = chunkx << 4;
-            for ( int chunkz = ( i1 >> 4 ); chunkz <= ( ( j1 - 1 ) >> 4 ); chunkz++ )
-            {
-                if ( !this.isChunkLoaded( chunkx, chunkz ) )
-                {
+            for (int chunkz = (i1 >> 4); chunkz <= ((j1 - 1) >> 4); chunkz++) {
+                if (!paperSpigotConfig.isLoadUnloadedEntity(entity) && !this.isChunkLoaded(chunkx, chunkz)) {
                     entity.inUnloadedChunk = true; // PaperSpigot - Remove entities in unloaded chunks
                     continue;
                 }
@@ -1634,7 +1632,8 @@ public abstract class World implements IBlockAccess {
             entity.ticksLived++;
             entity.inactiveTick();
             // PaperSpigot start - Remove entities in unloaded chunks
-            if (entity instanceof EntityEnderPearl || (!this.isChunkLoaded(i, j) &&
+            if ( (!this.isChunkLoaded(i, j) &&
+                    (entity instanceof EntityEnderPearl && this.paperSpigotConfig.removeUnloadedEnderPearls) ||
                     (entity instanceof EntityFallingBlock && this.paperSpigotConfig.removeUnloadedFallingBlocks) ||
                     (entity instanceof EntityTNTPrimed && this.paperSpigotConfig.removeUnloadedTNTEntities))) {
                 entity.inUnloadedChunk = true;
@@ -1688,7 +1687,7 @@ public abstract class World implements IBlockAccess {
                     this.getChunkAt(entity.ah, entity.aj).a(entity, entity.ai);
                 }
 
-                if (this.isChunkLoaded(k, i1)) {
+                if (this.isChunkLoaded(k, i1) || this.paperSpigotConfig.isLoadUnloadedEntity(entity)) {
                     entity.ag = true;
                     this.getChunkAt(k, i1).a(entity);
                 } else {

@@ -72,6 +72,9 @@ public class EntityFallingBlock extends Entity {
         if (this.id.getMaterial() == Material.AIR) {
             this.die();
         } else {
+
+            world.paperSpigotConfig.loadUnloadedChunks(this);
+
             this.lastX = this.locX;
             this.lastY = this.locY;
             this.lastZ = this.locZ;

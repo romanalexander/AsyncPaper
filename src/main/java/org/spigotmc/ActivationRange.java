@@ -266,7 +266,7 @@ public class ActivationRange
 
         // PaperSpigot start - EAR backport
         // Never safe to skip fireworks or entities not yet added to chunk and we don't skip falling blocks
-        if ( !entity.isAddedToChunk() || entity instanceof EntityFireworks || entity instanceof EntityFallingBlock ) {
+        if ( !entity.isAddedToChunk() || entity instanceof EntityFireworks || entity instanceof EntityFallingBlock || entity.world.paperSpigotConfig.isLoadUnloadedEntity(entity)) {
             SpigotTimings.checkIfActiveTimer.stopTiming();
             return true;
         }

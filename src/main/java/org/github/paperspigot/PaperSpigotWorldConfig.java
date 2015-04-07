@@ -1,8 +1,10 @@
 package org.github.paperspigot;
 
-import java.util.List;
+import net.minecraft.server.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.util.List;
 
 public class PaperSpigotWorldConfig
 {
@@ -65,20 +67,20 @@ public class PaperSpigotWorldConfig
 
     private <T> List getList(String path, T def)
     {
-        config.addDefault( "world-settings.default." + path, def );
+        config.addDefault("world-settings.default." + path, def);
         return (List<T>) config.getList( "world-settings." + worldName + "." + path, config.getList( "world-settings.default." + path ) );
     }
 
     private String getString(String path, String def)
     {
-        config.addDefault( "world-settings.default." + path, def );
+        config.addDefault("world-settings.default." + path, def);
         return config.getString( "world-settings." + worldName + "." + path, config.getString( "world-settings.default." + path ) );
     }
 
     public boolean allowUndeadHorseLeashing;
     private void allowUndeadHorseLeashing()
     {
-        allowUndeadHorseLeashing = getBoolean( "allow-undead-horse-leashing", true );
+        allowUndeadHorseLeashing = getBoolean("allow-undead-horse-leashing", true);
         log( "Allow undead horse types to be leashed: " + allowUndeadHorseLeashing );
     }
 
@@ -86,15 +88,15 @@ public class PaperSpigotWorldConfig
     public double squidMaxSpawnHeight;
     private void squidSpawnHeight()
     {
-        squidMinSpawnHeight = getDouble( "squid-spawn-height.minimum", 45.0D );
-        squidMaxSpawnHeight = getDouble( "squid-spawn-height.maximum", 63.0D );
+        squidMinSpawnHeight = getDouble("squid-spawn-height.minimum", 45.0D);
+        squidMaxSpawnHeight = getDouble("squid-spawn-height.maximum", 63.0D);
         log( "Squids will spawn between Y: " + squidMinSpawnHeight + " and Y: " + squidMaxSpawnHeight);
     }
 
     public float playerBlockingDamageMultiplier;
     private void playerBlockingDamageMultiplier()
     {
-        playerBlockingDamageMultiplier = getFloat( "player-blocking-damage-multiplier", 0.5F );
+        playerBlockingDamageMultiplier = getFloat("player-blocking-damage-multiplier", 0.5F);
         log( "Player blocking damage multiplier set to " + playerBlockingDamageMultiplier);
     }
 
@@ -110,7 +112,7 @@ public class PaperSpigotWorldConfig
     public boolean invertedDaylightDetectors;
     private void invertedDaylightDetectors()
     {
-        invertedDaylightDetectors = getBoolean( "inverted-daylight-detectors", false );
+        invertedDaylightDetectors = getBoolean("inverted-daylight-detectors", false);
         log( "Inverted Redstone Lamps: " + invertedDaylightDetectors );
     }
 
@@ -118,7 +120,7 @@ public class PaperSpigotWorldConfig
     public int fishingMaxTicks;
     private void fishingTickRange()
     {
-        fishingMinTicks = getInt( "fishing-time-range.MinimumTicks", 100 );
+        fishingMinTicks = getInt("fishing-time-range.MinimumTicks", 100);
         fishingMaxTicks = getInt( "fishing-time-range.MaximumTicks", 900 );
     }
 
@@ -126,8 +128,8 @@ public class PaperSpigotWorldConfig
     public float playerSwimmingExhaustion;
     private void exhaustionValues ()
     {
-        blockBreakExhaustion = getFloat( "player-exhaustion.block-break", 0.025F );
-        playerSwimmingExhaustion = getFloat("player-exhaustion.swimming", 0.015F );
+        blockBreakExhaustion = getFloat("player-exhaustion.block-break", 0.025F);
+        playerSwimmingExhaustion = getFloat("player-exhaustion.swimming", 0.015F);
     }
 
     public Integer softDespawnDistance;
@@ -168,7 +170,7 @@ public class PaperSpigotWorldConfig
     public int waterOverLavaFlowSpeed;
     private void waterOverLavaFlowSpeed()
     {
-        waterOverLavaFlowSpeed = getInt( "water-over-lava-flow-speed", 5 );
+        waterOverLavaFlowSpeed = getInt("water-over-lava-flow-speed", 5);
         log( "Water over lava flow speed: " + waterOverLavaFlowSpeed);
     }
 
@@ -188,6 +190,42 @@ public class PaperSpigotWorldConfig
         removeUnloadedTNTEntities = getBoolean( "remove-unloaded.tnt-entities", true );
         removeUnloadedFallingBlocks = getBoolean( "remove-unloaded.falling-blocks", true );
     }
+
+    public boolean loadUnloadedEnderPearls;
+    public boolean loadUnloadedTNTEntities;
+    public boolean loadUnloadedFallingBlocks;
+    private void loadUnloaded()
+    {
+        loadUnloadedEnderPearls = getBoolean( "load-unloaded.enderpearls", false );
+        loadUnloadedTNTEntities = getBoolean( "load-unloaded.tnt-entities", false );
+        loadUnloadedFallingBlocks = getBoolean( "load-unloaded.falling-blocks", false );
+    }
+
+    public boolean isLoadUnloadedEntity(Entity entity) {
+        return (loadUnloadedEnderPearls && (entity instanceof EntityEnderPearl)) ||
+                (loadUnloadedFallingBlocks && (entity instanceof EntityFallingBlock)) ||
+                (loadUnloadedTNTEntities && (entity instanceof EntityTNTPrimed));
+    }
+
+    public void loadUnloadedChunks(Entity entity) {
+        if(!isLoadUnloadedEntity(entity)) {
+            return;
+        }
+        World world = entity.world;
+        ChunkProviderServer chunkProvider = (ChunkProviderServer) world.chunkProvider;
+        boolean initial = chunkProvider.forceChunkLoad;
+        chunkProvider.forceChunkLoad = true;
+        for (int chunkx = ((int) entity.locX >> 4); chunkx <= ((int) (entity.locX + entity.motX) >> 4); chunkx++) {
+            for (int chunkz = ((int) entity.locZ >> 4); chunkz <= ((int) (entity.locZ + entity.motZ) >> 4); chunkz++) {
+                /*if ((int) entity.lastX >> 4 == chunkx && (int) entity.lastZ >> 4 == chunkz) {
+                    continue;
+                }*/
+                world.getChunkAt(chunkx, chunkz);
+            }
+        }
+        chunkProvider.forceChunkLoad = initial;
+    }
+    
 
     public boolean boatsDropBoats;
     public boolean lessPickyTorches;
@@ -219,7 +257,7 @@ public class PaperSpigotWorldConfig
     public boolean quickWaterDraining;
     private void quickWaterDraining()
     {
-        quickWaterDraining = getBoolean( "quick-water-draining", false); // Water will process immediately
+        quickWaterDraining = getBoolean("quick-water-draining", false); // Water will process immediately
         log( "World uses quick water draining: " + quickWaterDraining);
     }
 
