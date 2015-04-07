@@ -18,13 +18,6 @@
     <buildtag.suffix></buildtag.suffix>
   </properties>
 
-  <parent>
-    <groupId>org.github.paperspigot</groupId>
-    <artifactId>paperspigot-parent</artifactId>
-    <version>dev-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-
   <repositories>
     <repository>
       <id>repobo-snap</id>
