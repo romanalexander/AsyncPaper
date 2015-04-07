@@ -16,6 +16,7 @@ import org.bukkit.generator.ChunkGenerator;
 import org.github.paperspigot.NamedThreadFactory;
 import org.github.paperspigot.PaperPhaser;
 import org.github.paperspigot.PaperPhaserProvider;
+import org.github.paperspigot.PaperSpigotConfig;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -281,7 +282,6 @@ public abstract class World implements IBlockAccess {
         this.a();
 
         this.getServer().addWorld(this.world); // CraftBukkit
-        entityService = new ThreadPoolExecutor(paperSpigotConfig.entityThreads, paperSpigotConfig.entityThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("entity-worker"));
     }
 
     protected abstract IChunkProvider j();
@@ -1378,7 +1378,8 @@ public abstract class World implements IBlockAccess {
     public void b(int i, int j, int k, Block block, int l, int i1) {
     }
 
-    private ThreadPoolExecutor entityService;
+
+    private static ThreadPoolExecutor entityService = new ThreadPoolExecutor(PaperSpigotConfig.entityThreads, PaperSpigotConfig.entityThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("entity-worker"));
     public void tickEntities() {
         this.methodProfiler.a("entities");
         this.methodProfiler.a("global");

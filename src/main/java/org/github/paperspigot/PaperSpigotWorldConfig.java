@@ -223,13 +223,6 @@ public class PaperSpigotWorldConfig
         log( "World uses quick water draining: " + quickWaterDraining);
     }
 
-    public static int entityThreads;
-    private void concurrencyThreads()
-    {
-        entityThreads = getInt("concurrency.entity-threads", 1);
-        log( "Entity processing threads: " + entityThreads);
-    }
-
     public boolean generateCanyon;
     public boolean generateCaves;
     public boolean generateDungeon;
