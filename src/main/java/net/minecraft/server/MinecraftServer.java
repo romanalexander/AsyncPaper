@@ -106,6 +106,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
     public final Thread primaryThread;
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
     public int autosavePeriod;
+    public static final Object criticalChunkOpLock = new Object();
     // CraftBukkit end
 
     public MinecraftServer(OptionSet options, Proxy proxy) { // CraftBukkit - signature file -> OptionSet

@@ -175,19 +175,20 @@ public class WorldServer extends World {
         }
         // CraftBukkit end
         timings.doChunkUnload.startTiming(); // Spigot
-        this.methodProfiler.c("chunkSource");
-        this.chunkProvider.unloadChunks();
-        int j = this.a(1.0F);
+        synchronized(MinecraftServer.criticalChunkOpLock) {
+            this.methodProfiler.c("chunkSource");
+            this.chunkProvider.unloadChunks();
+            int j = this.a(1.0F);
 
-        if (j != this.j) {
-            this.j = j;
+            if (j != this.j) {
+                this.j = j;
+            }
+
+            this.worldData.setTime(this.worldData.getTime() + 1L);
+            if (this.getGameRules().getBoolean("doDaylightCycle")) {
+                this.worldData.setDayTime(this.worldData.getDayTime() + 1L);
+            }
         }
-
-        this.worldData.setTime(this.worldData.getTime() + 1L);
-        if (this.getGameRules().getBoolean("doDaylightCycle")) {
-            this.worldData.setDayTime(this.worldData.getDayTime() + 1L);
-        }
-
         timings.doChunkUnload.stopTiming(); // Spigot
         this.methodProfiler.c("tickPending");
         timings.doTickPending.startTiming(); // Spigot
@@ -216,7 +217,9 @@ public class WorldServer extends World {
         timings.doSounds.stopTiming(); // Spigot
 
         timings.doChunkGC.startTiming(); // Spigot
-        this.getWorld().processChunkGC(); // CraftBukkit
+        synchronized (MinecraftServer.criticalChunkOpLock) {
+            this.getWorld().processChunkGC(); // CraftBukkit
+        }
         timings.doChunkGC.stopTiming(); // Spigot
     }
 
