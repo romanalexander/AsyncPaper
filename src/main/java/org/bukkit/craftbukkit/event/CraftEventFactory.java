@@ -483,9 +483,9 @@ public class CraftEventFactory {
             blockDamage = null;
             if (source == DamageSource.CACTUS) {
                 cause = DamageCause.CONTACT;
-            } else {
+            } /*else {
                 throw new RuntimeException(String.format("Unhandled damage of %s by %s from %s", entity, damager, source.translationIndex)); // Spigot
-            }
+            }*/
             EntityDamageEvent event = callEvent(new EntityDamageByBlockEvent(damager, entity.getBukkitEntity(), cause, modifiers, modifierFunctions));
             if (!event.isCancelled()) {
                 event.getEntity().setLastDamageCause(event);
@@ -501,9 +501,9 @@ public class CraftEventFactory {
                 cause = DamageCause.LIGHTNING;
             } else if (source == DamageSource.FALL) {
                 cause = DamageCause.FALL;
-            } else {
+            } /*else {
                 throw new RuntimeException(String.format("Unhandled damage of %s by %s from %s", entity, damager.getHandle(), source.translationIndex)); // Spigot
-            }
+            }*/
             EntityDamageEvent event = callEvent(new EntityDamageByEntityEvent(damager, entity.getBukkitEntity(), cause, modifiers, modifierFunctions));
             if (!event.isCancelled()) {
                 event.getEntity().setLastDamageCause(event);
