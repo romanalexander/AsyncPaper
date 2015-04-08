@@ -255,10 +255,13 @@ public class PaperSpigotWorldConfig
     }
 
     public boolean quickWaterDraining;
-    private void quickWaterDraining()
+    public boolean quickLavaDraining;
+    private void quickDraining()
     {
         quickWaterDraining = getBoolean("quick-water-draining", false); // Water will process immediately
+        quickLavaDraining = getBoolean("quick-lava-draining", false); // Lava will process immediately
         log( "World uses quick water draining: " + quickWaterDraining);
+        log( "World uses quick lava draining: " + quickLavaDraining);
     }
 
     public boolean generateCanyon;
