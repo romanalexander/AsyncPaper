@@ -183,12 +183,15 @@ public class PaperSpigotConfig
 
     public static int worldThreads;
     public static int entityThreads;
+    public static int lightingThreads;
     private static void concurrencyThreads()
     {
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);
+        lightingThreads = getInt("concurrency.lighting-threads", 1);
         log( "World processing threads: " + worldThreads);
         log( "Entity processing threads: " + entityThreads);
+        log( "Lighting processing threads: " + lightingThreads);
     }
 
     private static void log(String s)

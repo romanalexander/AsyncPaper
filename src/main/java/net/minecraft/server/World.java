@@ -100,7 +100,19 @@ public abstract class World implements IBlockAccess {
     // CraftBukkit end
     // private ArrayList L;
     private boolean M;
-    int[] I;
+    // int[] I;
+    private class LightArrayHolder {
+        public int[] I;
+        public LightArrayHolder() {
+            this.I = new int['\u8000'];
+        }
+    }
+    private final ThreadLocal<LightArrayHolder> I = new ThreadLocal<LightArrayHolder>() {
+        @Override
+        protected LightArrayHolder initialValue() {
+            return new LightArrayHolder();
+        }
+    };
 
     // Spigot start
     public final ReentrantLock guardEntityList = new ReentrantLock();
@@ -228,7 +240,6 @@ public abstract class World implements IBlockAccess {
         this.allowMonsters = true;
         this.allowAnimals = true;
         // this.L = new ArrayList();
-        this.I = new int['\u8000'];
         this.dataManager = idatamanager;
         this.methodProfiler = methodprofiler;
         this.worldMaps = new PersistentCollection(idatamanager);
@@ -2489,7 +2500,7 @@ public abstract class World implements IBlockAccess {
     }
 
     // PaperSpigot start - Configurable async light updates
-    private ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
+    private static ThreadPoolExecutor lightingService = new ThreadPoolExecutor(PaperSpigotConfig.lightingThreads, PaperSpigotConfig.lightingThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
     public boolean c(final EnumSkyBlock enumskyblock, final int i, final int j, final int k) {
         Callable<Boolean> callable = new Callable<Boolean>() {
             @Override
@@ -2516,13 +2527,15 @@ public abstract class World implements IBlockAccess {
                     int k3;
                     int l3;
 
+                    int[] I = World.this.I.get().I;
+
                     if (k1 > j1) {
-                        World.this.I[i1++] = 133152;
+                        I[i1++] = 133152;
                     } else if (k1 < j1) {
-                        World.this.I[i1++] = 133152 | j1 << 18;
+                        I[i1++] = 133152 | j1 << 18;
 
                         while (l < i1) {
-                            l1 = World.this.I[l++];
+                            l1 = I[l++];
                             i2 = (l1 & 63) - 32 + i;
                             j2 = (l1 >> 6 & 63) - 32 + j;
                             k2 = (l1 >> 12 & 63) - 32 + k;
@@ -2547,8 +2560,8 @@ public abstract class World implements IBlockAccess {
                                                 i5 = 255;
                                             }
                                             i3 = World.this.b(enumskyblock, j4, k4, l4);
-                                            if (i3 == l2 - i5 && i1 < World.this.I.length) {
-                                                World.this.I[i1++] = j4 - i + 32 | k4 - j + 32 << 6 | l4 - k + 32 << 12 | l2 - i5 << 18;
+                                            if (i3 == l2 - i5 && i1 < I.length) {
+                                                I[i1++] = j4 - i + 32 | k4 - j + 32 << 6 | l4 - k + 32 << 12 | l2 - i5 << 18;
                                             }
                                         }
                                     }
@@ -2563,7 +2576,7 @@ public abstract class World implements IBlockAccess {
                     World.this.methodProfiler.a("checkedPosition < toCheckCount");
 
                     while (l < i1) {
-                        l1 = World.this.I[l++];
+                        l1 = I[l++];
                         i2 = (l1 & 63) - 32 + i;
                         j2 = (l1 >> 6 & 63) - 32 + j;
                         k2 = (l1 >> 12 & 63) - 32 + k;
@@ -2575,31 +2588,31 @@ public abstract class World implements IBlockAccess {
                                 j3 = Math.abs(i2 - i);
                                 l3 = Math.abs(j2 - j);
                                 k3 = Math.abs(k2 - k);
-                                boolean flag = i1 < World.this.I.length - 6;
+                                boolean flag = i1 < I.length - 6;
 
                                 if (j3 + l3 + k3 < 17 && flag) {
                                     if (World.this.b(enumskyblock, i2 - 1, j2, k2) < i3) {
-                                        World.this.I[i1++] = i2 - 1 - i + 32 + (j2 - j + 32 << 6) + (k2 - k + 32 << 12);
+                                        I[i1++] = i2 - 1 - i + 32 + (j2 - j + 32 << 6) + (k2 - k + 32 << 12);
                                     }
 
                                     if (World.this.b(enumskyblock, i2 + 1, j2, k2) < i3) {
-                                        World.this.I[i1++] = i2 + 1 - i + 32 + (j2 - j + 32 << 6) + (k2 - k + 32 << 12);
+                                        I[i1++] = i2 + 1 - i + 32 + (j2 - j + 32 << 6) + (k2 - k + 32 << 12);
                                     }
 
                                     if (World.this.b(enumskyblock, i2, j2 - 1, k2) < i3) {
-                                        World.this.I[i1++] = i2 - i + 32 + (j2 - 1 - j + 32 << 6) + (k2 - k + 32 << 12);
+                                        I[i1++] = i2 - i + 32 + (j2 - 1 - j + 32 << 6) + (k2 - k + 32 << 12);
                                     }
 
                                     if (World.this.b(enumskyblock, i2, j2 + 1, k2) < i3) {
-                                        World.this.I[i1++] = i2 - i + 32 + (j2 + 1 - j + 32 << 6) + (k2 - k + 32 << 12);
+                                        I[i1++] = i2 - i + 32 + (j2 + 1 - j + 32 << 6) + (k2 - k + 32 << 12);
                                     }
 
                                     if (World.this.b(enumskyblock, i2, j2, k2 - 1) < i3) {
-                                        World.this.I[i1++] = i2 - i + 32 + (j2 - j + 32 << 6) + (k2 - 1 - k + 32 << 12);
+                                        I[i1++] = i2 - i + 32 + (j2 - j + 32 << 6) + (k2 - 1 - k + 32 << 12);
                                     }
 
                                     if (World.this.b(enumskyblock, i2, j2, k2 + 1) < i3) {
-                                        World.this.I[i1++] = i2 - i + 32 + (j2 - j + 32 << 6) + (k2 + 1 - k + 32 << 12);
+                                        I[i1++] = i2 - i + 32 + (j2 - j + 32 << 6) + (k2 + 1 - k + 32 << 12);
                                     }
                                 }
                             }
@@ -2612,7 +2625,7 @@ public abstract class World implements IBlockAccess {
             }
         };
         if (paperSpigotConfig.useAsyncLighting) {
-            service.submit(callable);
+            lightingService.submit(callable);
         } else {
             try {
                 return callable.call();
