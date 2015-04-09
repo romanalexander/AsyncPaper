@@ -275,6 +275,7 @@ public class PaperSpigotWorldConfig
     public boolean generateStronghold;
     public boolean generateTemple;
     public boolean generateVillage;
+    public boolean smoothBedrock;
     private void generatorSettings()
     {
         generateCanyon = getBoolean( "generator-settings.canyon", true );
@@ -285,6 +286,7 @@ public class PaperSpigotWorldConfig
         generateStronghold = getBoolean( "generator-settings.stronghold", true );
         generateTemple = getBoolean( "generator-settings.temple", true );
         generateVillage = getBoolean( "generator-settings.village", true );
+        smoothBedrock = getBoolean("generator-settings.smoothBedrock", true);
     }
 
 }
