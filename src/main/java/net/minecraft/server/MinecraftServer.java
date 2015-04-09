@@ -770,12 +770,15 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
                         MinecraftServer.this.methodProfiler.b();
                         MinecraftServer.this.methodProfiler.b();
                     } finally {
-
                         phaser.arrive();
                     }
                 }
             };
-            worldService.submit(runnable);
+            if(PaperSpigotConfig.worldThreads > 1) {
+                worldService.submit(runnable);
+            } else {
+                runnable.run();
+            }
         }
         phaserProvider.await();
         MinecraftServer.ignoreAsyncModifications = false;
