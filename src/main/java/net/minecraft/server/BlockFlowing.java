@@ -97,7 +97,16 @@ public class BlockFlowing extends BlockFluids {
                 } else {
                     world.setData(i, j, k, j1, 2);
                     world.a(i, j, k, this, flowSpeed);
-                    world.applyPhysics(i, j, k, this);
+                    if((this.material == Material.WATER && world.paperSpigotConfig.quickWaterDraining) || (this.material == Material.LAVA && world.paperSpigotConfig.quickLavaDraining)) {
+                        world.e(i - 1, j, k, this);
+                        world.e(i + 1, j, k, this);
+                        world.e(i, j + 1, k, this);
+                        world.e(i, j, k - 1, this);
+                        world.e(i, j, k + 1, this);
+                        world.spigotConfig.antiXrayInstance.updateNearbyBlocks(world, i, j, k); // Spigot
+                    } else {
+                        world.applyPhysics(i, j, k, this);
+                    }
                 }
             }
         } else {
