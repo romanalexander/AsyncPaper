@@ -198,29 +198,28 @@ public class WorldServer extends World {
         timings.doTickTiles.startTiming(); // Spigot
         this.g();
         timings.doTickTiles.stopTiming(); // Spigot
-        this.methodProfiler.c("chunkMap");
-        timings.doChunkMap.startTiming(); // Spigot
-        this.manager.flush();
-        timings.doChunkMap.stopTiming(); // Spigot
-        this.methodProfiler.c("village");
-        timings.doVillages.startTiming(); // Spigot
-        this.villages.tick();
-        this.siegeManager.a();
-        timings.doVillages.stopTiming(); // Spigot
-        this.methodProfiler.c("portalForcer");
-        timings.doPortalForcer.startTiming(); // Spigot
-        this.Q.a(this.getTime());
-        timings.doPortalForcer.stopTiming(); // Spigot
-        this.methodProfiler.b();
-        timings.doSounds.startTiming(); // Spigot
-        this.Z();
-        timings.doSounds.stopTiming(); // Spigot
-
-        timings.doChunkGC.startTiming(); // Spigot
         synchronized (MinecraftServer.criticalChunkOpLock) {
+            this.methodProfiler.c("chunkMap");
+            timings.doChunkMap.startTiming(); // Spigot
+            this.manager.flush();
+            timings.doChunkMap.stopTiming(); // Spigot
+            this.methodProfiler.c("village");
+            timings.doVillages.startTiming(); // Spigot
+            this.villages.tick();
+            this.siegeManager.a();
+            timings.doVillages.stopTiming(); // Spigot
+            this.methodProfiler.c("portalForcer");
+            timings.doPortalForcer.startTiming(); // Spigot
+            this.Q.a(this.getTime());
+            timings.doPortalForcer.stopTiming(); // Spigot
+            this.methodProfiler.b();
+            timings.doSounds.startTiming(); // Spigot
+            this.Z();
+            timings.doSounds.stopTiming(); // Spigot
+            timings.doChunkGC.startTiming(); // Spigot
             this.getWorld().processChunkGC(); // CraftBukkit
+            timings.doChunkGC.stopTiming(); // Spigot
         }
-        timings.doChunkGC.stopTiming(); // Spigot
     }
 
     public BiomeMeta a(EnumCreatureType enumcreaturetype, int i, int j, int k) {
