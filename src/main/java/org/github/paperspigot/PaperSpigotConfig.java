@@ -104,19 +104,19 @@ public class PaperSpigotConfig
 
     private static void set(String path, Object val)
     {
-        config.set( path, val );
+        config.set(path, val);
     }
 
     private static boolean getBoolean(String path, boolean def)
     {
         config.addDefault( path, def );
-        return config.getBoolean( path, config.getBoolean( path ) );
+        return config.getBoolean(path, config.getBoolean(path));
     }
 
     private static double getDouble(String path, double def)
     {
         config.addDefault( path, def );
-        return config.getDouble( path, config.getDouble( path ) );
+        return config.getDouble(path, config.getDouble(path));
     }
 
     private static float getFloat(String path, float def)
@@ -128,7 +128,7 @@ public class PaperSpigotConfig
     private static int getInt(String path, int def)
     {
         config.addDefault( path, def );
-        return config.getInt( path, config.getInt( path ) );
+        return config.getInt(path, config.getInt(path));
     }
 
     private static <T> List getList(String path, T def)
@@ -146,7 +146,7 @@ public class PaperSpigotConfig
     public static double babyZombieMovementSpeed;
     private static void babyZombieMovementSpeed()
     {
-        babyZombieMovementSpeed = getDouble( "settings.baby-zombie-movement-speed", 0.5D); // Player moves at 0.1F, for reference
+        babyZombieMovementSpeed = getDouble("settings.baby-zombie-movement-speed", 0.5D); // Player moves at 0.1F, for reference
     }
 
     public static boolean asyncCatcherFeature;
@@ -161,7 +161,7 @@ public class PaperSpigotConfig
     public static boolean interactLimitEnabled;
     private static void interactLimitEnabled()
     {
-        interactLimitEnabled = getBoolean( "settings.limit-player-interactions", true );
+        interactLimitEnabled = getBoolean("settings.limit-player-interactions", true);
         if (!interactLimitEnabled) {
             Bukkit.getLogger().log( Level.INFO, "Disabling player interaction limiter, your server may be more vulnerable to malicious users" );
         }
@@ -172,7 +172,7 @@ public class PaperSpigotConfig
     private static void effectModifiers()
     {
         strengthEffectModifier = getDouble( "effect-modifiers.strength", 1.3D );
-        weaknessEffectModifier = getDouble( "effect-modifiers.weakness", -0.5D );
+        weaknessEffectModifier = getDouble("effect-modifiers.weakness", -0.5D);
     }
 
     public static int maxPacketsPerPlayer;
@@ -181,14 +181,17 @@ public class PaperSpigotConfig
         maxPacketsPerPlayer = getInt( "max-packets-per-player", 1000 );
     }
 
+    public static int connectionHandlerThreads;
     public static int worldThreads;
     public static int entityThreads;
     public static int lightingThreads;
     private static void concurrencyThreads()
     {
+        connectionHandlerThreads = getInt("concurrency.connection-handler-threads", 1);
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);
         lightingThreads = getInt("concurrency.lighting-threads", 1);
+        log( "Connection processing threads: " + connectionHandlerThreads);
         log( "World processing threads: " + worldThreads);
         log( "Entity processing threads: " + entityThreads);
         log( "Lighting processing threads: " + lightingThreads);

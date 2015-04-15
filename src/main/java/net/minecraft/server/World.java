@@ -1507,7 +1507,7 @@ public abstract class World implements IBlockAccess {
                     }
                 }
             };
-            if(innerEntity instanceof EntityInsentient) {
+            if(innerEntity instanceof EntityInsentient || innerEntity instanceof EntityHuman) {
                 entityService.submit(runnable);
             } else {
                 runnable.run();
