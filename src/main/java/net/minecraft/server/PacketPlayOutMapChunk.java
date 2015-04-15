@@ -1,5 +1,7 @@
 package net.minecraft.server;
 
+import org.ibex.nestedvm.util.Seekable;
+
 import java.io.IOException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -15,7 +17,22 @@ public class PacketPlayOutMapChunk extends Packet {
     private byte[] f;
     private boolean g;
     private int h;
-    private static byte[] i = new byte[196864];
+    private static class ByteArrayHolder {
+        private byte[] val;
+        public ByteArrayHolder(byte[] val) {
+            this.val = val;
+        }
+
+        public byte[] get() {
+            return val;
+        }
+    }
+    private static ThreadLocal<ByteArrayHolder> i = new ThreadLocal<ByteArrayHolder>() {
+        @Override
+        protected ByteArrayHolder initialValue() {
+            return new ByteArrayHolder(new byte[196864]);
+        }
+    };
 
     private Chunk chunk; // Spigot
     private int mask; // Spigot
@@ -48,20 +65,21 @@ public class PacketPlayOutMapChunk extends Packet {
         this.c = packetdataserializer.readShort();
         this.d = packetdataserializer.readShort();
         this.h = packetdataserializer.readInt();
+        byte[] i = PacketPlayOutMapChunk.i.get().get();
         if (i.length < this.h) {
             i = new byte[this.h];
         }
 
         packetdataserializer.readBytes(i, 0, this.h);
-        int i = 0;
+        int count = 0;
 
         int j;
 
         for (j = 0; j < 16; ++j) {
-            i += this.c >> j & 1;
+            count += this.c >> j & 1;
         }
 
-        j = 12288 * i;
+        j = 12288 * count;
         if (this.g) {
             j += 256;
         }
@@ -69,7 +87,7 @@ public class PacketPlayOutMapChunk extends Packet {
         this.f = new byte[j];
         Inflater inflater = new Inflater();
 
-        inflater.setInput(PacketPlayOutMapChunk.i, 0, this.h);
+        inflater.setInput(PacketPlayOutMapChunk.i.get().get(), 0, this.h);
 
         try {
             inflater.inflate(this.f);
@@ -123,7 +141,7 @@ public class PacketPlayOutMapChunk extends Packet {
         ChunkSection[] achunksection = chunk.getSections();
         int k = 0;
         ChunkMap chunkmap = new ChunkMap();
-        byte[] abyte = PacketPlayOutMapChunk.i;
+        byte[] abyte = PacketPlayOutMapChunk.i.get().get();
 
         if (flag) {
             chunk.q = true;

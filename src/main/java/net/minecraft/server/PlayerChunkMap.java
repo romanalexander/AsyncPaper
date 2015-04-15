@@ -1,13 +1,9 @@
 package net.minecraft.server;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 // CraftBukkit start
-import java.util.Collections;
-import java.util.Queue;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 // CraftBukkit end
 
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +14,7 @@ public class PlayerChunkMap {
     private static final Logger a = LogManager.getLogger();
     private final WorldServer world;
     private final List managedPlayers = new ArrayList();
-    private final LongHashMap d = new LongHashMap();
+    private final Map d = new ConcurrentHashMap();
     private final Queue e = new java.util.concurrent.ConcurrentLinkedQueue(); // CraftBukkit ArrayList -> ConcurrentLinkedQueue
     private final Queue f = new java.util.concurrent.ConcurrentLinkedQueue(); // CraftBukkit ArrayList -> ConcurrentLinkedQueue
     private int g;
@@ -79,13 +75,13 @@ public class PlayerChunkMap {
 
     public boolean a(int i, int j) {
         long k = (long) i + 2147483647L | (long) j + 2147483647L << 32;
-
-        return this.d.getEntry(k) != null;
+        return this.d.get(k) != null;
     }
 
     private PlayerChunk a(int i, int j, boolean flag) {
         long k = (long) i + 2147483647L | (long) j + 2147483647L << 32;
-        PlayerChunk playerchunk = (PlayerChunk) this.d.getEntry(k);
+        PlayerChunk playerchunk;
+        playerchunk = (PlayerChunk) this.d.get(k);
 
         if (playerchunk == null && flag) {
             playerchunk = new PlayerChunk(this, i, j);
@@ -314,7 +310,7 @@ public class PlayerChunkMap {
         return playerchunkmap.world;
     }
 
-    static LongHashMap b(PlayerChunkMap playerchunkmap) {
+    static Map b(PlayerChunkMap playerchunkmap) {
         return playerchunkmap.d;
     }
 
