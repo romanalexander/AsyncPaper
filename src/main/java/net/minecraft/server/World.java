@@ -1390,7 +1390,7 @@ public abstract class World implements IBlockAccess {
     }
 
 
-    private static ThreadPoolExecutor entityService = new ThreadPoolExecutor(PaperSpigotConfig.entityThreads, PaperSpigotConfig.entityThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("entity-worker"));
+    public static ThreadPoolExecutor entityService = new ThreadPoolExecutor(PaperSpigotConfig.entityThreads, PaperSpigotConfig.entityThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("entity-worker"));
     public void tickEntities() {
         this.methodProfiler.a("entities");
         this.methodProfiler.a("global");
