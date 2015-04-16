@@ -187,13 +187,18 @@ public class PaperSpigotConfig
     public static int lightingThreads;
     private static void concurrencyThreads()
     {
+        if(org.spigotmc.SpigotConfig.playerShuffle > 0) {
+            log("--- WARNING ---");
+            log("You have Player Shuffle enabled, but Player Shuffle is disabled in this build!");
+            log("This build will ignore any Player Shuffle related settings.");
+        }
         connectionHandlerThreads = getInt("concurrency.connection-handler-threads", 1);
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);
         lightingThreads = getInt("concurrency.lighting-threads", 1);
         log( "Connection processing threads: " + connectionHandlerThreads);
         log( "World processing threads: " + worldThreads);
-        log( "Entity processing threads: " + entityThreads);
+        log( "Entity & TileEntity & EntityActivation processing threads: " + entityThreads);
         log( "Lighting processing threads: " + lightingThreads);
     }
 
