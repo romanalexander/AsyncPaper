@@ -658,7 +658,7 @@ public class Chunk {
         entity.ah = this.locX;
         entity.ai = k;
         entity.aj = this.locZ;
-        synchronized (this.entitySlices) {
+        synchronized (this.entitySlices[k]) {
             this.entitySlices[k].add(entity);
         }
         // Spigot start - increment creature type count
@@ -690,7 +690,7 @@ public class Chunk {
             i = this.entitySlices.length - 1;
         }
 
-        synchronized (this.entitySlices) {
+        synchronized (this.entitySlices[i]) {
             this.entitySlices[i].remove(entity);
         }
         // Spigot start - decrement creature type count
@@ -796,43 +796,43 @@ public class Chunk {
     public void addEntities() {
         this.d = true;
         this.world.a(this.tileEntities.values());
-        synchronized (this.entitySlices) {
+
             for (int i = 0; i < this.entitySlices.length; ++i) {
-                Iterator iterator = this.entitySlices[i].iterator();
+                synchronized (this.entitySlices[i]) {
+                    Iterator iterator = this.entitySlices[i].iterator();
+                    while (iterator.hasNext()) {
+                        Entity entity = (Entity) iterator.next();
 
-                while (iterator.hasNext()) {
-                    Entity entity = (Entity) iterator.next();
-
-                    entity.X();
+                        entity.X();
+                    }
+                    this.world.a(this.entitySlices[i]);
                 }
-
-                this.world.a(this.entitySlices[i]);
             }
-        }
+
     }
 
     public void removeEntities() {
-        synchronized(this.entitySlices) {
-            this.d = false;
-            Iterator iterator = this.tileEntities.values().iterator();
+        this.d = false;
+        Iterator iterator = this.tileEntities.values().iterator();
 
-            while (iterator.hasNext()) {
-                TileEntity tileentity = (TileEntity) iterator.next();
-                // Spigot Start
-                if (tileentity instanceof IInventory) {
-                    for (org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>((List) ((IInventory) tileentity).getViewers())) {
-                        if (h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity) {
-                            ((org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
-                        }
+        while (iterator.hasNext()) {
+            TileEntity tileentity = (TileEntity) iterator.next();
+            // Spigot Start
+            if (tileentity instanceof IInventory) {
+                for (org.bukkit.entity.HumanEntity h : new ArrayList<org.bukkit.entity.HumanEntity>((List) ((IInventory) tileentity).getViewers())) {
+                    if (h instanceof org.bukkit.craftbukkit.entity.CraftHumanEntity) {
+                        ((org.bukkit.craftbukkit.entity.CraftHumanEntity) h).getHandle().closeInventory();
                     }
                 }
-                // Spigot End
-
-                this.world.a(tileentity);
             }
+            // Spigot End
 
-            for (int i = 0; i < this.entitySlices.length; ++i) {
-                // CraftBukkit start
+            this.world.a(tileentity);
+        }
+
+        for (int i = 0; i < this.entitySlices.length; ++i) {
+            // CraftBukkit start
+            synchronized (this.entitySlices[i]) {
                 java.util.Iterator<Object> iter = this.entitySlices[i].iterator();
                 while (iter.hasNext()) {
                     Entity entity = (Entity) iter.next();
