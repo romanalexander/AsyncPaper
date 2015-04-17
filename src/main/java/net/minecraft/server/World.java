@@ -1552,7 +1552,7 @@ public abstract class World implements IBlockAccess {
         this.initializeHoppers(); // Spigot - Initializes hoppers which have been added recently.
 
         ignoreAsyncModifications = true;
-        final Set<TileEntity> tileEntitiesToRemove = Collections.synchronizedSet(new HashSet<TileEntity>());
+        final Set<TileEntity> tileEntitiesToRemove = Collections.newSetFromMap(new ConcurrentHashMap<TileEntity, Boolean>());
         phaserProvider = new PaperPhaserProvider();
         for (Iterator iterator = this.tileEntityList.iterator(); iterator.hasNext(); ) {
             final TileEntity tileentity = (TileEntity) iterator.next();
