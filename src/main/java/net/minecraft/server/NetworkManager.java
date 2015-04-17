@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import net.minecraft.util.com.google.common.collect.Queues;
 import net.minecraft.util.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.util.com.mojang.authlib.properties.Property;
+import net.minecraft.util.io.netty.buffer.PooledByteBufAllocator;
 import net.minecraft.util.io.netty.channel.Channel;
 import net.minecraft.util.io.netty.channel.ChannelFutureListener;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
@@ -40,11 +41,11 @@ public class NetworkManager extends SimpleChannelInboundHandler {
     public static final NioEventLoopGroup g = new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Client IO #%d").setDaemon(true).build());
     public static final NetworkStatistics h = new NetworkStatistics();
     private final boolean j;
-    private final Queue k = Queues.newConcurrentLinkedQueue();
-    private final Queue l = Queues.newConcurrentLinkedQueue();
+    private final Queue k = Queues.newConcurrentLinkedQueue(); // Received packet queue
+    private final Queue l = Queues.newConcurrentLinkedQueue(); // Outbound packet queue
     private Channel m;
     // Spigot Start
-    public SocketAddress n;
+    public SocketAddress n; // Remote address
     public java.util.UUID spoofedUUID;
     public Property[] spoofedProfile;
     public boolean preparing = true;
@@ -76,6 +77,7 @@ public class NetworkManager extends SimpleChannelInboundHandler {
         super.channelActive(channelhandlercontext);
         this.m = channelhandlercontext.channel();
         this.n = this.m.remoteAddress();
+        this.m.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         // Spigot Start
         this.preparing = false;
         // Spigot End

@@ -2745,21 +2745,21 @@ public abstract class World implements IBlockAccess {
         return i;
     }
 
-    public void a(List list) {
+    public void a(Queue list) {
         org.spigotmc.AsyncCatcher.catchOp("entity world add"); // Spigot
         // CraftBukkit start
         // this.entityList.addAll(list);
         Entity entity = null;
         guardEntityList.lock();
         try {
-            for (int i = 0; i < list.size(); ++i) {
-                entity = (Entity) list.get(i);
+            for (Object aList : list) {
+                entity = (Entity) aList;
                 if (entity == null) {
                     continue;
                 }
                 this.entityList.add(entity);
                 // CraftBukkit end
-                this.a((Entity) list.get(i));
+                this.a((Entity) aList);
             }
         } finally {
             guardEntityList.unlock();
@@ -2767,7 +2767,7 @@ public abstract class World implements IBlockAccess {
 
     }
 
-    public void b(List list) {
+    public void b(Queue list) {
         this.f.addAll(list);
     }
 

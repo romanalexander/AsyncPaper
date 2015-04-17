@@ -6,6 +6,7 @@ import org.github.paperspigot.PaperPhaser;
 import org.github.paperspigot.PaperPhaserProvider;
 import org.github.paperspigot.PaperSpigotConfig;
 
+import java.util.Collection;
 import java.util.List;
 
 public class ActivationRange
@@ -152,7 +153,7 @@ public class ActivationRange
      */
     private static void activateChunkEntities(Chunk chunk)
     {
-        for ( List<Entity> slice : chunk.entitySlices )
+        for ( Collection<Entity> slice : chunk.entitySlices )
         {
             for ( Entity entity : slice )
             {

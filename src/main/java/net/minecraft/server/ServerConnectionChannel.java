@@ -1,5 +1,7 @@
 package net.minecraft.server;
 
+import net.minecraft.util.io.netty.buffer.ByteBufAllocator;
+import net.minecraft.util.io.netty.buffer.PooledByteBufAllocator;
 import net.minecraft.util.io.netty.channel.Channel;
 import net.minecraft.util.io.netty.channel.ChannelException;
 import net.minecraft.util.io.netty.channel.ChannelInitializer;
@@ -17,6 +19,7 @@ class ServerConnectionChannel extends ChannelInitializer {
     protected void initChannel(Channel channel) {
         try {
             channel.config().setOption(ChannelOption.IP_TOS, Integer.valueOf(24));
+            channel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         } catch (ChannelException channelexception) {
             ;
         }

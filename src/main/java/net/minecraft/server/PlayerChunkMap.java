@@ -9,16 +9,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PlayerChunkMap {
+public class PlayerChunkMap { // PlayerManager.java
 
     private static final Logger a = LogManager.getLogger();
     private final WorldServer world;
-    private final List managedPlayers = new ArrayList();
-    private final Map d = new ConcurrentHashMap();
-    private final Queue e = new java.util.concurrent.ConcurrentLinkedQueue(); // CraftBukkit ArrayList -> ConcurrentLinkedQueue
-    private final Queue f = new java.util.concurrent.ConcurrentLinkedQueue(); // CraftBukkit ArrayList -> ConcurrentLinkedQueue
-    private int g;
-    private long h;
+    private final List managedPlayers = new ArrayList(); // Players in the current instance
+    private final Map d = new ConcurrentHashMap(); // Hash of all playerInstances created
+    private final Queue e = new java.util.concurrent.ConcurrentLinkedQueue(); // the playerInstances(chunks) that need to be updated
+    private final Queue f = new java.util.concurrent.ConcurrentLinkedQueue(); // This field is using when chunk should be processed (every 8000 ticks)
+    private int g; // playerViewRadius
+    private long h; // previousTotalWorldTime
     private final int[][] i = new int[][] { { 1, 0}, { 0, 1}, { -1, 0}, { 0, -1}};
     private boolean wasNotEmpty; // CraftBukkit - add field
 
