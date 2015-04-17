@@ -35,4 +35,11 @@ public class PaperPhaserProvider {
         isTerminated = true;
     }
 
+    public synchronized void arrive() {
+        for (PaperPhaser paperPhaser : phaserList) {
+            paperPhaser.arrive();
+        }
+        isTerminated = true;
+    }
+
 }

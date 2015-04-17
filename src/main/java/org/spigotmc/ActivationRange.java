@@ -126,8 +126,9 @@ public class ActivationRange
 
                         for (int i1 = i; i1 <= j; ++i1) {
                             for (int j1 = k; j1 <= l; ++j1) {
-                                if (world.getWorld().isChunkLoaded(i1, j1)) {
-                                    activateChunkEntities(world.getChunkAt(i1, j1));
+                                Chunk chunk = world.getChunkIfLoaded(i1, j1);
+                                if (chunk != null) {
+                                    activateChunkEntities(chunk);
                                 }
                             }
                         }
@@ -142,7 +143,8 @@ public class ActivationRange
                 runnable.run();
             }
         }
-        phaserProvider.await();
+        phaserProvider.arrive(); // phaserProvider.await();
+
         SpigotTimings.entityActivationCheckTimer.stopTiming();
     }
 
