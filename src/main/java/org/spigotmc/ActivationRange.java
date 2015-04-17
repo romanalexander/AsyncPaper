@@ -94,9 +94,8 @@ public class ActivationRange
      * @param world
      */
 
-    public static void activateEntities(final World world)
+    public static PaperPhaserProvider activateEntities(final World world)
     {
-        SpigotTimings.entityActivationCheckTimer.startTiming();
         final int miscActivationRange = world.spigotConfig.miscActivationRange;
         final int animalActivationRange = world.spigotConfig.animalActivationRange;
         final int monsterActivationRange = world.spigotConfig.monsterActivationRange;
@@ -143,9 +142,10 @@ public class ActivationRange
                 runnable.run();
             }
         }
-        phaserProvider.arrive(); // phaserProvider.await();
 
-        SpigotTimings.entityActivationCheckTimer.stopTiming();
+
+
+        return phaserProvider;
     }
 
     /**

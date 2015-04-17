@@ -23,6 +23,7 @@ import org.github.paperspigot.NamedThreadFactory;
 import org.github.paperspigot.PaperPhaser;
 import org.github.paperspigot.PaperPhaserProvider;
 import org.github.paperspigot.PaperSpigotConfig;
+import org.spigotmc.ActivationRange;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -732,6 +733,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
                         MinecraftServer.this.methodProfiler.b();
                         MinecraftServer.this.methodProfiler.a("tick");
                         CrashReport crashreport;
+                        PaperPhaserProvider entityActivationPhaser = ActivationRange.activateEntities(world);// Start a queue'd entity activation check.
                         try {
                             world.timings.doTick.startTiming(); // Spigot
                             world.doTick();
@@ -747,6 +749,10 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
                             world.a(crashreport);
                             throw new ReportedException(crashreport);
                         }
+
+                        SpigotTimings.entityActivationCheckTimer.startTiming();
+                        entityActivationPhaser.await(); // Wait for EAR to finish before ticking any entities.
+                        SpigotTimings.entityActivationCheckTimer.stopTiming();
                         try {
                             world.timings.tickEntities.startTiming(); // Spigot
                             world.tickEntities();
