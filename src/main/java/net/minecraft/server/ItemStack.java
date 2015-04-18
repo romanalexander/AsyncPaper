@@ -90,12 +90,12 @@ public final class ItemStack {
         int count = this.count;
 
         if (!(this.getItem() instanceof ItemBucket)) { // if not bucket
-            world.captureBlockStates = true;
+            world.captureBlockStates.set(true);
             // special case bonemeal
             if (this.getItem() instanceof ItemDye && this.getData() == 15) {
                 Block block = world.getType(i, j, k);
                 if (block == Blocks.SAPLING || block instanceof BlockMushroom) {
-                    world.captureTreeGeneration = true;
+                    world.captureTreeGeneration.set(true);
                 }
             }
         }
@@ -104,14 +104,14 @@ public final class ItemStack {
         int newCount = this.count;
         this.count = count;
         this.setData(data);
-        world.captureBlockStates = false;
-        if (flag && world.captureTreeGeneration && world.capturedBlockStates.size() > 0) {
-            world.captureTreeGeneration = false;
+        world.captureBlockStates.set(false);
+        if (flag && world.captureTreeGeneration.get() && world.capturedBlockStates.get().size() > 0) {
+            world.captureTreeGeneration.set(false);
             Location location = new Location(world.getWorld(), i, j, k);
             TreeType treeType = BlockSapling.treeType;
             BlockSapling.treeType = null;
-            List<BlockState> blocks = (List<BlockState>) world.capturedBlockStates.clone();
-            world.capturedBlockStates.clear();
+            List<BlockState> blocks = (List<BlockState>) world.capturedBlockStates.get().clone();
+            world.capturedBlockStates.get().clear();
             StructureGrowEvent event = null;
             if (treeType != null) {
                 event = new StructureGrowEvent(location, treeType, false, (Player) entityhuman.getBukkitEntity(), blocks);
@@ -130,12 +130,12 @@ public final class ItemStack {
 
             return flag;
         }
-        world.captureTreeGeneration = false;
+        world.captureTreeGeneration.set(false);
 
         if (flag) {
             org.bukkit.event.block.BlockPlaceEvent placeEvent = null;
-            List<BlockState> blocks = (List<BlockState>) world.capturedBlockStates.clone();
-            world.capturedBlockStates.clear();
+            List<BlockState> blocks = (List<BlockState>) world.capturedBlockStates.get().clone();
+            world.capturedBlockStates.get().clear();
             if (blocks.size() > 1) {
                 placeEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callBlockMultiPlaceEvent(world, entityhuman, blocks, i, j, k);
             } else if (blocks.size() == 1) {
@@ -172,7 +172,7 @@ public final class ItemStack {
                 entityhuman.a(StatisticList.USE_ITEM_COUNT[Item.getId(this.item)], 1);
             }
         }
-        world.capturedBlockStates.clear();
+        world.capturedBlockStates.get().clear();
         // CraftBukkit end
 
         return flag;

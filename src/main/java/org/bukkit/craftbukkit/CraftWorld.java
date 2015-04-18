@@ -419,13 +419,13 @@ public class CraftWorld implements World {
     }
 
     public boolean generateTree(Location loc, TreeType type, BlockChangeDelegate delegate) {
-        world.captureTreeGeneration = true;
-        world.captureBlockStates = true;
+        world.captureTreeGeneration.set(true);
+        world.captureBlockStates.set(true);
         boolean grownTree = generateTree(loc, type);
-        world.captureBlockStates = false;
-        world.captureTreeGeneration = false;
+        world.captureBlockStates.set(false);
+        world.captureTreeGeneration.set(false);
         if (grownTree) { // Copy block data to delegate
-            for (BlockState blockstate : world.capturedBlockStates) {
+            for (BlockState blockstate : world.capturedBlockStates.get()) {
                 int x = blockstate.getX();
                 int y = blockstate.getY();
                 int z = blockstate.getZ();
@@ -437,10 +437,10 @@ public class CraftWorld implements World {
                 net.minecraft.server.Block newBlock = world.getType(x, y, z);
                 world.notifyAndUpdatePhysics(x, y, z, null, oldBlock, newBlock, flag);
             }
-            world.capturedBlockStates.clear();
+            world.capturedBlockStates.get().clear();
             return true;
         } else {
-            world.capturedBlockStates.clear();
+            world.capturedBlockStates.get().clear();
             return false;
         }
     }

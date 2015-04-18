@@ -533,7 +533,7 @@ public class Chunk {
                 }
 
                 // CraftBukkit - Don't place while processing the BlockPlaceEvent, unless it's a BlockContainer. Prevents blocks such as TNT from activating when cancelled.
-                if (!this.world.isStatic && (!this.world.captureBlockStates || block instanceof BlockContainer)) {
+                if (!this.world.isStatic && (!this.world.captureBlockStates.get() || block instanceof BlockContainer)) {
                     block.onPlace(this.world, l1, j, i2);
                 }
 

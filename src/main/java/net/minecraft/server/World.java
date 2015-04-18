@@ -90,9 +90,24 @@ public abstract class World implements IBlockAccess {
     public boolean allowMonsters;
     public boolean allowAnimals;
     // Added the following
-    public boolean captureBlockStates = false;
-    public boolean captureTreeGeneration = false;
-    public ArrayList<BlockState> capturedBlockStates = new ArrayList<BlockState>();
+    public ThreadLocal<Boolean> captureBlockStates = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
+    public ThreadLocal<Boolean> captureTreeGeneration = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
+    public ThreadLocal<ArrayList<BlockState>> capturedBlockStates = new ThreadLocal<ArrayList<BlockState>>() {
+        @Override
+        protected ArrayList<BlockState> initialValue() {
+            return new ArrayList<>();
+        }
+    };
     public long ticksPerAnimalSpawns;
     public long ticksPerMonsterSpawns;
     public boolean populating;
@@ -318,9 +333,9 @@ public abstract class World implements IBlockAccess {
 
     public Block getType(int i, int j, int k, boolean useCaptured) {
         // CraftBukkit start - tree generation
-        if (captureTreeGeneration && useCaptured) {
+        if (captureTreeGeneration.get() && useCaptured) {
             // Spigot end
-            Iterator<BlockState> it = capturedBlockStates.iterator();
+            Iterator<BlockState> it = capturedBlockStates.get().iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
                 if (previous.getX() == i && previous.getY() == j && previous.getZ() == k) {
@@ -395,9 +410,9 @@ public abstract class World implements IBlockAccess {
 
     public boolean setTypeAndData(int i, int j, int k, Block block, int l, int i1) {
         // CraftBukkit start - tree generation
-        if (this.captureTreeGeneration) {
+        if (this.captureTreeGeneration.get()) {
             BlockState blockstate = null;
-            Iterator<BlockState> it = capturedBlockStates.iterator();
+            Iterator<BlockState> it = capturedBlockStates.get().iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
                 if (previous.getX() == i && previous.getY() == j && previous.getZ() == k) {
@@ -411,7 +426,7 @@ public abstract class World implements IBlockAccess {
             }
             blockstate.setTypeId(CraftMagicNumbers.getId(block));
             blockstate.setRawData((byte) l);
-            this.capturedBlockStates.add(blockstate);
+            this.capturedBlockStates.get().add(blockstate);
             return true;
         }
         if (i >= -30000000 && k >= -30000000 && i < 30000000 && k < 30000000) {
@@ -429,17 +444,17 @@ public abstract class World implements IBlockAccess {
 
                 // CraftBukkit start - capture blockstates
                 BlockState blockstate = null;
-                if (this.captureBlockStates) {
+                if (this.captureBlockStates.get()) {
                     blockstate = org.bukkit.craftbukkit.block.CraftBlockState.getBlockState(this, i, j, k, i1);
-                    this.capturedBlockStates.add(blockstate);
+                    this.capturedBlockStates.get().add(blockstate);
                 }
                 // CraftBukkit end
 
                 boolean flag = chunk.a(i & 15, j, k & 15, block, l);
 
                 // CraftBukkit start - remove blockstate if failed
-                if (!flag && this.captureBlockStates) {
-                    this.capturedBlockStates.remove(blockstate);
+                if (!flag && this.captureBlockStates.get()) {
+                    this.capturedBlockStates.get().remove(blockstate);
                 }
                 // CraftBukkit end
 
@@ -447,7 +462,7 @@ public abstract class World implements IBlockAccess {
                 this.t(i, j, k);
                 this.methodProfiler.b();
                 // CraftBukkit start
-                if (flag && !this.captureBlockStates) { // Don't notify clients or update physics while capturing blockstates
+                if (flag && !this.captureBlockStates.get()) { // Don't notify clients or update physics while capturing blockstates
                     // Modularize client and physic updates
                     this.notifyAndUpdatePhysics(i, j, k, chunk, block1, block, i1);
                     // CraftBukkit end
@@ -486,8 +501,8 @@ public abstract class World implements IBlockAccess {
 
     public int getData(int i, int j, int k) {
         // CraftBukkit start - tree generation
-        if (captureTreeGeneration) {
-            Iterator<BlockState> it = capturedBlockStates.iterator();
+        if (captureTreeGeneration.get()) {
+            Iterator<BlockState> it = capturedBlockStates.get().iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
                 if (previous.getX() == i && previous.getY() == j && previous.getZ() == k) {
@@ -515,9 +530,9 @@ public abstract class World implements IBlockAccess {
 
     public boolean setData(int i, int j, int k, int l, int i1) {
         // CraftBukkit start - tree generation
-        if (this.captureTreeGeneration) {
+        if (this.captureTreeGeneration.get()) {
             BlockState blockstate = null;
-            Iterator<BlockState> it = capturedBlockStates.iterator();
+            Iterator<BlockState> it = capturedBlockStates.get().iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
                 if (previous.getX() == i && previous.getY() == j && previous.getZ() == k) {
@@ -530,7 +545,7 @@ public abstract class World implements IBlockAccess {
                 blockstate = org.bukkit.craftbukkit.block.CraftBlockState.getBlockState(this, i, j, k, i1);
             }
             blockstate.setRawData((byte) l);
-            this.capturedBlockStates.add(blockstate);
+            this.capturedBlockStates.get().add(blockstate);
             return true;
         }
         // CraftBukkit end
