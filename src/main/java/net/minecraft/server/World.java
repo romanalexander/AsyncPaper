@@ -1,5 +1,26 @@
 package net.minecraft.server;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+
+// PaperSpigot start
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import net.minecraft.util.com.google.common.util.concurrent.ThreadFactoryBuilder;
+// PaperSpigot end
+
+// CraftBukkit start
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.CraftServer;
@@ -90,9 +111,14 @@ public abstract class World implements IBlockAccess {
     public boolean allowMonsters;
     public boolean allowAnimals;
     // Added the following
-    public boolean captureBlockStates = false;
-    public boolean captureTreeGeneration = false;
-    public ArrayList<BlockState> capturedBlockStates = new ArrayList<BlockState>();
+    public ReentrantLock captureBlockStates = new ReentrantLock();
+    public ReentrantLock captureTreeGeneration = new ReentrantLock();
+    public static void safeUnlock(ReentrantLock lock) {
+        if(lock.isHeldByCurrentThread()) {
+            lock.unlock();
+        }
+    }
+    public ArrayList<BlockState> capturedBlockStates= new ArrayList<BlockState>();
     public long ticksPerAnimalSpawns;
     public long ticksPerMonsterSpawns;
     public boolean populating;
@@ -318,8 +344,7 @@ public abstract class World implements IBlockAccess {
 
     public Block getType(int i, int j, int k, boolean useCaptured) {
         // CraftBukkit start - tree generation
-        if (captureTreeGeneration && useCaptured) {
-            // Spigot end
+        if (captureTreeGeneration.isLocked() && useCaptured) {
             Iterator<BlockState> it = capturedBlockStates.iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
@@ -395,7 +420,7 @@ public abstract class World implements IBlockAccess {
 
     public boolean setTypeAndData(int i, int j, int k, Block block, int l, int i1) {
         // CraftBukkit start - tree generation
-        if (this.captureTreeGeneration) {
+        if (this.captureTreeGeneration.isLocked()) {
             BlockState blockstate = null;
             Iterator<BlockState> it = capturedBlockStates.iterator();
             while (it.hasNext()) {
@@ -429,7 +454,7 @@ public abstract class World implements IBlockAccess {
 
                 // CraftBukkit start - capture blockstates
                 BlockState blockstate = null;
-                if (this.captureBlockStates) {
+                if (this.captureBlockStates.isLocked()) {
                     blockstate = org.bukkit.craftbukkit.block.CraftBlockState.getBlockState(this, i, j, k, i1);
                     this.capturedBlockStates.add(blockstate);
                 }
@@ -438,7 +463,7 @@ public abstract class World implements IBlockAccess {
                 boolean flag = chunk.a(i & 15, j, k & 15, block, l);
 
                 // CraftBukkit start - remove blockstate if failed
-                if (!flag && this.captureBlockStates) {
+                if (!flag && this.captureBlockStates.isLocked()) {
                     this.capturedBlockStates.remove(blockstate);
                 }
                 // CraftBukkit end
@@ -447,7 +472,7 @@ public abstract class World implements IBlockAccess {
                 this.t(i, j, k);
                 this.methodProfiler.b();
                 // CraftBukkit start
-                if (flag && !this.captureBlockStates) { // Don't notify clients or update physics while capturing blockstates
+                if (flag && !this.captureBlockStates.isLocked()) { // Don't notify clients or update physics while capturing blockstates
                     // Modularize client and physic updates
                     this.notifyAndUpdatePhysics(i, j, k, chunk, block1, block, i1);
                     // CraftBukkit end
@@ -486,7 +511,7 @@ public abstract class World implements IBlockAccess {
 
     public int getData(int i, int j, int k) {
         // CraftBukkit start - tree generation
-        if (captureTreeGeneration) {
+        if (captureTreeGeneration.isLocked()) {
             Iterator<BlockState> it = capturedBlockStates.iterator();
             while (it.hasNext()) {
                 BlockState previous = it.next();
@@ -515,7 +540,7 @@ public abstract class World implements IBlockAccess {
 
     public boolean setData(int i, int j, int k, int l, int i1) {
         // CraftBukkit start - tree generation
-        if (this.captureTreeGeneration) {
+        if (this.captureTreeGeneration.isLocked()) {
             BlockState blockstate = null;
             Iterator<BlockState> it = capturedBlockStates.iterator();
             while (it.hasNext()) {
@@ -1468,7 +1493,7 @@ public abstract class World implements IBlockAccess {
         Iterator listerator;
         try {
             guardEntityList.lock(); // Spigot
-            listerator = new ArrayList<>(entityList).iterator();
+            listerator = new ArrayList(entityList).iterator();
         } finally {
             guardEntityList.unlock();
         }
