@@ -29,14 +29,11 @@ public class BlockSapling extends BlockPlant implements IBlockFragilePlantElemen
             super.a(world, i, j, k, random);
             if (world.getLightLevel(i, j + 1, k) >= 9 && (random.nextInt(Math.max(2, (int) ((world.growthOdds / world.spigotConfig.saplingModifier * 7) + 0.5F))) == 0)) { // Spigot
                 // CraftBukkit start
-                world.captureTreeGeneration.lock();
-                try {
-                    // CraftBukkit end
-                    this.grow(world, i, j, k, random);
-                    // CraftBukkit start
-                } finally {
-                    world.captureTreeGeneration.unlock();
-                }
+                world.captureTreeGeneration = true;
+                // CraftBukkit end
+                this.grow(world, i, j, k, random);
+                // CraftBukkit start
+                world.captureTreeGeneration = false;
                 if (world.capturedBlockStates.size() > 0) {
                     TreeType treeType = BlockSapling.treeType;
                     BlockSapling.treeType = null;

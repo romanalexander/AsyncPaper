@@ -419,16 +419,11 @@ public class CraftWorld implements World {
     }
 
     public boolean generateTree(Location loc, TreeType type, BlockChangeDelegate delegate) {
-        world.captureTreeGeneration.lock();
-        world.captureBlockStates.lock();
-        boolean grownTree;
-        try {
-            grownTree = generateTree(loc, type);
-        } finally {
-            world.captureBlockStates.unlock();
-            world.captureTreeGeneration.unlock();
-        }
-
+        world.captureTreeGeneration = true;
+        world.captureBlockStates = true;
+        boolean grownTree = generateTree(loc, type);
+        world.captureBlockStates = false;
+        world.captureTreeGeneration = false;
         if (grownTree) { // Copy block data to delegate
             for (BlockState blockstate : world.capturedBlockStates) {
                 int x = blockstate.getX();
