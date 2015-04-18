@@ -5,11 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.apache.commons.lang.Validate;
@@ -216,7 +212,7 @@ public final class AsynchronousExecutor<P, T, C, E extends Throwable> {
 
     final CallBackProvider<P, T, C, E> provider;
     final Queue<Task> finished = new ConcurrentLinkedQueue<Task>();
-    final Map<P, Task> tasks = new HashMap<P, Task>();
+    final Map<P, Task> tasks = new ConcurrentHashMap<P, Task>();
     final ThreadPoolExecutor pool;
 
     /**
