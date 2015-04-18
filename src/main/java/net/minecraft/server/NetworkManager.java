@@ -188,7 +188,9 @@ public class NetworkManager extends SimpleChannelInboundHandler {
                     continue;
                 }
                 // CraftBukkit end
-                packet.handle(this.o);
+                synchronized(packet.getClass()) {
+                    packet.handle(this.o);
+                }
             }
 
             this.o.a();
