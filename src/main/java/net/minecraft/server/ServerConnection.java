@@ -8,10 +8,7 @@ import net.minecraft.util.io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.minecraft.util.io.netty.util.concurrent.GenericFutureListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.github.paperspigot.NamedThreadFactory;
-import org.github.paperspigot.PaperPhaser;
-import org.github.paperspigot.PaperPhaserProvider;
-import org.github.paperspigot.PaperSpigotConfig;
+import org.github.paperspigot.*;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -24,7 +21,7 @@ public class ServerConnection {
     private final MinecraftServer d;
     public volatile boolean a;
     private final List e = Collections.synchronizedList(new ArrayList()); // LAN endpoints (a channel that listens on publicly accessible network ports)
-    private final Queue f = new ConcurrentLinkedQueue(); // Network managers
+    private final List f = new ConcurrentLinkedQueueList(); // Network managers
 
     public ServerConnection(MinecraftServer minecraftserver) {
         this.d = minecraftserver;
@@ -51,7 +48,7 @@ public class ServerConnection {
     private ThreadPoolExecutor connectionHandlerService = new ThreadPoolExecutor(PaperSpigotConfig.connectionHandlerThreads, PaperSpigotConfig.connectionHandlerThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("connection-handler-worker"));
 
     public void c() { // Network Tick
-        Queue list = this.f;
+        List list = this.f;
         MinecraftServer.ignoreAsyncModifications = true;
         // Spigot Start
         // This prevents players from 'gaming' the server, and strategically relogging to increase their position in the tick order
@@ -117,7 +114,7 @@ public class ServerConnection {
         return this.d;
     }
 
-    static Queue a(ServerConnection serverconnection) {
+    static List a(ServerConnection serverconnection) {
         return serverconnection.f;
     }
 

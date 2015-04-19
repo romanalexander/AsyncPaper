@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 // CraftBukkit start
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerVelocityEvent;
+import org.github.paperspigot.ConcurrentHashSet;
 // CraftBukkit end
 
 public class EntityTrackerEntry {
@@ -36,7 +37,7 @@ public class EntityTrackerEntry {
     private Entity w;
     private boolean x;
     public boolean n;
-    public final Set trackedPlayers = Collections.newSetFromMap(new ConcurrentHashMap());
+    public final Set trackedPlayers = new ConcurrentHashSet();
 
     public EntityTrackerEntry(Entity entity, int i, int j, boolean flag) {
         this.tracker = entity;
