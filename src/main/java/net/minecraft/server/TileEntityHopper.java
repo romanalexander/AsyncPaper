@@ -403,7 +403,7 @@ public class TileEntityHopper extends TileEntity implements IHopper {
         return true;
     }
 
-    public static boolean suckInItems(IHopper ihopper) {
+    public synchronized static boolean suckInItems(IHopper ihopper) {
         IInventory iinventory = getSourceInventory(ihopper);
 
         if (iinventory != null) {
