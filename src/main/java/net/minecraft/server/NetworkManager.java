@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 // Spigot start
 import com.google.common.collect.ImmutableSet;
+import org.github.paperspigot.PaperSpigotConfig;
 import org.spigotmc.SpigotCompressor;
 import org.spigotmc.SpigotDecompressor;
 // Spigot end
@@ -188,7 +189,11 @@ public class NetworkManager extends SimpleChannelInboundHandler {
                     continue;
                 }
                 // CraftBukkit end
-                synchronized(packet.getClass()) {
+                if(PaperSpigotConfig.saferConnectionHandlerProcessing) { // Lock on each packet type.
+                    synchronized(packet.getClass()) {
+                        packet.handle(this.o);
+                    }
+                } else { // Don't lock each packet type.
                     packet.handle(this.o);
                 }
             }
