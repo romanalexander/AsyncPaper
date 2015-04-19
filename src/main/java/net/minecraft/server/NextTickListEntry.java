@@ -1,8 +1,10 @@
 package net.minecraft.server;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class NextTickListEntry implements Comparable {
 
-    private static long f;
+    private static final AtomicLong f = new AtomicLong();
     private final Block g;
     public int a;
     public int b;
@@ -12,7 +14,7 @@ public class NextTickListEntry implements Comparable {
     private long h;
 
     public NextTickListEntry(int i, int j, int k, Block block) {
-        this.h = (long) (f++);
+        this.h = f.getAndIncrement();
         this.a = i;
         this.b = j;
         this.c = k;
