@@ -185,9 +185,9 @@ public class EntityFallingBlock extends Entity {
                 while (iterator.hasNext()) {
                     Entity entity = (Entity) iterator.next();
 
-                    CraftEventFactory.entityDamage = this; // CraftBukkit
+                    CraftEventFactory.entityDamage.set(this); // CraftBukkit
                     entity.damageEntity(damagesource, (float) Math.min(MathHelper.d((float) i * this.fallHurtAmount), this.fallHurtMax));
-                    CraftEventFactory.entityDamage = null; // CraftBukkit
+                    CraftEventFactory.entityDamage.set(null); // CraftBukkit
                 }
 
                 if (flag && (double) this.random.nextFloat() < 0.05000000074505806D + (double) i * 0.05D) {

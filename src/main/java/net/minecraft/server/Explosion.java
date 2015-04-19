@@ -123,11 +123,11 @@ public class Explosion {
                     double d10 = (1.0D - d7) * d9;
 
                     // CraftBukkit start
-                    CraftEventFactory.entityDamage = source;
+                    CraftEventFactory.entityDamage.set(source);
                     if (!entity.damageEntity(DamageSource.explosion(this), (float) ((int) ((d10 * d10 + d10) / 2.0D * 8.0D * (double) this.size + 1.0D)))) {
 
                     }
-                    CraftEventFactory.entityDamage = null;
+                    CraftEventFactory.entityDamage.set(null);
                     // CraftBukkit end
                     double d11 = EnchantmentProtection.a(entity, d10);
 

@@ -1650,9 +1650,9 @@ public abstract class Entity {
         if (this.fireProof) {
             return;
         }
-        CraftEventFactory.entityDamage = entitylightning;
+        CraftEventFactory.entityDamage.set(entitylightning);
         if (!this.damageEntity(DamageSource.FIRE, 5.0F)) {
-            CraftEventFactory.entityDamage = null;
+            CraftEventFactory.entityDamage.set(null);
             return;
         }
         // CraftBukkit end
