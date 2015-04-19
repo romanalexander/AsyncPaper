@@ -85,8 +85,8 @@ import org.bukkit.inventory.meta.BookMeta;
 public class CraftEventFactory {
     public static final DamageSource MELTING = CraftDamageSource.copyOf(DamageSource.BURN);
     public static final DamageSource POISON = CraftDamageSource.copyOf(DamageSource.MAGIC);
-    public static org.bukkit.block.Block blockDamage; // For use in EntityDamageByBlockEvent
-    public static Entity entityDamage; // For use in EntityDamageByEntityEvent
+    public static final ThreadLocal<org.bukkit.block.Block> blockDamage = new ThreadLocal<>(); // For use in EntityDamageByBlockEvent
+    public static final ThreadLocal<Entity> entityDamage = new ThreadLocal<>(); // For use in EntityDamageByEntityEvent
 
     // helper methods
     private static boolean canBuild(CraftWorld world, Player player, int x, int z) {
@@ -427,8 +427,8 @@ public class CraftEventFactory {
     private static EntityDamageEvent handleEntityDamageEvent(Entity entity, DamageSource source, Map<DamageModifier, Double> modifiers, Map<DamageModifier, Function<? super Double, Double>> modifierFunctions) {
         if (source.isExplosion()) {
             DamageCause damageCause;
-            Entity damager = entityDamage;
-            entityDamage = null;
+            Entity damager = entityDamage.get();
+            entityDamage.set(null);
             EntityDamageEvent event;
             if (damager == null) {
                 event = new EntityDamageByBlockEvent(null, entity.getBukkitEntity(), DamageCause.BLOCK_EXPLOSION, modifiers, modifierFunctions);
@@ -477,33 +477,33 @@ public class CraftEventFactory {
                 event.getEntity().setLastDamageCause(event);
             }
             return event;
-        } else if (blockDamage != null) {
+        } else if (blockDamage.get() != null) {
             DamageCause cause = null;
-            Block damager = blockDamage;
-            blockDamage = null;
+            Block damager = blockDamage.get();
+            blockDamage.set(null);
             if (source == DamageSource.CACTUS) {
                 cause = DamageCause.CONTACT;
-            } /*else {
+            } else {
                 throw new RuntimeException(String.format("Unhandled damage of %s by %s from %s", entity, damager, source.translationIndex)); // Spigot
-            }*/
+            }
             EntityDamageEvent event = callEvent(new EntityDamageByBlockEvent(damager, entity.getBukkitEntity(), cause, modifiers, modifierFunctions));
             if (!event.isCancelled()) {
                 event.getEntity().setLastDamageCause(event);
             }
             return event;
-        } else if (entityDamage != null) {
+        } else if (entityDamage.get() != null) {
             DamageCause cause = null;
-            CraftEntity damager = entityDamage.getBukkitEntity();
-            entityDamage = null;
+            CraftEntity damager = entityDamage.get().getBukkitEntity();
+            entityDamage.set(null);
             if (source == DamageSource.ANVIL || source == DamageSource.FALLING_BLOCK) {
                 cause = DamageCause.FALLING_BLOCK;
             } else if (damager instanceof LightningStrike) {
                 cause = DamageCause.LIGHTNING;
             } else if (source == DamageSource.FALL) {
                 cause = DamageCause.FALL;
-            } /*else {
+            } else {
                 throw new RuntimeException(String.format("Unhandled damage of %s by %s from %s", entity, damager.getHandle(), source.translationIndex)); // Spigot
-            }*/
+            }
             EntityDamageEvent event = callEvent(new EntityDamageByEntityEvent(damager, entity.getBukkitEntity(), cause, modifiers, modifierFunctions));
             if (!event.isCancelled()) {
                 event.getEntity().setLastDamageCause(event);
