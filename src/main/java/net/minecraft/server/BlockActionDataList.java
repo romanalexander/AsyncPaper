@@ -1,9 +1,9 @@
 package net.minecraft.server;
 
-import java.util.ArrayList;
+import org.github.paperspigot.ConcurrentHashSet;
 
 // CraftBukkit - imported class because the constructor is package private
-class BlockActionDataList extends ArrayList {
+class BlockActionDataList extends ConcurrentHashSet {
 
     private BlockActionDataList() {}
 
