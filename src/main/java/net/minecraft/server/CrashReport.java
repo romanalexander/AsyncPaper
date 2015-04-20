@@ -185,6 +185,7 @@ public class CrashReport {
 
             if (k < 0) {
                 System.out.println("Negative index in crash report handler (" + astacktraceelement.length + "/" + j + ")");
+                this.c.printStackTrace();
             }
 
             if (astacktraceelement != null && 0 <= k && k < astacktraceelement.length) {

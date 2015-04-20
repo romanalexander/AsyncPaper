@@ -148,12 +148,18 @@ public class WorldServer extends World {
     // CraftBukkit end
 
     public void doTick() {
+        timings.doWeather.startTiming();
         super.doTick();
+        timings.doWeather.stopTiming();
         if (this.getWorldData().isHardcore() && this.difficulty != EnumDifficulty.HARD) {
             this.difficulty = EnumDifficulty.HARD;
         }
 
+        timings.doBiomeCacheCleanup.startTiming();
         this.worldProvider.e.b();
+        timings.doBiomeCacheCleanup.stopTiming();
+
+        timings.doSleepCheck.startTiming();
         if (this.everyoneDeeplySleeping()) {
             if (this.getGameRules().getBoolean("doDaylightCycle")) {
                 long i = this.worldData.getDayTime() + 24000L;
@@ -163,6 +169,7 @@ public class WorldServer extends World {
 
             this.d();
         }
+        timings.doSleepCheck.stopTiming();
 
         this.methodProfiler.a("mobSpawner");
         // CraftBukkit start - Only call spawner if we have players online and the world allows for mobs or animals

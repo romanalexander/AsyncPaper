@@ -125,6 +125,9 @@ public class SpigotTimings {
         public final CustomTimingsHandler doChunkMap;
         public final CustomTimingsHandler doChunkGC;
         public final CustomTimingsHandler doSounds;
+        public final CustomTimingsHandler doWeather;
+        public final CustomTimingsHandler doSleepCheck;
+        public final CustomTimingsHandler doBiomeCacheCleanup;
         public final CustomTimingsHandler entityTick;
         public final CustomTimingsHandler tileEntityTick;
         public final CustomTimingsHandler tileEntityPending;
@@ -152,6 +155,9 @@ public class SpigotTimings {
             doSounds = new CustomTimingsHandler("** " + name + "doSounds");
             doChunkGC = new CustomTimingsHandler("** " + name + "doChunkGC");
             doPortalForcer = new CustomTimingsHandler("** " + name + "doPortalForcer");
+            doWeather = new CustomTimingsHandler("** " + name + "doWeather");
+            doSleepCheck = new CustomTimingsHandler("** " + name + "doSleepCheck");
+            doBiomeCacheCleanup = new CustomTimingsHandler("** " + name + "doBiomeCacheCleanup");
             entityTick = new CustomTimingsHandler("** " + name + "entityTick");
             tileEntityTick = new CustomTimingsHandler("** " + name + "tileEntityTick");
             tileEntityPending = new CustomTimingsHandler("** " + name + "tileEntityPending");
