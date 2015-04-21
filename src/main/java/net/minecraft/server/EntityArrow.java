@@ -407,7 +407,7 @@ public class EntityArrow extends Entity implements IProjectile {
         }
     }
 
-    public void b_(EntityHuman entityhuman) {
+    public synchronized void b_(EntityHuman entityhuman) {
         if (!this.world.isStatic && this.inGround && this.shake <= 0) {
             // CraftBukkit start
             ItemStack itemstack = new ItemStack(Items.ARROW);
