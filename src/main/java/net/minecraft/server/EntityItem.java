@@ -260,7 +260,7 @@ public class EntityItem extends Entity {
         }
     }
 
-    public void b_(EntityHuman entityhuman) {
+    public synchronized void b_(EntityHuman entityhuman) {
         if (!this.world.isStatic) {
             ItemStack itemstack = this.getItemStack();
             int i = itemstack.count;
