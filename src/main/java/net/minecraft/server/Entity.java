@@ -75,7 +75,7 @@ public abstract class Entity {
     public boolean velocityChanged;
     protected boolean I;
     public boolean J;
-    public boolean dead;
+    public volatile boolean dead;
     public float height;
     public float width;
     public float length;
