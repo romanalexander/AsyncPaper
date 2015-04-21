@@ -59,10 +59,10 @@ public abstract class World implements IBlockAccess {
     private List a = new ArrayList();
     private List b = new ArrayList();
     public List players = new ArrayList();
-    public List i = new ArrayList();
+    public List i = Collections.synchronizedList(new ArrayList());
     private long c = 16777215L;
     public int j;
-    protected int k = (new Random()).nextInt();
+    protected volatile int k = (new Random()).nextInt();
     protected final int l = 1013904223;
     protected float m;
     protected float n;
