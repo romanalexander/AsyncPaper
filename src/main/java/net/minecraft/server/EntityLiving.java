@@ -1323,7 +1323,13 @@ public abstract class EntityLiving extends Entity {
                     this.motY = 0.0D;
                 }
             } else {
-                this.motY -= 0.08D;
+                if (!this.isFlyable) {
+                    this.motY -= 0.08D;
+                } else {
+                    this.motY -= 0.04D;
+                    this.motY = Math.max(this.motY, -0.50D);
+                    this.fallDistance = 0;
+                }
             }
 
             this.motY *= 0.9800000190734863D;

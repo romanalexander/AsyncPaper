@@ -897,7 +897,7 @@ public class EntityHorse extends EntityAnimal implements IInventoryListener {
                 f1 = 0.0F;
             }
 
-            if (this.bt > 0.0F && !this.cj() && this.onGround) {
+            if (!this.isFlyable && this.bt > 0.0F && !this.cj() && this.onGround) {
                 this.motY = this.getJumpStrength() * (double) this.bt;
                 if (this.hasEffect(MobEffectList.JUMP)) {
                     this.motY += (double) ((float) (this.getEffect(MobEffectList.JUMP).getAmplifier() + 1) * 0.1F);
@@ -1180,7 +1180,7 @@ public class EntityHorse extends EntityAnimal implements IInventoryListener {
     }
 
     public void w(int i) {
-        if (this.cu()) {
+        if (!this.isFlyable && this.cu()) {
             // CraftBukkit start - fire HorseJumpEvent, use event power
             if (i < 0) {
                 i = 0;

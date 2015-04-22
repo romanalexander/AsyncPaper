@@ -400,7 +400,12 @@ public class Block {
     }
 
     public void a(World world, int i, int j, int k, AxisAlignedBB axisalignedbb, List list, Entity entity) {
-        AxisAlignedBB axisalignedbb1 = this.a(world, i, j, k);
+        AxisAlignedBB axisalignedbb1;
+        if(this instanceof BlockFluids && entity != null && entity.isWaterWalking) {
+            axisalignedbb1 = AxisAlignedBB.a((double) i + this.minX, (double) j + this.minY, (double) k + this.minZ, (double) i + this.maxX, (double) j + this.maxY, (double) k + this.maxZ);
+        } else {
+            axisalignedbb1 = this.a(world, i, j, k);
+        }
 
         if (axisalignedbb1 != null && axisalignedbb.b(axisalignedbb1)) {
             list.add(axisalignedbb1);
