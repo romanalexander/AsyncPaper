@@ -1298,6 +1298,10 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
             this.aQ = f2;
         } else {
             super.e(f, f1);
+            if(this.vehicle != null && this.vehicle.isFlyable && this.bc) {
+                this.vehicle.motY += 0.15d;
+                this.vehicle.motY = Math.min(this.vehicle.motY, 0.65d);
+            }
         }
 
         this.checkMovement(this.locX - d0, this.locY - d1, this.locZ - d2);

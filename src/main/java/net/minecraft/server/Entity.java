@@ -127,6 +127,8 @@ public abstract class Entity {
     public final boolean defaultActivationState;
     public long activatedTick = Integer.MIN_VALUE; // PaperSpigot - EAR backport
     public boolean fromMobSpawner;
+    public boolean isWaterWalking = false;
+    public boolean isFlyable = false;
     public void inactiveTick() { }
     // Spigot end
 

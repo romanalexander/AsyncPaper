@@ -425,4 +425,25 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
         return spigot;
     }
     // Spigot end
+
+
+    @Override
+    public boolean isFlyable() {
+        return entity.isFlyable;
+    }
+
+    @Override
+    public void setFlyable(boolean val) {
+        entity.isFlyable = val;
+    }
+
+    @Override
+    public boolean isWaterWalking() {
+        return entity.isWaterWalking;
+    }
+
+    @Override
+    public void setWaterWalking(boolean val) {
+        entity.isWaterWalking = val;
+    }
 }
