@@ -1627,7 +1627,7 @@ public abstract class World implements IBlockAccess {
             for (int l = 0; l < this.a.size(); ++l) {
                 TileEntity tileentity1 = (TileEntity) this.a.get(l);
 
-                if (!tileentity1.r()) {
+                if (tileentity1 != null && !tileentity1.r()) {
                     /* CraftBukkit start - Order matters, moved down
                     if (!this.tileEntityList.contains(tileentity1)) {
                         this.tileEntityList.add(tileentity1);
