@@ -189,13 +189,7 @@ public class NetworkManager extends SimpleChannelInboundHandler {
                     continue;
                 }
                 // CraftBukkit end
-                if(PaperSpigotConfig.saferConnectionHandlerProcessing) { // Lock on each packet type.
-                    synchronized(packet.getClass()) {
-                        packet.handle(this.o);
-                    }
-                } else { // Don't lock each packet type.
-                    packet.handle(this.o);
-                }
+                packet.handle(this.o);
             }
 
             this.o.a();

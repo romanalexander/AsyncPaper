@@ -186,7 +186,6 @@ public class PaperSpigotConfig
     public static int entityThreads;
     public static int lightingThreads;
     public static int doTickThreads;
-    public static boolean saferConnectionHandlerProcessing;
     private static void concurrencyThreads()
     {
         if(org.spigotmc.SpigotConfig.playerShuffle > 0) {
@@ -199,12 +198,10 @@ public class PaperSpigotConfig
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);
         lightingThreads = getInt("concurrency.lighting-threads", 1);
-        saferConnectionHandlerProcessing = getBoolean("concurrency.safer-connection-handler-processing", true);
         log( "Connection processing threads: " + connectionHandlerThreads);
         log( "World processing threads: " + worldThreads);
         log( "Entity & TileEntity & EntityActivation processing threads: " + entityThreads);
         log( "Lighting processing threads: " + lightingThreads);
-        log( "Safer async connection processing: " + saferConnectionHandlerProcessing);
     }
 
     private static void log(String s)
