@@ -189,19 +189,19 @@ public class WorldServer extends World {
         }
         // CraftBukkit end
         timings.doChunkUnload.startTiming(); // Spigot
-        synchronized(MinecraftServer.criticalChunkOpLock) {
+        synchronized (MinecraftServer.criticalChunkOpLock) {
             this.methodProfiler.c("chunkSource");
             this.chunkProvider.unloadChunks();
-            int j = this.a(1.0F);
+        }
+        int j = this.a(1.0F);
 
-            if (j != this.j) {
-                this.j = j;
-            }
+        if (j != this.j) {
+            this.j = j;
+        }
 
-            this.worldData.setTime(this.worldData.getTime() + 1L);
-            if (this.getGameRules().getBoolean("doDaylightCycle")) {
-                this.worldData.setDayTime(this.worldData.getDayTime() + 1L);
-            }
+        this.worldData.setTime(this.worldData.getTime() + 1L);
+        if (this.getGameRules().getBoolean("doDaylightCycle")) {
+            this.worldData.setDayTime(this.worldData.getDayTime() + 1L);
         }
         timings.doChunkUnload.stopTiming(); // Spigot
         this.methodProfiler.c("tickPending");
@@ -217,19 +217,23 @@ public class WorldServer extends World {
             timings.doChunkMap.startTiming(); // Spigot
             this.manager.flush();
             timings.doChunkMap.stopTiming(); // Spigot
-            this.methodProfiler.c("village");
-            timings.doVillages.startTiming(); // Spigot
-            this.villages.tick();
-            this.siegeManager.a();
-            timings.doVillages.stopTiming(); // Spigot
-            this.methodProfiler.c("portalForcer");
+        }
+        this.methodProfiler.c("village");
+        timings.doVillages.startTiming(); // Spigot
+        this.villages.tick();
+        this.siegeManager.a();
+        timings.doVillages.stopTiming(); // Spigot
+        this.methodProfiler.c("portalForcer");
+        synchronized (MinecraftServer.criticalChunkOpLock) {
             timings.doPortalForcer.startTiming(); // Spigot
             this.Q.a(this.getTime());
             timings.doPortalForcer.stopTiming(); // Spigot
-            this.methodProfiler.b();
-            timings.doSounds.startTiming(); // Spigot
-            this.Z();
-            timings.doSounds.stopTiming(); // Spigot
+        }
+        this.methodProfiler.b();
+        timings.doSounds.startTiming(); // Spigot
+        this.Z();
+        timings.doSounds.stopTiming(); // Spigot
+        synchronized (MinecraftServer.criticalChunkOpLock) {
             timings.doChunkGC.startTiming(); // Spigot
             this.getWorld().processChunkGC(); // CraftBukkit
             timings.doChunkGC.stopTiming(); // Spigot
@@ -317,7 +321,7 @@ public class WorldServer extends World {
         }
     }
 
-    private static ThreadPoolExecutor doTickService = new ThreadPoolExecutor(PaperSpigotConfig.doTickThreads, PaperSpigotConfig.doTickThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("do-tick-worker"));
+    public static ThreadPoolExecutor doTickService = new ThreadPoolExecutor(PaperSpigotConfig.doTickThreads, PaperSpigotConfig.doTickThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("do-tick-worker"));
     protected void g() {
         super.g();
         // CraftBukkit start
