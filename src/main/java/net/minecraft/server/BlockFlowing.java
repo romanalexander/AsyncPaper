@@ -91,7 +91,10 @@ public class BlockFlowing extends BlockFluids {
                 if(this.material == Material.LAVA && !lavaNextToWater && world.paperSpigotConfig.quickLavaDraining && this.a(world, i, j - 1, k, b1) > 0) {
 //                    world.applyPhysics(i, j, k, this);
                     world.setAir(i, j, k);
-                } else if (j1 < 0 || (this.material != Material.LAVA && world.paperSpigotConfig.quickWaterDraining && this.a(world, i, j - 1, k, b1) > -1)) {
+                } else if (j1 < 0 || (this.material != Material.LAVA && world.paperSpigotConfig.quickWaterDraining && this.a(world, i, j - 1, k, b1) > -1) && (world.getType(i, j, k + 1).getMaterial() != Material.WATER || this.a(world, i, j, k + 1, b1) > 0) &&
+                        (world.getType(i, j, k - 1).getMaterial() != Material.WATER || this.a(world, i, j, k - 1, b1) > 0) &&
+                        (world.getType(i + 1, j, k).getMaterial() != Material.WATER || this.a(world, i + 1, j, k, b1) > 0) &&
+                        (world.getType(i - 1, j, k).getMaterial() != Material.WATER || this.a(world, i - 1, j, k, b1) > 0)) {
 //                    world.applyPhysics(i, j, k, this);
                     world.setAir(i, j, k);
                 } else {
