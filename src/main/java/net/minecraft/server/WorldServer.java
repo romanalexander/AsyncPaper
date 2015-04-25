@@ -188,10 +188,12 @@ public class WorldServer extends World {
             // CraftBukkit end
         }
         // CraftBukkit end
-        timings.doChunkUnload.startTiming(); // Spigot
+
         synchronized (MinecraftServer.criticalChunkOpLock) {
+            timings.doChunkUnload.startTiming(); // Spigot
             this.methodProfiler.c("chunkSource");
             this.chunkProvider.unloadChunks();
+            timings.doChunkUnload.stopTiming(); // Spigot
         }
         int j = this.a(1.0F);
 
@@ -203,7 +205,7 @@ public class WorldServer extends World {
         if (this.getGameRules().getBoolean("doDaylightCycle")) {
             this.worldData.setDayTime(this.worldData.getDayTime() + 1L);
         }
-        timings.doChunkUnload.stopTiming(); // Spigot
+
         this.methodProfiler.c("tickPending");
         timings.doTickPending.startTiming(); // Spigot
         this.a(false);
@@ -476,33 +478,33 @@ public class WorldServer extends World {
     }
 
     public void a(int i, int j, int k, Block block, int l, int i1) {
-        synchronized(pendingTickListEntriesHashSet) {
-            NextTickListEntry nextticklistentry = new NextTickListEntry(i, j, k, block);
-            byte b0 = 0;
+        NextTickListEntry nextticklistentry = new NextTickListEntry(i, j, k, block);
+        byte b0 = 0;
 
-            if (this.d && block.getMaterial() != Material.AIR) {
-                if (block.L()) {
-                    b0 = 8;
-                    if (this.b(nextticklistentry.a - b0, nextticklistentry.b - b0, nextticklistentry.c - b0, nextticklistentry.a + b0, nextticklistentry.b + b0, nextticklistentry.c + b0)) {
-                        Block block1 = this.getType(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
+        if (this.d && block.getMaterial() != Material.AIR) {
+            if (block.L()) {
+                b0 = 8;
+                if (this.b(nextticklistentry.a - b0, nextticklistentry.b - b0, nextticklistentry.c - b0, nextticklistentry.a + b0, nextticklistentry.b + b0, nextticklistentry.c + b0)) {
+                    Block block1 = this.getType(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
 
-                        if (block1.getMaterial() != Material.AIR && block1 == nextticklistentry.a()) {
-                            block1.a(this, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, this.random);
-                        }
+                    if (block1.getMaterial() != Material.AIR && block1 == nextticklistentry.a()) {
+                        block1.a(this, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, this.random);
                     }
-
-                    return;
                 }
 
-                l = 1;
+                return;
             }
 
-            if (this.b(i - b0, j - b0, k - b0, i + b0, j + b0, k + b0)) {
-                if (block.getMaterial() != Material.AIR) {
-                    nextticklistentry.a((long) l + this.worldData.getTime());
-                    nextticklistentry.a(i1);
-                }
+            l = 1;
+        }
 
+        if (this.b(i - b0, j - b0, k - b0, i + b0, j + b0, k + b0)) {
+            if (block.getMaterial() != Material.AIR) {
+                nextticklistentry.a((long) l + this.worldData.getTime());
+                nextticklistentry.a(i1);
+            }
+
+            synchronized (pendingTickListEntriesHashSet) {
                 if (!this.pendingTickListEntriesHashSet.contains(nextticklistentry)) {
                     this.pendingTickListEntriesHashSet.add(nextticklistentry);
                     this.pendingTickListEntriesTreeSet.add(nextticklistentry);
