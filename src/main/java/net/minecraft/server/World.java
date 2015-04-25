@@ -2080,6 +2080,7 @@ public abstract class World implements IBlockAccess {
             TileEntity tileentity = null;
             int l;
             TileEntity tileentity1;
+            this.a.removeAll(Collections.singleton(null));
 
             if (this.M) {
                 for (l = 0; l < this.a.size(); ++l) {
