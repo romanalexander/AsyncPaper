@@ -6,11 +6,12 @@ import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.event.block.BlockRedstoneEvent; // CraftBukkit
+import org.github.paperspigot.ConcurrentHashSet;
 
 public class BlockRedstoneWire extends Block {
 
     private boolean a = true;
-    private Set b = new HashSet();
+    private Set b = new ConcurrentHashSet();
 
     public BlockRedstoneWire() {
         super(Material.ORIENTABLE);
