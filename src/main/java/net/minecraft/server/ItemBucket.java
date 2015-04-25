@@ -7,12 +7,21 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 // CraftBukkit end
 
+import org.github.paperspigot.PaperSpigotConfig; // PaperSpigot
+
 public class ItemBucket extends Item {
 
     private Block a;
 
     public ItemBucket(Block block) {
-        this.maxStackSize = 1;
+        // PaperSpigot start - Stackable Buckets
+        if ((block == Blocks.LAVA && PaperSpigotConfig.stackableLavaBuckets) ||
+                (block == Blocks.WATER && PaperSpigotConfig.stackableWaterBuckets)) {
+            this.maxStackSize = org.bukkit.Material.BUCKET.getMaxStackSize();
+        } else {
+            this.maxStackSize = 1;
+        }
+        // PaperSpigot end
         this.a = block;
         this.a(CreativeModeTab.f);
     }
@@ -116,6 +125,19 @@ public class ItemBucket extends Item {
                     // CraftBukkit end
 
                     if (this.a(world, i, j, k) && !entityhuman.abilities.canInstantlyBuild) {
+                        // PaperSpigot start - Stackable Buckets
+                        if ((this == Items.LAVA_BUCKET && PaperSpigotConfig.stackableLavaBuckets) ||
+                                (this == Items.WATER_BUCKET && PaperSpigotConfig.stackableWaterBuckets)) {
+                            --itemstack.count;
+                            if (itemstack.count <= 0) {
+                                return CraftItemStack.asNMSCopy(event.getItemStack());
+                            }
+                            if (!entityhuman.inventory.pickup(CraftItemStack.asNMSCopy(event.getItemStack()))) {
+                                entityhuman.drop(CraftItemStack.asNMSCopy(event.getItemStack()), false);
+                            }
+                            return itemstack;
+                        }
+                        // PaperSpigot end
                         return CraftItemStack.asNMSCopy(event.getItemStack()); // CraftBukkit
                     }
                 }

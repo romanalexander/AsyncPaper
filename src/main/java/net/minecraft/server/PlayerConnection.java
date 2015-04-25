@@ -59,6 +59,8 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.util.NumberConversions;
 // CraftBukkit end
 
+import org.github.paperspigot.PaperSpigotConfig; // PaperSpigot
+
 public class PlayerConnection implements PacketPlayInListener {
 
     private static final Logger c = LogManager.getLogger();
@@ -1481,6 +1483,19 @@ public class PlayerConnection implements PacketPlayInListener {
                     case ALLOW:
                     case DEFAULT:
                         itemstack = this.player.activeContainer.clickItem(packetplayinwindowclick.d(), packetplayinwindowclick.e(), packetplayinwindowclick.h(), this.player);
+                        // PaperSpigot start - Stackable Buckets
+                        if (itemstack != null &&
+                                ((itemstack.getItem() == Items.LAVA_BUCKET && PaperSpigotConfig.stackableLavaBuckets) ||
+                                (itemstack.getItem() == Items.WATER_BUCKET && PaperSpigotConfig.stackableWaterBuckets) ||
+                                (itemstack.getItem() == Items.MILK_BUCKET && PaperSpigotConfig.stackableMilkBuckets))) {
+                            if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                                this.player.updateInventory(this.player.activeContainer);
+                            } else {
+                                this.player.playerConnection.sendPacket(new PacketPlayOutSetSlot(-1, -1, this.player.inventory.getCarried()));
+                                this.player.playerConnection.sendPacket(new PacketPlayOutSetSlot(this.player.activeContainer.windowId, packetplayinwindowclick.d(), this.player.activeContainer.getSlot(packetplayinwindowclick.d()).getItem()));
+                            }
+                        }
+                        // PaperSpigot end
                         break;
                     case DENY:
                         /* Needs enum constructor in InventoryAction
