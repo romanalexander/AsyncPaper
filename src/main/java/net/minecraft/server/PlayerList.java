@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.util.com.google.common.base.Charsets;
 import net.minecraft.util.com.google.common.collect.Lists;
@@ -109,7 +110,7 @@ public abstract class PlayerList {
         this.k = new IpBanList(b);
         this.operators = new OpList(c);
         this.whitelist = new WhiteList(d);
-        this.n = Maps.newHashMap();
+        this.n = new ConcurrentHashMap();
         this.server = minecraftserver;
         this.j.a(false);
         this.k.a(false);
