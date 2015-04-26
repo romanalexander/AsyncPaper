@@ -209,7 +209,9 @@ public class CraftWorld implements World {
         if (world.chunkProviderServer.chunkProvider == null) {
             chunk = world.chunkProviderServer.emptyChunk;
         } else {
-            chunk = world.chunkProviderServer.chunkProvider.getOrCreateChunk(x, z);
+            synchronized(world.chunkProviderServer.chunkProvider) {
+                chunk = world.chunkProviderServer.chunkProvider.getOrCreateChunk(x, z);
+            }
         }
 
         chunkLoadPostProcess(chunk, x, z);

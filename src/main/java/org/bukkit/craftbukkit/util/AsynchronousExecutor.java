@@ -1,14 +1,11 @@
 package org.bukkit.craftbukkit.util;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.apache.commons.lang.Validate;
+import org.github.paperspigot.ConcurrentHashSet;
 
 /**
  * Executes tasks using a multi-stage process executor. Synchronous executions are via {@link AsynchronousExecutor#finishActive()} or the {@link AsynchronousExecutor#get(Object)} methods.
@@ -70,7 +67,7 @@ public final class AsynchronousExecutor<P, T, C, E extends Throwable> {
         volatile int state = PENDING;
         final P parameter;
         T object;
-        final List<C> callbacks = new LinkedList<C>();
+        final Set<C> callbacks = new ConcurrentHashSet<C>();
         E t = null;
 
         Task(final P parameter) {

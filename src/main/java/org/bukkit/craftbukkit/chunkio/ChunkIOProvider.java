@@ -3,7 +3,6 @@ package org.bukkit.craftbukkit.chunkio;
 import net.minecraft.server.Chunk;
 import net.minecraft.server.ChunkRegionLoader;
 import net.minecraft.server.NBTTagCompound;
-
 import org.bukkit.Server;
 import org.bukkit.craftbukkit.util.AsynchronousExecutor;
 import org.bukkit.craftbukkit.util.LongHash;
@@ -39,10 +38,13 @@ class ChunkIOProvider implements AsynchronousExecutor.CallBackProvider<QueuedChu
         queuedChunk.provider.chunks.put(LongHash.toLong(queuedChunk.x, queuedChunk.z), chunk);
         chunk.addEntities();
 
+
         if (queuedChunk.provider.chunkProvider != null) {
-            queuedChunk.provider.world.timings.syncChunkLoadStructuresTimer.startTiming(); // Spigot
-            queuedChunk.provider.chunkProvider.recreateStructures(queuedChunk.x, queuedChunk.z);
-            queuedChunk.provider.world.timings.syncChunkLoadStructuresTimer.stopTiming(); // Spigot
+            synchronized (queuedChunk.provider.chunkProvider) {
+                queuedChunk.provider.world.timings.syncChunkLoadStructuresTimer.startTiming(); // Spigot
+                queuedChunk.provider.chunkProvider.recreateStructures(queuedChunk.x, queuedChunk.z);
+                queuedChunk.provider.world.timings.syncChunkLoadStructuresTimer.stopTiming(); // Spigot
+            }
         }
 
         Server server = queuedChunk.provider.world.getServer();
