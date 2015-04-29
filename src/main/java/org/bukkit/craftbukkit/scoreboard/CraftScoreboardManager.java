@@ -1,12 +1,7 @@
 package org.bukkit.craftbukkit.scoreboard;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.IScoreboardCriteria;
@@ -28,8 +23,8 @@ import org.bukkit.scoreboard.ScoreboardManager;
 public final class CraftScoreboardManager implements ScoreboardManager {
     private final CraftScoreboard mainScoreboard;
     private final MinecraftServer server;
-    private final Collection<CraftScoreboard> scoreboards = new WeakCollection<CraftScoreboard>();
-    private final Map<CraftPlayer, CraftScoreboard> playerBoards = new HashMap<CraftPlayer, CraftScoreboard>();
+    private final Collection<CraftScoreboard> scoreboards = Collections.synchronizedCollection(new WeakCollection<CraftScoreboard>());
+    private final Map<CraftPlayer, CraftScoreboard> playerBoards = new ConcurrentHashMap<CraftPlayer, CraftScoreboard>();
 
     public CraftScoreboardManager(MinecraftServer minecraftserver, net.minecraft.server.Scoreboard scoreboardServer) {
         mainScoreboard = new CraftScoreboard(scoreboardServer);
@@ -101,10 +96,12 @@ public final class CraftScoreboardManager implements ScoreboardManager {
 
     // CraftBukkit method
     public Collection<ScoreboardScore> getScoreboardScores(IScoreboardCriteria criteria, String name, Collection<ScoreboardScore> collection) {
-        for (CraftScoreboard scoreboard : scoreboards) {
-            Scoreboard board = scoreboard.board;
-            for (ScoreboardObjective objective : (Iterable<ScoreboardObjective>) board.getObjectivesForCriteria(criteria)) {
-                collection.add(board.getPlayerScoreForObjective(name, objective));
+        synchronized (scoreboards) {
+            for (CraftScoreboard scoreboard : scoreboards) {
+                Scoreboard board = scoreboard.board;
+                for (ScoreboardObjective objective : (Iterable<ScoreboardObjective>) board.getObjectivesForCriteria(criteria)) {
+                    collection.add(board.getPlayerScoreForObjective(name, objective));
+                }
             }
         }
         return collection;
