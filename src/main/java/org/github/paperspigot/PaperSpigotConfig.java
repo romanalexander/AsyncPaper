@@ -3,6 +3,7 @@ package org.github.paperspigot;
 import com.google.common.base.Throwables;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -13,6 +14,7 @@ import java.util.logging.Level;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -115,14 +117,14 @@ public class PaperSpigotConfig
 
     private static double getDouble(String path, double def)
     {
-        config.addDefault( path, def );
+        config.addDefault(path, def);
         return config.getDouble(path, config.getDouble(path));
     }
 
     private static float getFloat(String path, float def)
     {
         config.addDefault( path, def );
-        return config.getFloat( path, config.getFloat( path ) );
+        return config.getFloat(path, config.getFloat(path));
     }
 
     private static int getInt(String path, int def)
@@ -140,7 +142,7 @@ public class PaperSpigotConfig
     private static String getString(String path, String def)
     {
         config.addDefault( path, def );
-        return config.getString( path, config.getString( path ) );
+        return config.getString(path, config.getString(path));
     }
 
     public static double babyZombieMovementSpeed;
@@ -178,7 +180,47 @@ public class PaperSpigotConfig
     public static int maxPacketsPerPlayer;
     private static void maxPacketsPerPlayer()
     {
-        maxPacketsPerPlayer = getInt( "max-packets-per-player", 1000 );
+        maxPacketsPerPlayer = getInt("max-packets-per-player", 1000);
+    }
+
+    public static boolean stackableLavaBuckets;
+    public static boolean stackableWaterBuckets;
+    public static boolean stackableMilkBuckets;
+    private static void stackableBuckets()
+    {
+        stackableLavaBuckets = getBoolean("stackable-buckets.lava", false);
+        stackableWaterBuckets = getBoolean( "stackable-buckets.water", false );
+        stackableMilkBuckets = getBoolean( "stackable-buckets.milk", false );
+
+        Field maxStack;
+
+        try {
+            maxStack = Material.class.getDeclaredField("maxStack");
+            maxStack.setAccessible(true);
+
+            Field modifiers = Field.class.getDeclaredField("modifiers");
+            modifiers.setAccessible(true);
+            modifiers.setInt(maxStack, maxStack.getModifiers() & ~Modifier.FINAL);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        try {
+            if (stackableLavaBuckets) {
+                maxStack.set(Material.LAVA_BUCKET, Material.BUCKET.getMaxStackSize());
+            }
+
+            if (stackableWaterBuckets) {
+                maxStack.set(Material.WATER_BUCKET, Material.BUCKET.getMaxStackSize());
+            }
+
+            if (stackableMilkBuckets) {
+                maxStack.set(Material.MILK_BUCKET, Material.BUCKET.getMaxStackSize());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static int connectionHandlerThreads;

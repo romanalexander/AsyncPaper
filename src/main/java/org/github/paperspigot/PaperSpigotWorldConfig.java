@@ -289,4 +289,9 @@ public class PaperSpigotWorldConfig
         smoothBedrock = getBoolean("generator-settings.smoothBedrock", true);
     }
 
+    public boolean fallingBlocksCollideWithSigns;
+    private void fallingBlocksCollideWithSigns() {
+        fallingBlocksCollideWithSigns = getBoolean("falling-blocks-collide-with-signs", false);
+    }
+
 }
