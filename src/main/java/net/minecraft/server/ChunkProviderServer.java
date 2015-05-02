@@ -10,6 +10,8 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // CraftBukkit start
 // CraftBukkit end
@@ -20,10 +22,11 @@ public class ChunkProviderServer implements IChunkProvider {
     // CraftBukkit start - private -> public
     public final Queue<Long> unloadQueue = new ConcurrentLinkedQueue<>();
     public Chunk emptyChunk;
-    public IChunkProvider chunkProvider;
+    public final IChunkProvider chunkProvider;
     private final IChunkLoader f;
     public boolean forceChunkLoad = false; // true -> false
     public final LongObjectHashMap<Chunk> chunks = new LongObjectHashMap<Chunk>();
+    public final Map<Long, Lock> chunkGenerationLockMap = Collections.synchronizedMap(new HashMap<Long, Lock>());
     public WorldServer world;
     // CraftBukkit end
 
@@ -75,14 +78,12 @@ public class ChunkProviderServer implements IChunkProvider {
     }
 
     public void b() {
-        synchronized (chunks) {
-            Iterator iterator = this.chunks.values().iterator(); // CraftBukkit
+        Iterator iterator = this.chunks.values().iterator(); // CraftBukkit
 
-            while (iterator.hasNext()) {
-                Chunk chunk = (Chunk) iterator.next();
+        while (iterator.hasNext()) {
+            Chunk chunk = (Chunk) iterator.next();
 
-                this.queueUnload(chunk.locX, chunk.locZ);
-            }
+            this.queueUnload(chunk.locX, chunk.locZ);
         }
     }
 
@@ -125,11 +126,23 @@ public class ChunkProviderServer implements IChunkProvider {
     }
 
     public Chunk originalGetChunkAt(int i, int j) {
-        this.unloadQueue.remove(LongHash.toLong(i, j));
-        synchronized(chunks) {
-            Chunk chunk = (Chunk) this.chunks.get(LongHash.toLong(i, j));
+        long chunkKey = LongHash.toLong(i, j);
+        this.unloadQueue.remove(chunkKey);
+        Lock chunkLock;
+        synchronized (this.chunkGenerationLockMap) {
+            if ((chunkLock = this.chunkGenerationLockMap.get(chunkKey)) == null) {
+                chunkLock = new ReentrantLock();
+                this.chunkGenerationLockMap.put(chunkKey, chunkLock);
+            }
+        }
+        Chunk chunk;
+        boolean loadedChunk = false;
+        try {
+            chunkLock.lock();
+            chunk = (Chunk) this.chunks.get(chunkKey);
             boolean newChunk = false;
             if (chunk == null) {
+                loadedChunk = true;
                 world.timings.syncChunkLoadTimer.startTiming(); // Spigot
                 chunk = this.loadChunk(i, j);
                 if (chunk == null) {
@@ -137,13 +150,15 @@ public class ChunkProviderServer implements IChunkProvider {
                         chunk = this.emptyChunk;
                     } else {
                         try {
-                            chunk = this.chunkProvider.getOrCreateChunk(i, j);
+                            synchronized(this.chunkProvider) {
+                                chunk = this.chunkProvider.getOrCreateChunk(i, j);
+                            }
                         } catch (Throwable throwable) {
                             CrashReport crashreport = CrashReport.a(throwable, "Exception generating new chunk");
                             CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Chunk to be generated");
 
                             crashreportsystemdetails.a("Location", String.format("%d,%d", new Object[]{Integer.valueOf(i), Integer.valueOf(j)}));
-                            crashreportsystemdetails.a("Position hash", Long.valueOf(LongHash.toLong(i, j))); // CraftBukkit - Use LongHash
+                            crashreportsystemdetails.a("Position hash", Long.valueOf(chunkKey)); // CraftBukkit - Use LongHash
                             crashreportsystemdetails.a("Generator", this.chunkProvider.getName());
                             throw new ReportedException(crashreport);
                         }
@@ -151,17 +166,17 @@ public class ChunkProviderServer implements IChunkProvider {
                     newChunk = true; // CraftBukkit
                 }
 
-                this.chunks.put(LongHash.toLong(i, j), chunk); // CraftBukkit
+                this.chunks.put(chunkKey, chunk); // CraftBukkit
                 chunk.addEntities();
 
                 // CraftBukkit start
                 Server server = this.world.getServer();
                 if (server != null) {
-                /*
-                 * If it's a new world, the first few chunks are generated inside
-                 * the World constructor. We can't reliably alter that, so we have
-                 * no way of creating a CraftWorld/CraftServer at that point.
-                 */
+                    /*
+                     * If it's a new world, the first few chunks are generated inside
+                     * the World constructor. We can't reliably alter that, so we have
+                     * no way of creating a CraftWorld/CraftServer at that point.
+                     */
                     server.getPluginManager().callEvent(new org.bukkit.event.world.ChunkLoadEvent(chunk.bukkitChunk, newChunk));
                 }
 
@@ -180,12 +195,17 @@ public class ChunkProviderServer implements IChunkProvider {
                     }
                 }
                 // CraftBukkit end
-                chunk.loadNearby(this, this, i, j);
                 world.timings.syncChunkLoadTimer.stopTiming(); // Spigot
             }
-
-            return chunk;
+        } finally {
+            chunkLock.unlock();
         }
+
+        if(loadedChunk) {
+            chunk.loadNearby(this, this, i, j);
+        }
+
+        return chunk;
     }
 
     public Chunk getOrCreateChunk(int i, int j) {
@@ -214,10 +234,12 @@ public class ChunkProviderServer implements IChunkProvider {
 
                 if (chunk != null) {
                     chunk.lastSaved = this.world.getTime();
-                    if (this.chunkProvider != null) {
-                        world.timings.syncChunkLoadStructuresTimer.startTiming(); // Spigot
-                        this.chunkProvider.recreateStructures(i, j);
-                        world.timings.syncChunkLoadStructuresTimer.stopTiming(); // Spigot
+                    synchronized(this.chunkProvider) {
+                        if (this.chunkProvider != null) {
+                            world.timings.syncChunkLoadStructuresTimer.startTiming(); // Spigot
+                            this.chunkProvider.recreateStructures(i, j);
+                            world.timings.syncChunkLoadStructuresTimer.stopTiming(); // Spigot
+                        }
                     }
                 }
 
@@ -261,7 +283,9 @@ public class ChunkProviderServer implements IChunkProvider {
         if (!chunk.done) {
             chunk.p();
             if (this.chunkProvider != null) {
-                this.chunkProvider.getChunkAt(ichunkprovider, i, j);
+                synchronized (this.chunkProvider) {
+                    this.chunkProvider.getChunkAt(ichunkprovider, i, j);
+                }
 
                 // CraftBukkit start
                 BlockSand.instaFall = true;
@@ -363,7 +387,9 @@ public class ChunkProviderServer implements IChunkProvider {
         if (this.f != null) {
             this.f.a();
         }
-        return this.chunkProvider.unloadChunks();
+        synchronized (this.chunkProvider) {
+            return this.chunkProvider.unloadChunks();
+        }
     }
 
     public boolean canSave() {
@@ -376,11 +402,15 @@ public class ChunkProviderServer implements IChunkProvider {
     }
 
     public List getMobsFor(EnumCreatureType enumcreaturetype, int i, int j, int k) {
-        return this.chunkProvider.getMobsFor(enumcreaturetype, i, j, k);
+        synchronized (this.chunkProvider) {
+            return this.chunkProvider.getMobsFor(enumcreaturetype, i, j, k);
+        }
     }
 
     public ChunkPosition findNearestMapFeature(World world, String s, int i, int j, int k) {
-        return this.chunkProvider.findNearestMapFeature(world, s, i, j, k);
+        synchronized (this.chunkProvider) {
+            return this.chunkProvider.findNearestMapFeature(world, s, i, j, k);
+        }
     }
 
     public int getLoadedChunks() {

@@ -343,6 +343,7 @@ public abstract class BiomeBase {
             return biomes[i];
         } else {
             aC.warn("Biome ID is out of bounds: " + i + ", defaulting to 0 (Ocean)");
+            new Throwable().printStackTrace();
             return OCEAN;
         }
     }
