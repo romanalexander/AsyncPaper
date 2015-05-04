@@ -160,10 +160,10 @@ public class Main {
                 }
             }
 
-            System.err.println( "This PaperSpigot build only supports Minecraft 1.7.x and 1.8.x clients!\n"
-                    + "*** It is imperative that backups be taken before running this build on your server! ***\n"
-                    + "Please report issues directly to Paper, and always ensure you're up-to-date!\n"
-                    + "*** Any bug reports not running the very latest version of the software will be ignored ***\n\n" );
+            System.err.println( "=================================================================================" );
+            System.err.println( "WARNING: You are running AsyncSpigot support 1.7.x and 1.8 clients. Test each plugin thoroughly for compatibility." );
+            System.err.println( "WARNING: Report any issues to Nayuta. You will receive no support from Paper, Spigot or Craftbukkit." );
+            System.err.println( "=================================================================================" );
 
             // Spigot end
 
