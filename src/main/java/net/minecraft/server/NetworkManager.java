@@ -1,9 +1,6 @@
 package net.minecraft.server;
 
-import java.net.SocketAddress;
-import java.util.Queue;
-import javax.crypto.SecretKey;
-
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.util.com.google.common.collect.Queues;
 import net.minecraft.util.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.util.com.mojang.authlib.properties.Property;
@@ -23,11 +20,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
-// Spigot start
-import com.google.common.collect.ImmutableSet;
-import org.github.paperspigot.PaperSpigotConfig;
 import org.spigotmc.SpigotCompressor;
 import org.spigotmc.SpigotDecompressor;
+
+import javax.crypto.SecretKey;
+import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+
+// Spigot start
 // Spigot end
 
 public class NetworkManager extends SimpleChannelInboundHandler {
@@ -59,6 +61,8 @@ public class NetworkManager extends SimpleChannelInboundHandler {
     public static final AttributeKey<Integer> protocolVersion = new AttributeKey<Integer>("protocol_version");
     public static final ImmutableSet<Integer> SUPPORTED_VERSIONS = ImmutableSet.of(4, 5, 47);
     public static final int CURRENT_VERSION = 5;
+    public static final List<Class<? extends Packet>> blockBreakProcessorLock = Arrays.asList(PacketPlayInBlockPlace.class, PacketPlayInBlockDig.class, PacketPlayInUpdateSign.class);
+
     public static int getVersion(Channel attr)
     {
         Integer ver = attr.attr( protocolVersion ).get();
@@ -189,7 +193,15 @@ public class NetworkManager extends SimpleChannelInboundHandler {
                     continue;
                 }
                 // CraftBukkit end
-                packet.handle(this.o);
+
+                if(blockBreakProcessorLock.contains(packet.getClass())) {
+                    synchronized (blockBreakProcessorLock) {
+                        packet.handle(this.o);
+                    }
+                } else {
+                    packet.handle(this.o);
+                }
+
             }
 
             this.o.a();
