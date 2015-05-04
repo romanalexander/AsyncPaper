@@ -161,7 +161,7 @@ public class EntityFallingBlock extends Entity {
                             this.a(new ItemStack(this.id, 1, this.id.getDropData(this.data)), 0.0F);
                         }
                     }
-                } else if (this.ticksLived > 100 && !this.world.isStatic && (j < 1 || j > 256) || this.ticksLived > 600) {
+                } else if (!this.world.paperSpigotConfig.fallingBlockBypassLifespan && (this.ticksLived > 100 && !this.world.isStatic && (j < 1 || j > 256) || this.ticksLived > 600)) {
                     if (this.dropItem) {
                         this.a(new ItemStack(this.id, 1, this.id.getDropData(this.data)), 0.0F);
                     }
