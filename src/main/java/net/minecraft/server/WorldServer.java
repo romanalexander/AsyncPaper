@@ -9,15 +9,8 @@ import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
-import org.github.paperspigot.NamedThreadFactory;
-import org.github.paperspigot.PaperPhaser;
-import org.github.paperspigot.PaperPhaserProvider;
-import org.github.paperspigot.PaperSpigotConfig;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 // CraftBukkit start
 // CraftBukkit end
@@ -323,145 +316,129 @@ public class WorldServer extends World {
         }
     }
 
-    public static ThreadPoolExecutor doTickService = new ThreadPoolExecutor(PaperSpigotConfig.doTickThreads, PaperSpigotConfig.doTickThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("do-tick-worker"));
     protected void g() {
         super.g();
+        int i = 0;
+        int j = 0;
         // CraftBukkit start
         // Iterator iterator = this.chunkTickList.iterator();
 
         // Spigot start
-        PaperPhaserProvider phaserProvider = new PaperPhaserProvider();
-        for (net.minecraft.util.gnu.trove.iterator.TLongShortIterator iter = chunkTickList.iterator(); iter.hasNext(); ) {
+        for (net.minecraft.util.gnu.trove.iterator.TLongShortIterator iter = chunkTickList.iterator(); iter.hasNext();) {
             iter.advance();
-            final long chunkCoord = iter.key();
-            final short playerCount = iter.value();
-            final int chunkX = World.keyToX(chunkCoord);
-            final int chunkZ = World.keyToZ(chunkCoord);
+            long chunkCoord = iter.key();
+            int chunkX = World.keyToX(chunkCoord);
+            int chunkZ = World.keyToZ(chunkCoord);
             // If unloaded, or in procedd of being unloaded, drop it
-            if ((!WorldServer.this.isChunkLoaded(chunkX, chunkZ)) || (WorldServer.this.chunkProviderServer.unloadQueue.contains(LongHash.toLong(chunkX, chunkZ)))) {
+            if ( ( !this.isChunkLoaded( chunkX, chunkZ ) ) || ( this.chunkProviderServer.unloadQueue.contains(LongHash.toLong(chunkX, chunkZ) ) ) )
+            {
                 iter.remove();
                 continue;
             }
-            final PaperPhaser phaser = phaserProvider.getAndRegister();
-            Runnable runnable = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // Spigot end
-                        // ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair) iterator.next();
-                        int x = chunkX * 16;
-                        int z = chunkZ * 16;
+            // Spigot end
+            // ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair) iterator.next();
+            int k = chunkX * 16;
+            int l = chunkZ * 16;
 
-                        WorldServer.this.methodProfiler.a("getChunk");
-                        Chunk chunk = WorldServer.this.getChunkAt(chunkX, chunkZ);
-                        // CraftBukkit end
+            this.methodProfiler.a("getChunk");
+            Chunk chunk = this.getChunkAt(chunkX, chunkZ);
+            // CraftBukkit end
 
-                        WorldServer.this.a(x, z, chunk);
-                        WorldServer.this.methodProfiler.c("tickChunk");
-                        chunk.b(false);
-                        WorldServer.this.methodProfiler.c("thunder");
-                        int i1;
-                        int j1;
-                        int k1;
-                        int l1;
+            this.a(k, l, chunk);
+            this.methodProfiler.c("tickChunk");
+            chunk.b(false);
+            this.methodProfiler.c("thunder");
+            int i1;
+            int j1;
+            int k1;
+            int l1;
 
-                        if (WorldServer.this.random.nextInt(100000) == 0 && WorldServer.this.Q() && WorldServer.this.P()) {
-                            int k = WorldServer.this.k.get() * 3 + 1013904223;
-                            WorldServer.this.k.set(k);
-                            i1 = k >> 2;
-                            j1 = x + (i1 & 15);
-                            k1 = z + (i1 >> 8 & 15);
-                            l1 = WorldServer.this.h(j1, k1);
-                            if (WorldServer.this.isRainingAt(j1, l1, k1)) {
-                                WorldServer.this.strikeLightning(new EntityLightning(WorldServer.this, (double) j1, (double) l1, (double) k1));
-                            }
-                        }
+            if (this.random.nextInt(100000) == 0 && this.Q() && this.P()) {
+                this.k = this.k * 3 + 1013904223;
+                i1 = this.k >> 2;
+                j1 = k + (i1 & 15);
+                k1 = l + (i1 >> 8 & 15);
+                l1 = this.h(j1, k1);
+                if (this.isRainingAt(j1, l1, k1)) {
+                    this.strikeLightning(new EntityLightning(this, (double) j1, (double) l1, (double) k1));
+                }
+            }
 
-                        WorldServer.this.methodProfiler.c("iceandsnow");
-                        if (WorldServer.this.random.nextInt(16) == 0) {
-                            int k = WorldServer.this.k.get() * 3 + 1013904223;
-                            WorldServer.this.k.set(k);
-                            i1 = k >> 2;
-                            j1 = i1 & 15;
-                            k1 = i1 >> 8 & 15;
-                            l1 = WorldServer.this.h(j1 + x, k1 + z);
-                            if (WorldServer.this.s(j1 + x, l1 - 1, k1 + z)) {
-                                // CraftBukkit start
-                                BlockState blockState = WorldServer.this.getWorld().getBlockAt(j1 + x, l1 - 1, k1 + z).getState();
-                                blockState.setTypeId(Block.getId(Blocks.ICE));
+            this.methodProfiler.c("iceandsnow");
+            if (this.random.nextInt(16) == 0) {
+                this.k = this.k * 3 + 1013904223;
+                i1 = this.k >> 2;
+                j1 = i1 & 15;
+                k1 = i1 >> 8 & 15;
+                l1 = this.h(j1 + k, k1 + l);
+                if (this.s(j1 + k, l1 - 1, k1 + l)) {
+                    // CraftBukkit start
+                    BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1 - 1, k1 + l).getState();
+                    blockState.setTypeId(Block.getId(Blocks.ICE));
 
-                                BlockFormEvent iceBlockForm = new BlockFormEvent(blockState.getBlock(), blockState);
-                                WorldServer.this.getServer().getPluginManager().callEvent(iceBlockForm);
-                                if (!iceBlockForm.isCancelled()) {
-                                    blockState.update(true);
-                                }
-                                // CraftBukkit end
-                            }
+                    BlockFormEvent iceBlockForm = new BlockFormEvent(blockState.getBlock(), blockState);
+                    this.getServer().getPluginManager().callEvent(iceBlockForm);
+                    if (!iceBlockForm.isCancelled()) {
+                        blockState.update(true);
+                    }
+                    // CraftBukkit end
+                }
 
-                            if (WorldServer.this.Q() && WorldServer.this.e(j1 + x, l1, k1 + z, true)) {
-                                // CraftBukkit start
-                                BlockState blockState = WorldServer.this.getWorld().getBlockAt(j1 + x, l1, k1 + z).getState();
-                                blockState.setTypeId(Block.getId(Blocks.SNOW));
+                if (this.Q() && this.e(j1 + k, l1, k1 + l, true)) {
+                    // CraftBukkit start
+                    BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1, k1 + l).getState();
+                    blockState.setTypeId(Block.getId(Blocks.SNOW));
 
-                                BlockFormEvent snow = new BlockFormEvent(blockState.getBlock(), blockState);
-                                WorldServer.this.getServer().getPluginManager().callEvent(snow);
-                                if (!snow.isCancelled()) {
-                                    blockState.update(true);
-                                }
-                                // CraftBukkit end
-                            }
+                    BlockFormEvent snow = new BlockFormEvent(blockState.getBlock(), blockState);
+                    this.getServer().getPluginManager().callEvent(snow);
+                    if (!snow.isCancelled()) {
+                        blockState.update(true);
+                    }
+                    // CraftBukkit end
+                }
 
-                            if (WorldServer.this.Q()) {
-                                BiomeBase biomebase = WorldServer.this.getBiome(j1 + x, k1 + z);
+                if (this.Q()) {
+                    BiomeBase biomebase = this.getBiome(j1 + k, k1 + l);
 
-                                if (biomebase.e()) {
-                                    WorldServer.this.getType(j1 + x, l1 - 1, k1 + z).l(WorldServer.this, j1 + x, l1 - 1, k1 + z);
-                                }
-                            }
-                        }
-
-                        WorldServer.this.methodProfiler.c("tickBlocks");
-                        ChunkSection[] achunksection = chunk.getSections();
-
-                        j1 = achunksection.length;
-
-                        for (k1 = 0; k1 < j1; ++k1) {
-                            ChunkSection chunksection = achunksection[k1];
-
-                            if (chunksection != null && chunksection.shouldTick()) {
-                                for (int i2 = 0; i2 < 3; ++i2) {
-                                    int k = WorldServer.this.k.get() * 3 + 1013904223;
-                                    WorldServer.this.k.set(k);
-                                    int j2 = k >> 2;
-                                    int k2 = j2 & 15;
-                                    int l2 = j2 >> 8 & 15;
-                                    int i3 = j2 >> 16 & 15;
-
-                                    Block block = chunksection.getTypeId(k2, i3, l2);
-
-                                    if (block.isTicking()) {
-                                        WorldServer.this.growthOdds = WorldServer.this.modifiedOdds;
-                                        block.a(WorldServer.this, k2 + x, i3 + chunksection.getYPosition(), l2 + z, WorldServer.this.random);
-                                    }
-                                }
-                            }
-                        }
-
-                        WorldServer.this.methodProfiler.b();
-                    } finally {
-                        phaser.arrive();
+                    if (biomebase.e()) {
+                        this.getType(j1 + k, l1 - 1, k1 + l).l(this, j1 + k, l1 - 1, k1 + l);
                     }
                 }
-            };
-            if(PaperSpigotConfig.doTickThreads > 1) {
-                doTickService.submit(runnable);
-            } else {
-                runnable.run();
             }
+
+            this.methodProfiler.c("tickBlocks");
+            ChunkSection[] achunksection = chunk.getSections();
+
+            j1 = achunksection.length;
+
+            for (k1 = 0; k1 < j1; ++k1) {
+                ChunkSection chunksection = achunksection[k1];
+
+                if (chunksection != null && chunksection.shouldTick()) {
+                    for (int i2 = 0; i2 < 3; ++i2) {
+                        this.k = this.k * 3 + 1013904223;
+                        int j2 = this.k >> 2;
+                        int k2 = j2 & 15;
+                        int l2 = j2 >> 8 & 15;
+                        int i3 = j2 >> 16 & 15;
+
+                        ++j;
+                        Block block = chunksection.getTypeId(k2, i3, l2);
+
+                        if (block.isTicking()) {
+                            ++i;
+                            this.growthOdds = (iter.value() < 1) ? this.modifiedOdds : 100; // Spigot - grow fast if no players are in this chunk (value = player count)
+                            block.a(this, k2 + k, i3 + chunksection.getYPosition(), l2 + l, this.random);
+                        }
+                    }
+                }
+            }
+
+            this.methodProfiler.b();
         }
-        phaserProvider.await();
         // Spigot Start
-        if (spigotConfig.clearChunksOnTick) {
+        if ( spigotConfig.clearChunksOnTick )
+        {
             chunkTickList.clear();
         }
         // Spigot End
