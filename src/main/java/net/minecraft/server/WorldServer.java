@@ -524,12 +524,11 @@ public class WorldServer extends World {
     }
 
     public boolean a(boolean flag) {
-        synchronized(pendingTickListEntriesHashSet) {
-            int i = this.pendingTickListEntriesTreeSet.size();
+        int i = this.pendingTickListEntriesTreeSet.size();
 
-            if (i != this.pendingTickListEntriesHashSet.size()) {
-                throw new IllegalStateException("TickNextTick list out of synch");
-            } else {
+        if (i != this.pendingTickListEntriesHashSet.size()) {
+            throw new IllegalStateException("TickNextTick list out of synch");
+        } else {
             /* PaperSpigot start - Fix redstone lag issues
             if (i > 1000) {
                 // CraftBukkit start - If the server has too much to process over time, try to alleviate that
@@ -546,80 +545,80 @@ public class WorldServer extends World {
             }
             // PaperSpigot end
 
-                this.methodProfiler.a("cleaning");
+            this.methodProfiler.a("cleaning");
 
-                NextTickListEntry nextticklistentry;
+            NextTickListEntry nextticklistentry;
 
-                int j;
-                for (j = 0; j < i; ++j) {
-                    nextticklistentry = (NextTickListEntry) this.pendingTickListEntriesTreeSet.first();
-                    if (!flag && nextticklistentry.d > this.worldData.getTime()) {
+            int j;
+            for (j = 0; j < i; ++j) {
+                nextticklistentry = (NextTickListEntry) this.pendingTickListEntriesTreeSet.first();
+                if (!flag && nextticklistentry.d > this.worldData.getTime()) {
+                    break;
+                }
+
+                this.pendingTickListEntriesTreeSet.remove(nextticklistentry);
+                this.pendingTickListEntriesHashSet.remove(nextticklistentry);
+                this.pendingTickListEntriesThisTick.add(nextticklistentry);
+            }
+
+            if (paperSpigotConfig.tickNextTickListCapIgnoresRedstone) {
+                Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesTreeSet.iterator();
+                while (iterator.hasNext()) {
+                    NextTickListEntry next = iterator.next();
+                    if (!flag && next.d > this.worldData.getTime()) {
                         break;
                     }
 
-                    this.pendingTickListEntriesTreeSet.remove(nextticklistentry);
-                    this.pendingTickListEntriesHashSet.remove(nextticklistentry);
-                    this.pendingTickListEntriesThisTick.add(nextticklistentry);
-                }
-
-                if (paperSpigotConfig.tickNextTickListCapIgnoresRedstone) {
-                    Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesTreeSet.iterator();
-                    while (iterator.hasNext()) {
-                        NextTickListEntry next = iterator.next();
-                        if (!flag && next.d > this.worldData.getTime()) {
-                            break;
-                        }
-
-                        if (next.a().isPowerSource() || next.a() instanceof IContainer) {
-                            iterator.remove();
-                            this.pendingTickListEntriesHashSet.remove(next);
-                            this.pendingTickListEntriesThisTick.add(next);
-                        }
+                    if (next.a().isPowerSource() || next.a() instanceof IContainer) {
+                        iterator.remove();
+                        this.pendingTickListEntriesHashSet.remove(next);
+                        this.pendingTickListEntriesThisTick.add(next);
                     }
                 }
+            }
             // PaperSpigot end
 
-                this.methodProfiler.b();
-                this.methodProfiler.a("ticking");
-                Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
+            this.methodProfiler.b();
+            this.methodProfiler.a("ticking");
+            Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
 
-                while (iterator.hasNext()) {
-                    nextticklistentry = (NextTickListEntry) iterator.next();
-                    iterator.remove();
-                    byte b0 = 0;
+            while (iterator.hasNext()) {
+                nextticklistentry = (NextTickListEntry) iterator.next();
+                iterator.remove();
+                byte b0 = 0;
 
-                    if (this.b(nextticklistentry.a - b0, nextticklistentry.b - b0, nextticklistentry.c - b0, nextticklistentry.a + b0, nextticklistentry.b + b0, nextticklistentry.c + b0)) {
-                        Block block = this.getType(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
+                if (this.b(nextticklistentry.a - b0, nextticklistentry.b - b0, nextticklistentry.c - b0, nextticklistentry.a + b0, nextticklistentry.b + b0, nextticklistentry.c + b0)) {
+                    Block block = this.getType(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
 
-                        if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry.a())) {
+                    if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry.a())) {
+                        try {
+                            block.a(this, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, this.random);
+                        } catch (Throwable throwable) {
+                            CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
+                            CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
+
+                            int k;
+
                             try {
-                                block.a(this, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, this.random);
-                            } catch (Throwable throwable) {
-                                CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
-                                CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
-
-                                int k;
-
-                                try {
-                                    k = this.getData(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
-                                } catch (Throwable throwable1) {
-                                    k = -1;
-                                }
-
-                                CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, block, k);
-                                throw new ReportedException(crashreport);
+                                k = this.getData(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
+                            } catch (Throwable throwable1) {
+                                k = -1;
                             }
-                        }
-                    } else {
-                        this.a(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, nextticklistentry.a(), 0);
-                    }
-                }
 
-                this.methodProfiler.b();
-                this.pendingTickListEntriesThisTick.clear();
-                return !this.pendingTickListEntriesTreeSet.isEmpty();
+                            CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, block, k);
+                            throw new ReportedException(crashreport);
+                        }
+                    }
+                } else {
+                    this.a(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, nextticklistentry.a(), 0);
+                }
             }
+
+            this.methodProfiler.b();
+            this.pendingTickListEntriesThisTick.clear();
+            return !this.pendingTickListEntriesTreeSet.isEmpty();
         }
+
     }
 
     public List a(Chunk chunk, boolean flag) {
