@@ -2523,7 +2523,7 @@ public abstract class World implements IBlockAccess {
     }
 
     // PaperSpigot start - Configurable async light updates
-    private static ThreadPoolExecutor lightingService = new ThreadPoolExecutor(PaperSpigotConfig.lightingThreads, PaperSpigotConfig.lightingThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
+    public static ThreadPoolExecutor lightingService = new ThreadPoolExecutor(PaperSpigotConfig.lightingThreads, PaperSpigotConfig.lightingThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
     public boolean c(final EnumSkyBlock enumskyblock, final int i, final int j, final int k) {
         Callable<Boolean> callable = new Callable<Boolean>() {
             @Override

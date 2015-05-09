@@ -21,8 +21,8 @@ public class WorldServer extends World {
     private final MinecraftServer server;
     public EntityTracker tracker; // CraftBukkit - private final -> public
     private final PlayerChunkMap manager;
-    private final Set pendingTickListEntriesHashSet = new HashSet();
-    private final TreeSet pendingTickListEntriesTreeSet = new TreeSet();
+    public final Set pendingTickListEntriesHashSet = new HashSet();
+    public final TreeSet pendingTickListEntriesTreeSet = new TreeSet();
     public ChunkProviderServer chunkProviderServer;
     public boolean savingDisabled;
     private boolean O;
@@ -32,7 +32,7 @@ public class WorldServer extends World {
     private BlockActionDataList[] S = new BlockActionDataList[] { new BlockActionDataList((BananaAPI) null), new BlockActionDataList((BananaAPI) null)};
     private int T;
     private static final StructurePieceTreasure[] U = new StructurePieceTreasure[] { new StructurePieceTreasure(Items.STICK, 0, 1, 3, 10), new StructurePieceTreasure(Item.getItemOf(Blocks.WOOD), 0, 1, 3, 10), new StructurePieceTreasure(Item.getItemOf(Blocks.LOG), 0, 1, 3, 10), new StructurePieceTreasure(Items.STONE_AXE, 0, 1, 1, 3), new StructurePieceTreasure(Items.WOOD_AXE, 0, 1, 1, 5), new StructurePieceTreasure(Items.STONE_PICKAXE, 0, 1, 1, 3), new StructurePieceTreasure(Items.WOOD_PICKAXE, 0, 1, 1, 5), new StructurePieceTreasure(Items.APPLE, 0, 2, 3, 5), new StructurePieceTreasure(Items.BREAD, 0, 2, 3, 3), new StructurePieceTreasure(Item.getItemOf(Blocks.LOG2), 0, 1, 3, 10)};
-    private List pendingTickListEntriesThisTick = new ArrayList();
+    public List pendingTickListEntriesThisTick = new ArrayList();
     private IntHashMap entitiesById;
 
     // CraftBukkit start
