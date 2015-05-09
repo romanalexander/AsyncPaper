@@ -26,8 +26,8 @@ public class Chunk {
     private boolean w;
     public Map tileEntities;
     public final Queue[] entitySlices;
-    public boolean done;
-    public boolean lit;
+    public volatile boolean done;
+    public volatile boolean lit;
     public boolean m;
     public boolean n;
     public boolean o;
