@@ -83,6 +83,9 @@ public abstract class EntityLiving extends Entity {
     public int expToDrop;
     public int maxAirTicks = 300;
     ArrayList<org.bukkit.inventory.ItemStack> drops = null;
+    public boolean onlyFakeEquipment = false;
+    public ItemStack[] fakeEquipment = new ItemStack[5];
+
     // CraftBukkit end
     // Spigot start
     public void inactiveTick()
@@ -1390,9 +1393,10 @@ public abstract class EntityLiving extends Entity {
 
             for (int j = 0; j < 5; ++j) {
                 ItemStack itemstack = this.g[j];
-                ItemStack itemstack1 = this.getEquipment(j);
+                ItemStack itemstack1 = this.getFakeEquipment(j);
 
                 if (!ItemStack.matches(itemstack1, itemstack)) {
+
                     ((WorldServer) this.world).getTracker().a((Entity) this, (Packet) (new PacketPlayOutEntityEquipment(this.getId(), j, itemstack1)));
                     if (itemstack != null) {
                         this.d.a(itemstack.D());
@@ -1479,6 +1483,22 @@ public abstract class EntityLiving extends Entity {
         this.world.methodProfiler.b();
         this.aX += f2;
         SpigotTimings.timerEntityTickRest.stopTiming(); // Spigot
+    }
+
+    public ItemStack getFakeEquipment(int j) {
+        if(onlyFakeEquipment) {
+            return fakeEquipment[j];
+        } else {
+            if(fakeEquipment[j] == null) {
+                return getEquipment(j);
+            } else {
+                return fakeEquipment[j];
+            }
+        }
+    }
+
+    public void setFakeEquipment(int i, ItemStack itemstack) {
+        this.fakeEquipment[i] = itemstack;
     }
 
     protected float f(float f, float f1) {
