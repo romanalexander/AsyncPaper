@@ -373,7 +373,7 @@ public class EntityTrackerEntry {
 
                     if (this.tracker instanceof EntityLiving) {
                         for (int i = 0; i < 5; ++i) {
-                            ItemStack itemstack = ((EntityLiving) this.tracker).getEquipment(i);
+                            ItemStack itemstack = ((EntityLiving) this.tracker).getFakeEquipment(i);
 
                             if (itemstack != null) {
                                 entityplayer.playerConnection.sendPacket(new PacketPlayOutEntityEquipment(this.tracker.getId(), i, itemstack));
