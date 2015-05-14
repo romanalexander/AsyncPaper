@@ -290,7 +290,7 @@ public abstract class EntityInsentient extends EntityLiving {
         this.n(f);
     }
 
-    public void e() {
+    public synchronized void e() {
         super.e();
         this.world.methodProfiler.a("looting");
         if (!this.world.isStatic && this.bJ() && !this.aT && this.world.getGameRules().getBoolean("mobGriefing")) {
