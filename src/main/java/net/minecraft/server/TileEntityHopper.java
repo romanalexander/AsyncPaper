@@ -1,6 +1,7 @@
 package net.minecraft.server;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 // CraftBukkit start
 import org.bukkit.craftbukkit.entity.CraftHumanEntity;
@@ -20,28 +21,28 @@ public class TileEntityHopper extends TileEntity implements IHopper {
     // Spigot start
     private long nextTick = -1; // Next tick this hopper will be ticked.
     private long lastTick = -1; // Last tick this hopper was polled.
-    
+
     // If this hopper is not cooling down, assaign a visible tick for next time.
     public void makeTick() {
         if (!this.j()) {
             this.c(0);
         }
     }
-    
+
     // Contents changed, so make this hopper active.
     public void scheduleHopperTick() {
         if (this.world != null && this.world.spigotConfig.altHopperTicking) {
             this.makeTick();
         }
     }
-    
+
 	// Called after this hopper is assaigned a world or when altHopperTicking is turned
 	// on from reload.
     public void convertToScheduling() {
     	// j is the cooldown in ticks
         this.c(this.j);
     }
-    
+
     // Called when alt hopper ticking is turned off from the reload command
     public void convertToPolling() {
         long cooldownDiff;
@@ -403,43 +404,52 @@ public class TileEntityHopper extends TileEntity implements IHopper {
         return true;
     }
 
-    public synchronized static boolean suckInItems(IHopper ihopper) {
-        IInventory iinventory = getSourceInventory(ihopper);
+    private static final Object inventoryLock = new Object();
+    public static boolean suckInItems(IHopper ihopper) {
+        synchronized(ihopper) {
+            final IInventory iinventory = getSourceInventory(ihopper);
 
-        if (iinventory != null) {
-            byte b0 = 0;
+            if (iinventory != null) {
+                byte b0 = 0;
 
-            if (b(iinventory, b0)) {
-                return false;
-            }
+                synchronized (iinventory) {
+                    if (b(iinventory, b0)) {
+                        return false;
+                    }
 
-            if (iinventory instanceof IWorldInventory && b0 > -1) {
-                IWorldInventory iworldinventory = (IWorldInventory) iinventory;
-                int[] aint = iworldinventory.getSlotsForFace(b0);
+                    if (iinventory instanceof IWorldInventory && b0 > -1) {
 
-                for (int i = 0; i < aint.length; ++i) {
-                    if (tryTakeInItemFromSlot(ihopper, iinventory, aint[i], b0)) {
-                        return true;
+                        IWorldInventory iworldinventory = (IWorldInventory) iinventory;
+                        int[] aint = iworldinventory.getSlotsForFace(b0);
+
+                        for (int i = 0; i < aint.length; ++i) {
+                            if (tryTakeInItemFromSlot(ihopper, iinventory, aint[i], b0)) {
+                                return true;
+                            }
+                        }
+
+                    } else {
+                        int j = iinventory.getSize();
+
+                        for (int k = 0; k < j; ++k) {
+                            if (tryTakeInItemFromSlot(ihopper, iinventory, k, b0)) {
+                                return true;
+                            }
+                        }
                     }
                 }
             } else {
-                int j = iinventory.getSize();
+                synchronized (inventoryLock) {
+                    EntityItem entityitem = getEntityItemAt(ihopper.getWorld(), ihopper.x(), ihopper.aD() + 1.0D, ihopper.aE());
 
-                for (int k = 0; k < j; ++k) {
-                    if (tryTakeInItemFromSlot(ihopper, iinventory, k, b0)) {
-                        return true;
+                    if (entityitem != null) {
+                        return addEntityItem(ihopper, entityitem);
                     }
                 }
             }
-        } else {
-            EntityItem entityitem = getEntityItemAt(ihopper.getWorld(), ihopper.x(), ihopper.aD() + 1.0D, ihopper.aE());
 
-            if (entityitem != null) {
-                return addEntityItem(ihopper, entityitem);
-            }
+            return false;
         }
-
-        return false;
     }
 
     private static boolean tryTakeInItemFromSlot(IHopper ihopper, IInventory iinventory, int i, int j) {
