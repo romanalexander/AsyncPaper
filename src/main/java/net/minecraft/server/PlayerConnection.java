@@ -584,9 +584,10 @@ public class PlayerConnection implements PacketPlayInListener {
     public void a(PacketPlayInBlockPlace packetplayinblockplace) {
         boolean throttled = false;
         // PaperSpigot - Allow disabling the player interaction limiter
-        if (org.github.paperspigot.PaperSpigotConfig.interactLimitEnabled && lastPlace != -1 && packetplayinblockplace.timestamp - lastPlace < 30 && packets++ >= 4) {
+        if (org.github.paperspigot.PaperSpigotConfig.interactLimitEnabled && lastPlace != -1 && packetplayinblockplace.timestamp - lastPlace < 75L && packets++ >= 4) {
             throttled = true;
-        } else if ( packetplayinblockplace.timestamp - lastPlace >= 30 || lastPlace == -1 )
+            System.out.println("Throttling malformed PacketPlayInBlockPlace time(" + (packetplayinblockplace.timestamp - this.lastPlace) + ") < 75: " + packetplayinblockplace.toString());
+        } else if ( packetplayinblockplace.timestamp - lastPlace >= 75L || lastPlace == -1 )
         {
             lastPlace = packetplayinblockplace.timestamp;
             packets = 0;
@@ -713,7 +714,7 @@ public class PlayerConnection implements PacketPlayInListener {
             this.player.activeContainer.b();
             this.player.g = false;
             // CraftBukkit - TODO CHECK IF NEEDED -- new if structure might not need 'always'. Kept it in for now, but may be able to remove in future
-            if (!ItemStack.matches(this.player.inventory.getItemInHand(), packetplayinblockplace.getItemStack()) || always) {
+            if (always || !ItemStack.matches(this.player.inventory.getItemInHand(), packetplayinblockplace.getItemStack())) {
                 this.sendPacket(new PacketPlayOutSetSlot(this.player.activeContainer.windowId, slot.rawSlotIndex, this.player.inventory.getItemInHand()));
             }
         }

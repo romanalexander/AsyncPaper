@@ -14,15 +14,27 @@ class ChunkIOProvider implements AsynchronousExecutor.CallBackProvider<QueuedChu
 
     // async stuff
     public Chunk callStage1(QueuedChunk queuedChunk) throws RuntimeException {
-        ChunkRegionLoader loader = queuedChunk.loader;
-        Object[] data = loader.loadChunk(queuedChunk.world, queuedChunk.x, queuedChunk.z);
+        ChunkRegionLoader loader;
+        try {
+            loader = queuedChunk.loader;
+            if (loader == null) {
+                System.out.println("[ArkhamSpigot] Caught loader=null exception at callStage1()... resetting chunk D: !");
+                return null;
+            } else {
+                Object[] data = loader.loadChunk(queuedChunk.world, queuedChunk.x, queuedChunk.z);
 
-        if (data != null) {
-            queuedChunk.compound = (NBTTagCompound) data[1];
-            return (Chunk) data[0];
+                if (data != null) {
+                    queuedChunk.compound = (NBTTagCompound) data[1];
+                    return (Chunk) data[0];
+                }
+            }
+
+        } catch (Exception ex) {
+            System.out.println("[ArkhamSpigot] Caught unhandled chunkLoad() exception at callStage1()... resetting chunk D: !");
+            ex.printStackTrace();
         }
-
         return null;
+
     }
 
     // sync stuff

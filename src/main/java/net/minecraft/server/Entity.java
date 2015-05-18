@@ -472,10 +472,17 @@ public abstract class Entity {
             AxisAlignedBB axisalignedbb = this.boundingBox.clone();
             boolean flag = this.onGround && this.isSneaking() && this instanceof EntityHuman;
 
+            int crashProtection;
             if (flag) {
+                crashProtection = 0;
                 double d9;
 
                 for (d9 = 0.05D; d0 != 0.0D && this.world.getCubes(this, this.boundingBox.c(d0, -1.0D, 0.0D)).isEmpty(); d6 = d0) {
+                    ++crashProtection;
+                    if(crashProtection > 100) {
+                        System.out.println("[ArkhamSpigot] Prevented concurrency move() crash.");
+                        return;
+                    }
                     if (d0 < d9 && d0 >= -d9) {
                         d0 = 0.0D;
                     } else if (d0 > 0.0D) {
@@ -486,6 +493,11 @@ public abstract class Entity {
                 }
 
                 for (; d2 != 0.0D && this.world.getCubes(this, this.boundingBox.c(0.0D, -1.0D, d2)).isEmpty(); d8 = d2) {
+                    ++crashProtection;
+                    if(crashProtection > 100) {
+                        System.out.println("[ArkhamSpigot] Prevented concurrency move() crash.");
+                        return;
+                    }
                     if (d2 < d9 && d2 >= -d9) {
                         d2 = 0.0D;
                     } else if (d2 > 0.0D) {
@@ -496,6 +508,11 @@ public abstract class Entity {
                 }
 
                 while (d0 != 0.0D && d2 != 0.0D && this.world.getCubes(this, this.boundingBox.c(d0, -1.0D, d2)).isEmpty()) {
+                    ++crashProtection;
+                    if(crashProtection > 100) {
+                        System.out.println("[ArkhamSpigot] Prevented concurrency move() crash.");
+                        return;
+                    }
                     if (d0 < d9 && d0 >= -d9) {
                         d0 = 0.0D;
                     } else if (d0 > 0.0D) {

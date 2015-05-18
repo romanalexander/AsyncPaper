@@ -75,9 +75,15 @@ public final class AsynchronousExecutor<P, T, C, E extends Throwable> {
         }
 
         public void run() {
-            if (initAsync()) {
-                finished.add(this);
+            try {
+                if(this.initAsync()) {
+                    AsynchronousExecutor.this.finished.add(this);
+                }
+            } catch (Exception var2) {
+                System.out.println("This is a controlled exception to prevent server from crashing.");
+                var2.printStackTrace();
             }
+
         }
 
         boolean initAsync() {

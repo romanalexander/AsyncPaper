@@ -104,6 +104,7 @@ import net.minecraft.util.io.netty.buffer.ByteBufOutputStream;
 import net.minecraft.util.io.netty.buffer.Unpooled;
 import net.minecraft.util.io.netty.handler.codec.base64.Base64;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -181,6 +182,7 @@ import org.bukkit.plugin.messaging.StandardMessenger;
 import org.bukkit.scheduler.BukkitWorker;
 import org.bukkit.util.StringUtil;
 import org.bukkit.util.permissions.DefaultPermissions;
+import org.spigotmc.SpigotConfig;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.error.MarkedYAMLException;
@@ -1829,6 +1831,31 @@ public final class CraftServer implements Server {
     @Override
     public UnsafeValues getUnsafe() {
         return CraftMagicNumbers.INSTANCE;
+    }
+
+    public OfflinePlayer getOfflinePlayerSync(String name) {
+        Validate.notNull(name, "Name cannot be null");
+        if(StringUtils.isBlank(name)) {
+            name = " ";
+        }
+
+        Object result = this.getPlayerExact(name);
+        if(result == null) {
+            GameProfile profile = null;
+            if(MinecraftServer.getServer().getOnlineMode() || SpigotConfig.bungee) {
+                profile = MinecraftServer.getServer().getUserCache().getProfile(name);
+            }
+
+            if(profile == null) {
+                result = this.getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name));
+            } else {
+                result = this.getOfflinePlayer(profile);
+            }
+        } else {
+            this.offlinePlayers.remove(((OfflinePlayer)result).getUniqueId());
+        }
+
+        return (OfflinePlayer)result;
     }
 
     private final Spigot spigot = new Spigot()

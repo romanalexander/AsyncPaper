@@ -674,7 +674,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         this.methodProfiler.a("tallying");
         this.g[this.ticks % 100] = System.nanoTime() - i;
         this.methodProfiler.b();
-        this.methodProfiler.a("snooper");
+        /*this.methodProfiler.a("snooper");
         if (getSnooperEnabled() && !this.l.d() && this.ticks > 100) { // Spigot
             this.l.a();
         }
@@ -684,7 +684,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         }
 
         this.methodProfiler.b();
-        this.methodProfiler.b();
+        this.methodProfiler.b();*/
         org.spigotmc.WatchdogThread.tick(); // Spigot
         SpigotTimings.serverTickTimer.stopTiming(); // Spigot
         org.spigotmc.CustomTimingsHandler.tick(); // Spigot

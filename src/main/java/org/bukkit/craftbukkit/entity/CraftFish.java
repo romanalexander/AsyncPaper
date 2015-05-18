@@ -49,13 +49,7 @@ public class CraftFish extends AbstractProjectile implements Fish {
     public double getBiteChance() {
         EntityFishingHook hook = getHandle();
 
-        if (this.biteChance == -1) {
-            if (hook.world.isRainingAt(MathHelper.floor(hook.locX), MathHelper.floor(hook.locY) + 1, MathHelper.floor(hook.locZ))) {
-                return 1/300.0;
-            }
-            return 1/500.0;
-        }
-        return this.biteChance;
+        return this.biteChance == -1.0D?(hook.world.isRainingAt(MathHelper.floor(hook.locX), MathHelper.floor(hook.locY) + 1, MathHelper.floor(hook.locZ))?0.013333333333333334D:0.008D):this.biteChance;
     }
 
     public void setBiteChance(double chance) {

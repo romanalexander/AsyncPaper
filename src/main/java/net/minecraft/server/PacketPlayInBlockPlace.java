@@ -10,10 +10,12 @@ public class PacketPlayInBlockPlace extends Packet {
     private float f;
     private float g;
     private float h;
+    public long timestamp;
 
     public PacketPlayInBlockPlace() {}
 
     public void a(PacketDataSerializer packetdataserializer) {
+        timestamp = System.currentTimeMillis();
         // Spigot start - protocol patch
         if ( packetdataserializer.version < 16 )
         {

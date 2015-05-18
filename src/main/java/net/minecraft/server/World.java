@@ -1724,7 +1724,10 @@ public abstract class World implements IBlockAccess {
                 if (entity.vehicle != null) {
                     entity.ab();
                 } else {
-                    entity.h();
+                    try {
+                        entity.h();
+                    } catch(Exception ignore) {
+                    }
                 }
             }
 
@@ -2947,33 +2950,11 @@ public abstract class World implements IBlockAccess {
         double d4 = -1.0D;
         EntityHuman entityhuman = null;
 
-        for (int i = 0; i < this.players.size(); ++i) {
-            EntityHuman entityhuman1 = (EntityHuman) this.players.get(i);
-            // CraftBukkit start - Fixed an NPE
-            if (entityhuman1 == null || entityhuman1.dead) {
-                continue;
-            }
-            // CraftBukkit end
-
-            if (!entityhuman1.abilities.isInvulnerable && entityhuman1.isAlive()) {
+        for(int i = 0; i < this.players.size(); ++i) {
+            EntityHuman entityhuman1 = (EntityHuman)this.players.get(i);
+            if(entityhuman1 != null && !entityhuman1.dead && !entityhuman1.abilities.isInvulnerable && entityhuman1.isAlive()) {
                 double d5 = entityhuman1.e(d0, d1, d2);
-                double d6 = d3;
-
-                if (entityhuman1.isSneaking()) {
-                    d6 = d3 * 0.800000011920929D;
-                }
-
-                if (entityhuman1.isInvisible()) {
-                    float f = entityhuman1.bE();
-
-                    if (f < 0.1F) {
-                        f = 0.1F;
-                    }
-
-                    d6 *= (double) (0.7F * f);
-                }
-
-                if ((d3 < 0.0D || d5 < d6 * d6) && (d4 == -1.0D || d5 < d4)) {
+                if((d3 < 0.0D || d5 < d3 * d3) && (d4 == -1.0D || d5 < d4)) {
                     d4 = d5;
                     entityhuman = entityhuman1;
                 }
@@ -2982,6 +2963,46 @@ public abstract class World implements IBlockAccess {
 
         return entityhuman;
     }
+
+//    public EntityHuman findNearbyVulnerablePlayer(double d0, double d1, double d2, double d3) {
+//        double d4 = -1.0D;
+//        EntityHuman entityhuman = null;
+//
+//        for (int i = 0; i < this.players.size(); ++i) {
+//            EntityHuman entityhuman1 = (EntityHuman) this.players.get(i);
+//            // CraftBukkit start - Fixed an NPE
+//            if (entityhuman1 == null || entityhuman1.dead) {
+//                continue;
+//            }
+//            // CraftBukkit end
+//
+//            if (!entityhuman1.abilities.isInvulnerable && entityhuman1.isAlive()) {
+//                double d5 = entityhuman1.e(d0, d1, d2);
+//                double d6 = d3;
+//
+//                if (entityhuman1.isSneaking()) {
+//                    d6 = d3 * 0.800000011920929D;
+//                }
+//
+//                if (entityhuman1.isInvisible()) {
+//                    float f = entityhuman1.bE();
+//
+//                    if (f < 0.1F) {
+//                        f = 0.1F;
+//                    }
+//
+//                    d6 *= (double) (0.7F * f);
+//                }
+//
+//                if ((d3 < 0.0D || d5 < d6 * d6) && (d4 == -1.0D || d5 < d4)) {
+//                    d4 = d5;
+//                    entityhuman = entityhuman1;
+//                }
+//            }
+//        }
+//
+//        return entityhuman;
+//    }
 
     // PaperSpigot start - Find players with the spawning flag
     public EntityHuman findNearbyPlayerWhoAffectsSpawning(Entity entity, double radius) {

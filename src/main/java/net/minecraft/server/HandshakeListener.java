@@ -5,6 +5,7 @@ import net.minecraft.util.io.netty.util.concurrent.GenericFutureListener;
 
 // CraftBukkit start
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import net.minecraft.util.com.mojang.util.UUIDTypeAdapter;
 // CraftBukkit end
@@ -83,24 +84,32 @@ public class HandshakeListener implements PacketHandshakingInListener {
             } else {
                 this.b.a((PacketListener) (new LoginListener(this.a, this.b)));
                 // Spigot Start
+                String[] split;
                 if (org.spigotmc.SpigotConfig.bungee) {
-                    String[] split = packethandshakinginsetprotocol.b.split("\00");
-                    if ( split.length == 3 || split.length == 4 ) {
-                        packethandshakinginsetprotocol.b = split[0];
-                        b.n = new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) b.getSocketAddress()).getPort());
-                        b.spoofedUUID = UUIDTypeAdapter.fromString( split[2] );
-                    } else
-                    {
+                    split = packethandshakinginsetprotocol.b.split("\00");
+                    if (split.length != 3 && split.length != 4) {
                         chatcomponenttext = new ChatComponentText("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
                         this.b.handle(new PacketLoginOutDisconnect(chatcomponenttext), new GenericFutureListener[0]);
                         this.b.close(chatcomponenttext);
                         return;
                     }
+
+                    packethandshakinginsetprotocol.b = split[0];
+                    b.n = new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) b.getSocketAddress()).getPort());
+                    b.spoofedUUID = UUIDTypeAdapter.fromString(split[2]);
+
                     if ( split.length == 4 )
                     {
                         b.spoofedProfile = gson.fromJson(split[3], Property[].class);
                     }
                 }
+
+                split = packethandshakinginsetprotocol.b.split("\u0001");
+                if(split.length > 1) {
+                    packethandshakinginsetprotocol.b = split[0];
+                    this.b.n = new InetSocketAddress(split[1], ((InetSocketAddress)this.b.getSocketAddress()).getPort());
+                }
+
                 // Spigot End
                 ((LoginListener) this.b.getPacketListener()).hostname = packethandshakinginsetprotocol.b + ":" + packethandshakinginsetprotocol.c; // CraftBukkit - set hostname
             }

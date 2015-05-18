@@ -201,7 +201,7 @@ public class EntityCreeper extends EntityMonster {
 
     private void ce() {
         if (!this.world.isStatic) {
-            boolean flag = this.world.getGameRules().getBoolean("mobGriefing");
+            boolean flag = true;
 
             // CraftBukkit start
             float radius = this.isPowered() ? 6.0F : 3.0F;
