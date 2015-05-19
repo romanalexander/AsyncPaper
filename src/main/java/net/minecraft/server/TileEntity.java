@@ -3,6 +3,8 @@ package net.minecraft.server;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,8 +16,8 @@ public class TileEntity {
 
     public CustomTimingsHandler tickTimer = org.bukkit.craftbukkit.SpigotTimings.getTileEntityTimings(this); // Spigot
     private static final Logger a = LogManager.getLogger();
-    private static Map i = new HashMap();
-    private static Map j = new HashMap();
+    private static Map i = new ConcurrentHashMap();
+    private static Map j = new ConcurrentHashMap();
     protected World world;
     public int x;
     public int y;
@@ -58,9 +60,9 @@ public class TileEntity {
     }
 
     // Optimized TileEntity Tick changes
-    private static int tileEntityCounter = 0;
+    private static AtomicInteger tileEntityCounter = new AtomicInteger(0);
     public boolean isAdded = false;
-    public int tileId = tileEntityCounter++;
+    public int tileId = tileEntityCounter.getAndIncrement();
 
     // Spigot end
 
