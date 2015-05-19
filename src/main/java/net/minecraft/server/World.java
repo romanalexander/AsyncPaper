@@ -1646,7 +1646,8 @@ public abstract class World implements IBlockAccess {
 
         this.methodProfiler.c("pendingBlockEntities");
         if (!this.a.isEmpty()) {
-            for (int l = 0; l < this.a.size(); ++l) {
+            int size = this.a.size();
+            for (int l = 0; l < size; ++l) {
                 TileEntity tileentity1 = (TileEntity) this.a.get(l);
 
                 if (tileentity1 != null && !tileentity1.r()) {
@@ -2093,7 +2094,8 @@ public abstract class World implements IBlockAccess {
             this.a.removeAll(Collections.singleton(null));
 
             if (this.M) {
-                for (l = 0; l < this.a.size(); ++l) {
+                int size = this.a.size();
+                for (l = 0; l < size; ++l) {
                     tileentity1 = (TileEntity) this.a.get(l);
                     if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
                         tileentity = tileentity1;
@@ -2111,7 +2113,8 @@ public abstract class World implements IBlockAccess {
             }
 
             if (tileentity == null) {
-                for (l = 0; l < this.a.size(); ++l) {
+                int size = this.a.size();
+                for (l = 0; l < size; ++l) {
                     tileentity1 = (TileEntity) this.a.get(l);
                     if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
                         tileentity = tileentity1;
