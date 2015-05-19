@@ -5,13 +5,15 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.minecraft.server.*;
 import net.minecraft.util.gnu.trove.map.hash.TObjectIntHashMap;
+import org.github.paperspigot.ConcurrentHashSet;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class WorldTileEntityList extends HashSet<TileEntity> {
+public class WorldTileEntityList extends ConcurrentHashSet<TileEntity> {
     private static final TObjectIntHashMap<Class<? extends TileEntity>> tileEntityTickIntervals =
         new TObjectIntHashMap<Class<? extends TileEntity>>() {{
             // Use -1 for no ticking
@@ -55,7 +57,7 @@ public class WorldTileEntityList extends HashSet<TileEntity> {
         return entity.tileId % interval;
     }
 
-    private final Map<Integer, Multimap<Integer, TileEntity>> tickList = Maps.newHashMap();
+    private final Map<Integer, Multimap<Integer, TileEntity>> tickList = new ConcurrentHashMap<>();
     private final WorldServer world;
 
     public WorldTileEntityList(World world) {
