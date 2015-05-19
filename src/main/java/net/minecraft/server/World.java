@@ -58,7 +58,7 @@ public abstract class World implements IBlockAccess {
     public Set tileEntityList = new org.spigotmc.WorldTileEntityList(this); // CraftBukkit - ArrayList -> HashSet
     private List a = Collections.synchronizedList(new ArrayList());
     private List b = Collections.synchronizedList(new ArrayList());
-    public List players = Collections.synchronizedList(new ArrayList());
+    public List players = new ArrayList();
     public List i = Collections.synchronizedList(new ArrayList());
     private long c = 16777215L;
     public int j;
