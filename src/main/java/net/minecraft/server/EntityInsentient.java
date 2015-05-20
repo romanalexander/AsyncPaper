@@ -293,7 +293,7 @@ public abstract class EntityInsentient extends EntityLiving {
     public synchronized void e() {
         super.e();
         this.world.methodProfiler.a("looting");
-        if (!this.world.isStatic && this.bJ() && !this.aT && this.world.getGameRules().getBoolean("mobGriefing")) {
+        if (!this.world.isStatic && this.bJ() && !this.aT && this.world.getGameRules().getBoolean("mobGriefing") && world.paperSpigotConfig.mobsPickupItems) {
             List list = this.world.a(EntityItem.class, this.boundingBox.grow(1.0D, 0.0D, 1.0D));
             Iterator iterator = list.iterator();
 
