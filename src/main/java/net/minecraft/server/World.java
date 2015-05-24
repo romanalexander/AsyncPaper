@@ -20,7 +20,6 @@ import org.github.paperspigot.PaperSpigotConfig;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 // CraftBukkit start
@@ -57,13 +56,13 @@ public abstract class World implements IBlockAccess {
     // Spigot end
     protected List f = new ArrayList();
     public Set tileEntityList = new org.spigotmc.WorldTileEntityList(this); // CraftBukkit - ArrayList -> HashSet
-    private List a = new ArrayList();
+    private List a = Collections.synchronizedList(new ArrayList());
     private List b = new ArrayList();
     public List players = new ArrayList();
     public List i = Collections.synchronizedList(new ArrayList());
     private long c = 16777215L;
     public int j;
-    protected final AtomicInteger k = new AtomicInteger((new Random()).nextInt());
+    protected volatile int k = (new Random()).nextInt();
     protected final int l = 1013904223;
     protected float m;
     protected float n;
@@ -87,7 +86,7 @@ public abstract class World implements IBlockAccess {
     public boolean isStatic;
     // CraftBukkit start - public, longhashset
     // protected LongHashSet chunkTickList = new LongHashSet(); // Spigot
-    private volatile int K;
+    private int K;
     public boolean allowMonsters;
     public boolean allowAnimals;
     // Added the following
@@ -2370,10 +2369,9 @@ public abstract class World implements IBlockAccess {
 
     protected void a(int i, int j, Chunk chunk) {
         this.methodProfiler.c("moodSound");
-        if (this.K <= 0 && !this.isStatic) {
-            int tempK = this.k.get() * 3 + 1013904223;
-            this.k.set(tempK);
-            int k = tempK >> 2;
+        if (this.K == 0 && !this.isStatic) {
+            this.k = this.k * 3 + 1013904223;
+            int k = this.k >> 2;
             int l = k & 15;
             int i1 = k >> 8 & 15;
             int j1 = k >> 16 & 255;
@@ -2525,7 +2523,7 @@ public abstract class World implements IBlockAccess {
     }
 
     // PaperSpigot start - Configurable async light updates
-    private static ThreadPoolExecutor lightingService = new ThreadPoolExecutor(PaperSpigotConfig.lightingThreads, PaperSpigotConfig.lightingThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
+    public static ThreadPoolExecutor lightingService = new ThreadPoolExecutor(PaperSpigotConfig.lightingThreads, PaperSpigotConfig.lightingThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("lighting-worker"));
     public boolean c(final EnumSkyBlock enumskyblock, final int i, final int j, final int k) {
         Callable<Boolean> callable = new Callable<Boolean>() {
             @Override

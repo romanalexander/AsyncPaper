@@ -137,7 +137,7 @@ public class EntityItem extends Entity {
         }
     }
 
-    private void k() {
+    private synchronized void k() {
         // Spigot start
         double radius = world.spigotConfig.itemMerge;
         Iterator iterator = this.world.a(EntityItem.class, this.boundingBox.grow(radius, radius, radius)).iterator();

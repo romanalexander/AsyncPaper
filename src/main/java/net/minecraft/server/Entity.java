@@ -3,6 +3,8 @@ package net.minecraft.server;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // CraftBukkit start
 import org.bukkit.Bukkit;
@@ -130,6 +132,7 @@ public abstract class Entity {
     public boolean isWaterWalking = false;
     public boolean isFlyable = false;
     public void inactiveTick() { }
+    public static final Object playerPhysicsLock = new Object();
     // Spigot end
 
     public int getId() {
@@ -758,27 +761,29 @@ public abstract class Entity {
     }
 
     protected void I() {
-        int i = MathHelper.floor(this.boundingBox.a + 0.001D);
-        int j = MathHelper.floor(this.boundingBox.b + 0.001D);
-        int k = MathHelper.floor(this.boundingBox.c + 0.001D);
-        int l = MathHelper.floor(this.boundingBox.d - 0.001D);
-        int i1 = MathHelper.floor(this.boundingBox.e - 0.001D);
-        int j1 = MathHelper.floor(this.boundingBox.f - 0.001D);
+        synchronized(playerPhysicsLock) {
+            int i = MathHelper.floor(this.boundingBox.a + 0.001D);
+            int j = MathHelper.floor(this.boundingBox.b + 0.001D);
+            int k = MathHelper.floor(this.boundingBox.c + 0.001D);
+            int l = MathHelper.floor(this.boundingBox.d - 0.001D);
+            int i1 = MathHelper.floor(this.boundingBox.e - 0.001D);
+            int j1 = MathHelper.floor(this.boundingBox.f - 0.001D);
 
-        if (this.world.b(i, j, k, l, i1, j1)) {
-            for (int k1 = i; k1 <= l; ++k1) {
-                for (int l1 = j; l1 <= i1; ++l1) {
-                    for (int i2 = k; i2 <= j1; ++i2) {
-                        Block block = this.world.getType(k1, l1, i2);
+            if (this.world.b(i, j, k, l, i1, j1)) {
+                for (int k1 = i; k1 <= l; ++k1) {
+                    for (int l1 = j; l1 <= i1; ++l1) {
+                        for (int i2 = k; i2 <= j1; ++i2) {
+                            Block block = this.world.getType(k1, l1, i2);
 
-                        try {
-                            block.a(this.world, k1, l1, i2, this);
-                        } catch (Throwable throwable) {
-                            CrashReport crashreport = CrashReport.a(throwable, "Colliding entity with block");
-                            CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being collided with");
+                            try {
+                                block.a(this.world, k1, l1, i2, this);
+                            } catch (Throwable throwable) {
+                                CrashReport crashreport = CrashReport.a(throwable, "Colliding entity with block");
+                                CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being collided with");
 
-                            CrashReportSystemDetails.a(crashreportsystemdetails, k1, l1, i2, block, this.world.getData(k1, l1, i2));
-                            throw new ReportedException(crashreport);
+                                CrashReportSystemDetails.a(crashreportsystemdetails, k1, l1, i2, block, this.world.getData(k1, l1, i2));
+                                throw new ReportedException(crashreport);
+                            }
                         }
                     }
                 }

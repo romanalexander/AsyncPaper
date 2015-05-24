@@ -227,7 +227,8 @@ public class PaperSpigotConfig
     public static int worldThreads;
     public static int entityThreads;
     public static int lightingThreads;
-    public static int doTickThreads;
+    public static boolean saferConnectionHandlerProcessing;
+
     private static void concurrencyThreads()
     {
         if(org.spigotmc.SpigotConfig.playerShuffle > 0) {
@@ -235,7 +236,6 @@ public class PaperSpigotConfig
             log("You have Player Shuffle enabled, but Player Shuffle is disabled in this build!");
             log("This build will ignore any Player Shuffle related settings.");
         }
-        doTickThreads = getInt("concurrency.do-tick-threads", 1);
         connectionHandlerThreads = getInt("concurrency.connection-handler-threads", 1);
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);

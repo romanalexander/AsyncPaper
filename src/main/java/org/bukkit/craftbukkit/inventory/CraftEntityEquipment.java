@@ -15,7 +15,7 @@ public class CraftEntityEquipment implements EntityEquipment {
     private static final int BOOT_SLOT = 1;
     private static final int INVENTORY_SLOTS = 5;
 
-    private final CraftLivingEntity entity;
+    public final CraftLivingEntity entity;
 
     public CraftEntityEquipment(CraftLivingEntity entity) {
         this.entity = entity;
@@ -76,11 +76,11 @@ public class CraftEntityEquipment implements EntityEquipment {
         }
     }
 
-    private ItemStack getEquipment(int slot) {
+    public ItemStack getEquipment(int slot) {
         return CraftItemStack.asBukkitCopy(entity.getHandle().getEquipment(slot));
     }
 
-    private void setEquipment(int slot, ItemStack stack) {
+    public void setEquipment(int slot, ItemStack stack) {
         entity.getHandle().setEquipment(slot, CraftItemStack.asNMSCopy(stack));
     }
 

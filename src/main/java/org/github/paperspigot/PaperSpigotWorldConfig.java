@@ -232,6 +232,7 @@ public class PaperSpigotWorldConfig
     public boolean disablePlayerCrits;
     public boolean disableTNTMovesHumans;
     public boolean fallingBlockBypassLifespan;
+    public boolean mobsPickupItems;
     private void mechanicsChanges()
     {
         boatsDropBoats = getBoolean( "game-mechanics.boats-drop-boats", false );
@@ -239,7 +240,7 @@ public class PaperSpigotWorldConfig
         disablePlayerCrits = getBoolean( "game-mechanics.disable-player-crits", false);
         disableTNTMovesHumans = getBoolean( "game-mechanics.disable-tnt-moves-humans", false);
         fallingBlockBypassLifespan = getBoolean( "game-mechanics.falling-block-bypass-lifespan", false);
-
+        mobsPickupItems = getBoolean( "game-mechanics.mobs-pickup-items", false);
     }
 
     public int tickNextTickListCap;

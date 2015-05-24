@@ -256,10 +256,12 @@ public final class AsynchronousExecutor<P, T, C, E extends Throwable> {
     public boolean drop(P parameter, C callback) throws IllegalStateException {
         final Task task = tasks.get(parameter);
         if (task == null) {
-            throw new IllegalStateException("Unknown " + parameter);
+//            throw new IllegalStateException("Unknown " + parameter);
+            return false;
         }
         if (!task.callbacks.remove(callback)) {
-            throw new IllegalStateException("Unknown " + callback + " for " + parameter);
+//            throw new IllegalStateException("Unknown " + callback + " for " + parameter);
+            return false;
         }
         if (task.callbacks.isEmpty()) {
             return task.drop();

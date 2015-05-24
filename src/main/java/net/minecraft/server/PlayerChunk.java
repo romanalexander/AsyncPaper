@@ -19,7 +19,7 @@ class PlayerChunk {
     final PlayerChunkMap playerChunkMap;
     // CraftBukkit start - add fields
     private final HashMap<EntityPlayer, Runnable> players = new HashMap<EntityPlayer, Runnable>();
-    private boolean loaded = false;
+    private volatile boolean loaded = false;
     private Runnable loadedRunnable = new Runnable() {
         public void run() {
             PlayerChunk.this.loaded = true;

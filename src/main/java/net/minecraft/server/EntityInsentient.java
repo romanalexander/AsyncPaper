@@ -290,74 +290,77 @@ public abstract class EntityInsentient extends EntityLiving {
         this.n(f);
     }
 
+    public static final Object lootingLock = new Object();
     public void e() {
         super.e();
         this.world.methodProfiler.a("looting");
-        if (!this.world.isStatic && this.bJ() && !this.aT && this.world.getGameRules().getBoolean("mobGriefing")) {
-            List list = this.world.a(EntityItem.class, this.boundingBox.grow(1.0D, 0.0D, 1.0D));
-            Iterator iterator = list.iterator();
+        synchronized (lootingLock) {
+            if (!this.world.isStatic && this.bJ() && !this.aT && this.world.getGameRules().getBoolean("mobGriefing") && world.paperSpigotConfig.mobsPickupItems) {
+                List list = this.world.a(EntityItem.class, this.boundingBox.grow(1.0D, 0.0D, 1.0D));
+                Iterator iterator = list.iterator();
 
-            while (iterator.hasNext()) {
-                EntityItem entityitem = (EntityItem) iterator.next();
+                while (iterator.hasNext()) {
+                    EntityItem entityitem = (EntityItem) iterator.next();
 
-                if (!entityitem.dead && entityitem.getItemStack() != null) {
-                    ItemStack itemstack = entityitem.getItemStack();
-                    int i = b(itemstack);
+                    if (!entityitem.dead && entityitem.getItemStack() != null) {
+                        ItemStack itemstack = entityitem.getItemStack();
+                        int i = b(itemstack);
 
-                    if (i > -1) {
-                        boolean flag = true;
-                        ItemStack itemstack1 = this.getEquipment(i);
+                        if (i > -1) {
+                            boolean flag = true;
+                            ItemStack itemstack1 = this.getEquipment(i);
 
-                        if (itemstack1 != null) {
-                            if (i == 0) {
-                                if (itemstack.getItem() instanceof ItemSword && !(itemstack1.getItem() instanceof ItemSword)) {
+                            if (itemstack1 != null) {
+                                if (i == 0) {
+                                    if (itemstack.getItem() instanceof ItemSword && !(itemstack1.getItem() instanceof ItemSword)) {
+                                        flag = true;
+                                    } else if (itemstack.getItem() instanceof ItemSword && itemstack1.getItem() instanceof ItemSword) {
+                                        ItemSword itemsword = (ItemSword) itemstack.getItem();
+                                        ItemSword itemsword1 = (ItemSword) itemstack1.getItem();
+
+                                        if (itemsword.i() == itemsword1.i()) {
+                                            flag = itemstack.getData() > itemstack1.getData() || itemstack.hasTag() && !itemstack1.hasTag();
+                                        } else {
+                                            flag = itemsword.i() > itemsword1.i();
+                                        }
+                                    } else {
+                                        flag = false;
+                                    }
+                                } else if (itemstack.getItem() instanceof ItemArmor && !(itemstack1.getItem() instanceof ItemArmor)) {
                                     flag = true;
-                                } else if (itemstack.getItem() instanceof ItemSword && itemstack1.getItem() instanceof ItemSword) {
-                                    ItemSword itemsword = (ItemSword) itemstack.getItem();
-                                    ItemSword itemsword1 = (ItemSword) itemstack1.getItem();
+                                } else if (itemstack.getItem() instanceof ItemArmor && itemstack1.getItem() instanceof ItemArmor) {
+                                    ItemArmor itemarmor = (ItemArmor) itemstack.getItem();
+                                    ItemArmor itemarmor1 = (ItemArmor) itemstack1.getItem();
 
-                                    if (itemsword.i() == itemsword1.i()) {
+                                    if (itemarmor.c == itemarmor1.c) {
                                         flag = itemstack.getData() > itemstack1.getData() || itemstack.hasTag() && !itemstack1.hasTag();
                                     } else {
-                                        flag = itemsword.i() > itemsword1.i();
+                                        flag = itemarmor.c > itemarmor1.c;
                                     }
                                 } else {
                                     flag = false;
                                 }
-                            } else if (itemstack.getItem() instanceof ItemArmor && !(itemstack1.getItem() instanceof ItemArmor)) {
-                                flag = true;
-                            } else if (itemstack.getItem() instanceof ItemArmor && itemstack1.getItem() instanceof ItemArmor) {
-                                ItemArmor itemarmor = (ItemArmor) itemstack.getItem();
-                                ItemArmor itemarmor1 = (ItemArmor) itemstack1.getItem();
+                            }
 
-                                if (itemarmor.c == itemarmor1.c) {
-                                    flag = itemstack.getData() > itemstack1.getData() || itemstack.hasTag() && !itemstack1.hasTag();
-                                } else {
-                                    flag = itemarmor.c > itemarmor1.c;
+                            if (flag) {
+                                if (itemstack1 != null && this.random.nextFloat() - 0.1F < this.dropChances[i]) {
+                                    this.a(itemstack1, 0.0F);
                                 }
-                            } else {
-                                flag = false;
-                            }
-                        }
 
-                        if (flag) {
-                            if (itemstack1 != null && this.random.nextFloat() - 0.1F < this.dropChances[i]) {
-                                this.a(itemstack1, 0.0F);
-                            }
+                                if (itemstack.getItem() == Items.DIAMOND && entityitem.j() != null) {
+                                    EntityHuman entityhuman = this.world.a(entityitem.j());
 
-                            if (itemstack.getItem() == Items.DIAMOND && entityitem.j() != null) {
-                                EntityHuman entityhuman = this.world.a(entityitem.j());
-
-                                if (entityhuman != null) {
-                                    entityhuman.a((Statistic) AchievementList.x);
+                                    if (entityhuman != null) {
+                                        entityhuman.a((Statistic) AchievementList.x);
+                                    }
                                 }
-                            }
 
-                            this.setEquipment(i, itemstack);
-                            this.dropChances[i] = 2.0F;
-                            this.persistent = true;
-                            this.receive(entityitem, 1);
-                            entityitem.die();
+                                this.setEquipment(i, itemstack);
+                                this.dropChances[i] = 2.0F;
+                                this.persistent = true;
+                                this.receive(entityitem, 1);
+                                entityitem.die();
+                            }
                         }
                     }
                 }

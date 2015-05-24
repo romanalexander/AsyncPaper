@@ -1,33 +1,6 @@
 package org.bukkit.craftbukkit.entity;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-
-import net.minecraft.server.DamageSource;
-import net.minecraft.server.EntityArrow;
-import net.minecraft.server.EntityEgg;
-import net.minecraft.server.EntityEnderDragon;
-import net.minecraft.server.EntityEnderPearl;
-import net.minecraft.server.EntityFishingHook;
-import net.minecraft.server.EntityHuman;
-import net.minecraft.server.EntityFireball;
-import net.minecraft.server.EntityInsentient;
-import net.minecraft.server.EntityLargeFireball;
-import net.minecraft.server.EntityLiving;
-import net.minecraft.server.EntityPlayer;
-import net.minecraft.server.EntityPotion;
-import net.minecraft.server.EntitySmallFireball;
-import net.minecraft.server.EntitySnowball;
-import net.minecraft.server.EntityThrownExpBottle;
-import net.minecraft.server.EntityWither;
-import net.minecraft.server.EntityWitherSkull;
-import net.minecraft.server.GenericAttributes;
-import net.minecraft.server.MobEffect;
-import net.minecraft.server.MobEffectList;
-
+import net.minecraft.server.*;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,22 +9,8 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.inventory.CraftEntityEquipment;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Egg;
-import org.bukkit.entity.EnderPearl;
+import org.bukkit.entity.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Fireball;
-import org.bukkit.entity.Fish;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.SmallFireball;
-import org.bukkit.entity.Snowball;
-import org.bukkit.entity.ThrownExpBottle;
-import org.bukkit.entity.ThrownPotion;
-import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -61,8 +20,11 @@ import org.bukkit.util.BlockIterator;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
+import java.util.*;
+
 public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     private CraftEntityEquipment equipment;
+    private CraftEntityEquipment fakeEquipment;
 
     public CraftLivingEntity(final CraftServer server, final EntityLiving entity) {
         super(server, entity);
@@ -70,6 +32,42 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         if (entity instanceof EntityInsentient) {
             equipment = new CraftEntityEquipment(this);
         }
+
+        fakeEquipment = new FakeCraftEntityEquipment(this);
+    }
+
+    private static class FakeCraftEntityEquipment extends CraftEntityEquipment {
+
+        public FakeCraftEntityEquipment(CraftLivingEntity entity) {
+            super(entity);
+        }
+
+        @Override
+        public ItemStack getEquipment(int slot) {
+            return CraftItemStack.asBukkitCopy(entity.getHandle().getFakeEquipment(slot));
+        }
+
+        @Override
+        public void setEquipment(int slot, ItemStack stack) {
+            net.minecraft.server.ItemStack nmsCopy = CraftItemStack.asNMSCopy(stack);
+            entity.getHandle().setFakeEquipment(slot, nmsCopy);
+            if(entity.getHandle() instanceof EntityPlayer) {
+                EntityPlayer player = (EntityPlayer) entity.getHandle();
+                player.playerConnection.sendPacket(new PacketPlayOutSetSlot(0, 9 - slot, nmsCopy));
+            }
+        }
+    }
+
+    public CraftEntityEquipment getFakeEquipment() {
+        return fakeEquipment;
+    }
+
+    public boolean isOnlyFakeEquipment() {
+        return ((EntityLiving) this.entity).onlyFakeEquipment;
+    }
+
+    public void setOnlyFakeEquipment(boolean onlyFake) {
+        ((EntityLiving) this.entity).onlyFakeEquipment = onlyFake;
     }
 
     public double getHealth() {
