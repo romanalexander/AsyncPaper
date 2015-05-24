@@ -1,5 +1,6 @@
 package net.minecraft.server;
 
+import com.google.common.collect.Constraints;
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.CraftServer;
@@ -56,8 +57,8 @@ public abstract class World implements IBlockAccess {
     // Spigot end
     protected List f = new ArrayList();
     public Set tileEntityList = new org.spigotmc.WorldTileEntityList(this); // CraftBukkit - ArrayList -> HashSet
-    private List a = Collections.synchronizedList(new ArrayList());
-    private List b = new ArrayList();
+    private final List a = Collections.synchronizedList(Constraints.constrainedList(new ArrayList(), Constraints.notNull()));
+    private List b = Collections.synchronizedList(new ArrayList());
     public List players = new ArrayList();
     public List i = Collections.synchronizedList(new ArrayList());
     private long c = 16777215L;
@@ -2087,14 +2088,16 @@ public abstract class World implements IBlockAccess {
             TileEntity tileentity = null;
             int l;
             TileEntity tileentity1;
-            this.a.removeAll(Collections.singleton(null));
 
             if (this.M) {
-                for (l = 0; l < this.a.size(); ++l) {
-                    tileentity1 = (TileEntity) this.a.get(l);
-                    if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
-                        tileentity = tileentity1;
-                        break;
+                synchronized(this.a) {
+                    int size = this.a.size();
+                    for (l = 0; l < size; ++l) {
+                        tileentity1 = (TileEntity) this.a.get(l);
+                        if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
+                            tileentity = tileentity1;
+                            break;
+                        }
                     }
                 }
             }
@@ -2108,11 +2111,14 @@ public abstract class World implements IBlockAccess {
             }
 
             if (tileentity == null) {
-                for (l = 0; l < this.a.size(); ++l) {
-                    tileentity1 = (TileEntity) this.a.get(l);
-                    if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
-                        tileentity = tileentity1;
-                        break;
+                synchronized(this.a) {
+                    int size = this.a.size();
+                    for (l = 0; l < size; ++l) {
+                        tileentity1 = (TileEntity) this.a.get(l);
+                        if (!tileentity1.r() && tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
+                            tileentity = tileentity1;
+                            break;
+                        }
                     }
                 }
             }
@@ -2129,19 +2135,21 @@ public abstract class World implements IBlockAccess {
                 tileentity.x = i;
                 tileentity.y = j;
                 tileentity.z = k;
-                Iterator iterator = this.a.iterator();
+                synchronized(this.a) {
+                    Iterator iterator = this.a.iterator();
 
-                while (iterator.hasNext()) {
-                    TileEntity tileentity1 = (TileEntity) iterator.next();
+                    while (iterator.hasNext()) {
+                        TileEntity tileentity1 = (TileEntity) iterator.next();
 
-                    if (tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
-                        tileentity1.s();
-                        iterator.remove();
+                        if (tileentity1.x == i && tileentity1.y == j && tileentity1.z == k) {
+                            tileentity1.s();
+                            iterator.remove();
+                        }
                     }
-                }
 
-                tileentity.a(this); // Spigot - No null worlds
-                this.a.add(tileentity);
+                    tileentity.a(this); // Spigot - No null worlds
+                    this.a.add(tileentity);
+                }
             } else {
                 this.tileEntityList.add(tileentity);
                 Chunk chunk = this.getChunkAt(i >> 4, k >> 4);
