@@ -775,7 +775,7 @@ public abstract class EntityLiving extends Entity {
         }
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         Entity entity = damagesource.getEntity();
         EntityLiving entityliving = this.aX();
 

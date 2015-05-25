@@ -159,7 +159,7 @@ public abstract class EntityMinecartContainer extends EntityMinecartAbstract imp
         super.b(i);
     }
 
-    public void die() {
+    public synchronized void die() {
         if (this.b) {
             for (int i = 0; i < this.getSize(); ++i) {
                 ItemStack itemstack = this.getItem(i);
