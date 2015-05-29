@@ -467,7 +467,7 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
         this.datawatcher.watch(18, Integer.valueOf(j + i));
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         super.die(damagesource);
         this.a(0.2F, 0.2F);
         this.setPosition(this.locX, this.locY, this.locZ);
@@ -1022,7 +1022,7 @@ public abstract class EntityHuman extends EntityLiving implements ICommandListen
 
     public void c(Entity entity) {}
 
-    public void die() {
+    public synchronized void die() {
         super.die();
         this.defaultContainer.b(this);
         if (this.activeContainer != null) {

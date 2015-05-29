@@ -116,7 +116,7 @@ public class EntityCreeper extends EntityMonster {
         return "mob.creeper.death";
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         // super.die(damagesource); // CraftBukkit - Moved to end
         if (damagesource.getEntity() instanceof EntitySkeleton) {
             int i = Item.getId(Items.RECORD_1);

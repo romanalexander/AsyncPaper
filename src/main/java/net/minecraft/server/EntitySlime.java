@@ -163,7 +163,7 @@ public class EntitySlime extends EntityInsentient implements IMonster {
         return new EntitySlime(this.world);
     }
 
-    public void die() {
+    public synchronized void die() {
         int i = this.getSize();
 
         if (!this.world.isStatic && i > 1 && this.getHealth() <= 0.0F) {

@@ -119,7 +119,7 @@ public class EntitySkeleton extends EntityMonster implements IRangedEntity {
         }
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         super.die(damagesource);
         if (damagesource.i() instanceof EntityArrow && damagesource.getEntity() instanceof EntityHuman) {
             EntityHuman entityhuman = (EntityHuman) damagesource.getEntity();

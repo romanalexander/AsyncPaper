@@ -180,7 +180,7 @@ public class EntityIronGolem extends EntityGolem {
         }
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         if (!this.isPlayerCreated() && this.killer != null && this.bp != null) {
             this.bp.a(this.killer.getName(), -5);
         }

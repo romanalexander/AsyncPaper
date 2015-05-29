@@ -357,7 +357,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
         }
     }
 
-    public void die(DamageSource damagesource) {
+    public synchronized void die(DamageSource damagesource) {
         // CraftBukkit start - fire PlayerDeathEvent
         if (this.dead) {
             return;
