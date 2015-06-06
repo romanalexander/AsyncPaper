@@ -299,4 +299,13 @@ public class PaperSpigotWorldConfig
         fallingBlocksCollideWithSigns = getBoolean("falling-blocks-collide-with-signs", false);
     }
 
+    public boolean doTickSleepCheck, doTickBiomeCacheCleanup, doTickVillages, doTickWeather, doTickIceAndSnow, doTickThunder;
+    private void doTickChanges() {
+        doTickSleepCheck = getBoolean("do-tick.sleep-check", true);
+        doTickBiomeCacheCleanup = getBoolean("do-tick.biome-cache-cleanup", true);
+        doTickVillages = getBoolean("do-tick.villages", true);
+        doTickWeather = getBoolean("do-tick.weather", true);
+        doTickIceAndSnow = getBoolean("do-tick.ice-and-snow", true);
+        doTickThunder = getBoolean("do-tick.thunder", true);
+    }
 }

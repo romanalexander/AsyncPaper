@@ -148,28 +148,35 @@ public class WorldServer extends World {
     // CraftBukkit end
 
     public void doTick() {
-        timings.doWeather.startTiming();
-        super.doTick();
-        timings.doWeather.stopTiming();
+        if(paperSpigotConfig.doTickWeather) {
+            timings.doWeather.startTiming();
+            super.doTick();
+            timings.doWeather.stopTiming();
+        }
         if (this.getWorldData().isHardcore() && this.difficulty != EnumDifficulty.HARD) {
             this.difficulty = EnumDifficulty.HARD;
         }
 
-        timings.doBiomeCacheCleanup.startTiming();
-        this.worldProvider.e.b();
-        timings.doBiomeCacheCleanup.stopTiming();
-
-        timings.doSleepCheck.startTiming();
-        if (this.everyoneDeeplySleeping()) {
-            if (this.getGameRules().getBoolean("doDaylightCycle")) {
-                long i = this.worldData.getDayTime() + 24000L;
-
-                this.worldData.setDayTime(i - i % 24000L);
-            }
-
-            this.d();
+        if(paperSpigotConfig.doTickBiomeCacheCleanup) {
+            timings.doBiomeCacheCleanup.startTiming();
+            this.worldProvider.e.b();
+            timings.doBiomeCacheCleanup.stopTiming();
         }
-        timings.doSleepCheck.stopTiming();
+
+
+        if (paperSpigotConfig.doTickSleepCheck) {
+            timings.doSleepCheck.startTiming();
+            if (this.everyoneDeeplySleeping()) {
+                if (this.getGameRules().getBoolean("doDaylightCycle")) {
+                    long i = this.worldData.getDayTime() + 24000L;
+
+                    this.worldData.setDayTime(i - i % 24000L);
+                }
+
+                this.d();
+            }
+            timings.doSleepCheck.stopTiming();
+        }
 
         this.methodProfiler.a("mobSpawner");
         // CraftBukkit start - Only call spawner if we have players online and the world allows for mobs or animals
@@ -213,11 +220,13 @@ public class WorldServer extends World {
             this.manager.flush();
             timings.doChunkMap.stopTiming(); // Spigot
         }
-        this.methodProfiler.c("village");
-        timings.doVillages.startTiming(); // Spigot
-        this.villages.tick();
-        this.siegeManager.a();
-        timings.doVillages.stopTiming(); // Spigot
+        if(paperSpigotConfig.doTickVillages) {
+            this.methodProfiler.c("village");
+            timings.doVillages.startTiming(); // Spigot
+            this.villages.tick();
+            this.siegeManager.a();
+            timings.doVillages.stopTiming(); // Spigot
+        }
         this.methodProfiler.c("portalForcer");
         synchronized (MinecraftServer.criticalChunkOpLock) {
             timings.doPortalForcer.startTiming(); // Spigot
@@ -347,61 +356,64 @@ public class WorldServer extends World {
             this.a(k, l, chunk);
             this.methodProfiler.c("tickChunk");
             chunk.b(false);
-            this.methodProfiler.c("thunder");
             int i1;
             int j1;
             int k1;
             int l1;
-
-            if (this.random.nextInt(100000) == 0 && this.Q() && this.P()) {
-                this.k = this.k * 3 + 1013904223;
-                i1 = this.k >> 2;
-                j1 = k + (i1 & 15);
-                k1 = l + (i1 >> 8 & 15);
-                l1 = this.h(j1, k1);
-                if (this.isRainingAt(j1, l1, k1)) {
-                    this.strikeLightning(new EntityLightning(this, (double) j1, (double) l1, (double) k1));
+            if(paperSpigotConfig.doTickThunder) {
+                this.methodProfiler.c("thunder");
+                if (this.random.nextInt(100000) == 0 && this.Q() && this.P()) {
+                    this.k = this.k * 3 + 1013904223;
+                    i1 = this.k >> 2;
+                    j1 = k + (i1 & 15);
+                    k1 = l + (i1 >> 8 & 15);
+                    l1 = this.h(j1, k1);
+                    if (this.isRainingAt(j1, l1, k1)) {
+                        this.strikeLightning(new EntityLightning(this, (double) j1, (double) l1, (double) k1));
+                    }
                 }
             }
 
-            this.methodProfiler.c("iceandsnow");
-            if (this.random.nextInt(16) == 0) {
-                this.k = this.k * 3 + 1013904223;
-                i1 = this.k >> 2;
-                j1 = i1 & 15;
-                k1 = i1 >> 8 & 15;
-                l1 = this.h(j1 + k, k1 + l);
-                if (this.s(j1 + k, l1 - 1, k1 + l)) {
-                    // CraftBukkit start
-                    BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1 - 1, k1 + l).getState();
-                    blockState.setTypeId(Block.getId(Blocks.ICE));
+            if(paperSpigotConfig.doTickIceAndSnow) {
+                this.methodProfiler.c("iceandsnow");
+                if (this.random.nextInt(16) == 0) {
+                    this.k = this.k * 3 + 1013904223;
+                    i1 = this.k >> 2;
+                    j1 = i1 & 15;
+                    k1 = i1 >> 8 & 15;
+                    l1 = this.h(j1 + k, k1 + l);
+                    if (this.s(j1 + k, l1 - 1, k1 + l)) {
+                        // CraftBukkit start
+                        BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1 - 1, k1 + l).getState();
+                        blockState.setTypeId(Block.getId(Blocks.ICE));
 
-                    BlockFormEvent iceBlockForm = new BlockFormEvent(blockState.getBlock(), blockState);
-                    this.getServer().getPluginManager().callEvent(iceBlockForm);
-                    if (!iceBlockForm.isCancelled()) {
-                        blockState.update(true);
+                        BlockFormEvent iceBlockForm = new BlockFormEvent(blockState.getBlock(), blockState);
+                        this.getServer().getPluginManager().callEvent(iceBlockForm);
+                        if (!iceBlockForm.isCancelled()) {
+                            blockState.update(true);
+                        }
+                        // CraftBukkit end
                     }
-                    // CraftBukkit end
-                }
 
-                if (this.Q() && this.e(j1 + k, l1, k1 + l, true)) {
-                    // CraftBukkit start
-                    BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1, k1 + l).getState();
-                    blockState.setTypeId(Block.getId(Blocks.SNOW));
+                    if (this.Q() && this.e(j1 + k, l1, k1 + l, true)) {
+                        // CraftBukkit start
+                        BlockState blockState = this.getWorld().getBlockAt(j1 + k, l1, k1 + l).getState();
+                        blockState.setTypeId(Block.getId(Blocks.SNOW));
 
-                    BlockFormEvent snow = new BlockFormEvent(blockState.getBlock(), blockState);
-                    this.getServer().getPluginManager().callEvent(snow);
-                    if (!snow.isCancelled()) {
-                        blockState.update(true);
+                        BlockFormEvent snow = new BlockFormEvent(blockState.getBlock(), blockState);
+                        this.getServer().getPluginManager().callEvent(snow);
+                        if (!snow.isCancelled()) {
+                            blockState.update(true);
+                        }
+                        // CraftBukkit end
                     }
-                    // CraftBukkit end
-                }
 
-                if (this.Q()) {
-                    BiomeBase biomebase = this.getBiome(j1 + k, k1 + l);
+                    if (this.Q()) {
+                        BiomeBase biomebase = this.getBiome(j1 + k, k1 + l);
 
-                    if (biomebase.e()) {
-                        this.getType(j1 + k, l1 - 1, k1 + l).l(this, j1 + k, l1 - 1, k1 + l);
+                        if (biomebase.e()) {
+                            this.getType(j1 + k, l1 - 1, k1 + l).l(this, j1 + k, l1 - 1, k1 + l);
+                        }
                     }
                 }
             }
