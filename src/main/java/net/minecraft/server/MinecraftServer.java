@@ -35,10 +35,7 @@ import java.security.KeyPair;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 // CraftBukkit start
 // CraftBukkit end
@@ -690,7 +687,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         org.spigotmc.CustomTimingsHandler.tick(); // Spigot
     }
 
-    private ThreadPoolExecutor worldService = new ThreadPoolExecutor(PaperSpigotConfig.worldThreads, PaperSpigotConfig.worldThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(), new NamedThreadFactory("world-worker"));
+    private ThreadPoolExecutor worldService = new ThreadPoolExecutor(PaperSpigotConfig.worldThreads, PaperSpigotConfig.worldThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(0xffffff), new NamedThreadFactory("world-worker"));
     public void v() {
         this.methodProfiler.a("levels");
 
