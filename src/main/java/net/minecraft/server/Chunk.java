@@ -249,6 +249,7 @@ public class Chunk {
     }
 
     private void c(boolean flag) {
+        world.timings.doTickTilesCheckGaps.startTiming();
         this.world.methodProfiler.a("recheckGaps");
         if (this.world.areChunksLoaded(this.locX * 16 + 8, 0, this.locZ * 16 + 8, 16)) {
             for (int i = 0; i < 16; ++i) {
@@ -292,6 +293,7 @@ public class Chunk {
         }
 
         this.world.methodProfiler.b();
+        world.timings.doTickTilesCheckGaps.stopTiming();
     }
 
     private void g(int i, int j, int k) {
