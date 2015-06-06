@@ -2310,6 +2310,7 @@ public abstract class World implements IBlockAccess {
 
     protected void C() {
         // this.chunkTickList.clear(); // CraftBukkit - removed
+        timings.buildDoTickTiles.startTiming();
         this.methodProfiler.a("buildList");
 
         int i;
@@ -2371,6 +2372,7 @@ public abstract class World implements IBlockAccess {
         }
 
         this.methodProfiler.b();
+        timings.buildDoTickTiles.stopTiming();
     }
 
     protected abstract int p();
