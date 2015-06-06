@@ -45,7 +45,7 @@ public class ServerConnection {
         }
     }
 
-    private ThreadPoolExecutor connectionHandlerService = new ThreadPoolExecutor(PaperSpigotConfig.connectionHandlerThreads, PaperSpigotConfig.connectionHandlerThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("connection-handler-worker"));
+    private ThreadPoolExecutor connectionHandlerService = new ThreadPoolExecutor(PaperSpigotConfig.connectionHandlerThreads, PaperSpigotConfig.connectionHandlerThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(), new NamedThreadFactory("connection-handler-worker"));
 
     public void c() { // Network Tick
         List list = this.f;

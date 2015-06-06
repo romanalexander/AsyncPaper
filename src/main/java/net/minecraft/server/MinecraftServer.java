@@ -690,7 +690,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IMo
         org.spigotmc.CustomTimingsHandler.tick(); // Spigot
     }
 
-    private ThreadPoolExecutor worldService = new ThreadPoolExecutor(PaperSpigotConfig.worldThreads, PaperSpigotConfig.worldThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("world-worker"));
+    private ThreadPoolExecutor worldService = new ThreadPoolExecutor(PaperSpigotConfig.worldThreads, PaperSpigotConfig.worldThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(), new NamedThreadFactory("world-worker"));
     public void v() {
         this.methodProfiler.a("levels");
 
