@@ -2656,7 +2656,10 @@ public abstract class World implements IBlockAccess {
             }
         };
         if (paperSpigotConfig.useAsyncLighting) {
-            lightingService.submit(callable);
+            try {
+                lightingService.submit(callable);
+            } catch(RejectedExecutionException ignore) {
+            }
         } else {
             try {
                 return callable.call();
