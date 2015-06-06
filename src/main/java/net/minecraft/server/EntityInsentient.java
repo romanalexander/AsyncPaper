@@ -409,7 +409,7 @@ public abstract class EntityInsentient extends EntityLiving {
         this.w();
         this.world.methodProfiler.b();
         // Spigot Start
-        if ( this.fromMobSpawner )
+        if ( this.fromMobSpawner || this.world.paperSpigotConfig.disableEntityAI)
         {
             // PaperSpigot start - Allow nerfed mobs to jump
             this.world.methodProfiler.a("goalSelector");
