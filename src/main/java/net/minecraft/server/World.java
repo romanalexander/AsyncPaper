@@ -1530,11 +1530,11 @@ public abstract class World implements IBlockAccess {
                     }
                 }
             };
-            if(innerEntity instanceof EntityInsentient || innerEntity instanceof EntityHuman) {
+//            if(innerEntity instanceof EntityInsentient || innerEntity instanceof EntityHuman) {
                 entityService.submit(runnable);
-            } else {
-                runnable.run();
-            }
+//            } else {
+//                runnable.run();
+//            }
 
         }
         phaserProvider.await();
