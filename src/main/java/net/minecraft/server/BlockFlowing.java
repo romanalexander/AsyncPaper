@@ -39,11 +39,11 @@ public class BlockFlowing extends BlockFluids {
 
         boolean flag = true;
         int flowSpeed = this.getFlowSpeed(world, i, j, k); // PaperSpigot
-        boolean lavaNextToWater = (this.getMaterial() == Material.LAVA && (
-                world.getType(i, j, k - 1).getMaterial() == Material.WATER ||
-                        world.getType(i, j, k + 1).getMaterial() == Material.WATER ||
-                        world.getType(i - 1, j, k).getMaterial() == Material.WATER ||
-                        world.getType(i + 1, j, k).getMaterial() == Material.WATER));
+//        boolean lavaNextToWater = (this.getMaterial() == Material.LAVA && (
+//                world.getType(i, j, k - 1).getMaterial() == Material.WATER ||
+//                        world.getType(i, j, k + 1).getMaterial() == Material.WATER ||
+//                        world.getType(i - 1, j, k).getMaterial() == Material.WATER ||
+//                        world.getType(i + 1, j, k).getMaterial() == Material.WATER));
         int j1;
 
         if (l > 0) {
@@ -88,7 +88,7 @@ public class BlockFlowing extends BlockFluids {
                 }
             } else {
                 l = j1;
-                if(this.material == Material.LAVA && !lavaNextToWater && world.paperSpigotConfig.quickLavaDraining && this.a(world, i, j - 1, k, b1) > 0) {
+                if(this.material == Material.LAVA /*&& !lavaNextToWater*/ && world.paperSpigotConfig.quickLavaDraining && this.a(world, i, j - 1, k, b1) > 0) {
 //                    world.applyPhysics(i, j, k, this);
                     world.setAir(i, j, k);
                 } else if (j1 < 0 || (this.material != Material.LAVA && world.paperSpigotConfig.quickWaterDraining && this.a(world, i, j - 1, k, b1) > -1) && (world.getType(i, j, k + 1).getMaterial() != Material.WATER || this.a(world, i, j, k + 1, b1) > 0) &&
