@@ -600,35 +600,41 @@ public class WorldServer extends World {
             Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
 
             while (iterator.hasNext()) {
-                nextticklistentry = (NextTickListEntry) iterator.next();
+                final NextTickListEntry nextticklistentry2 = (NextTickListEntry) iterator.next();
                 iterator.remove();
-                byte b0 = 0;
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        byte b0 = 0;
+                        if (WorldServer.this.b(nextticklistentry2.a - b0, nextticklistentry2.b - b0, nextticklistentry2.c - b0, nextticklistentry2.a + b0, nextticklistentry2.b + b0, nextticklistentry2.c + b0)) {
+                            Block block = WorldServer.this.getType(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
 
-                if (this.b(nextticklistentry.a - b0, nextticklistentry.b - b0, nextticklistentry.c - b0, nextticklistentry.a + b0, nextticklistentry.b + b0, nextticklistentry.c + b0)) {
-                    Block block = this.getType(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
+                            if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry2.a())) {
+                                try {
+                                    block.a(WorldServer.this, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, WorldServer.this.random);
+                                } catch (Throwable throwable) {
+                                    CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
+                                    CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
 
-                    if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry.a())) {
-                        try {
-                            block.a(this, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, this.random);
-                        } catch (Throwable throwable) {
-                            CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
-                            CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
+                                    int k;
 
-                            int k;
+                                    try {
+                                        k = WorldServer.this.getData(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
+                                    } catch (Throwable throwable1) {
+                                        k = -1;
+                                    }
 
-                            try {
-                                k = this.getData(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c);
-                            } catch (Throwable throwable1) {
-                                k = -1;
+                                    CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, block, k);
+                                    throw new ReportedException(crashreport);
+                                }
                             }
-
-                            CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, block, k);
-                            throw new ReportedException(crashreport);
+                        } else {
+                            WorldServer.this.a(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, nextticklistentry2.a(), 0);
                         }
                     }
-                } else {
-                    this.a(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, nextticklistentry.a(), 0);
-                }
+                };
+                if()
+                entityService.submit(runnable);
             }
             timings.doTickPendingTicking.stopTiming();
 
