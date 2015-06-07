@@ -561,6 +561,7 @@ public class WorldServer extends World {
 
             NextTickListEntry nextticklistentry;
 
+            timings.doTickPendingBuild.startTiming();
             int j;
             for (j = 0; j < i; ++j) {
                 nextticklistentry = (NextTickListEntry) this.pendingTickListEntriesTreeSet.first();
@@ -572,8 +573,10 @@ public class WorldServer extends World {
                 this.pendingTickListEntriesHashSet.remove(nextticklistentry);
                 this.pendingTickListEntriesThisTick.add(nextticklistentry);
             }
+            timings.doTickPendingBuild.stopTiming();
 
             if (paperSpigotConfig.tickNextTickListCapIgnoresRedstone) {
+                timings.doTickPendingRedstoneUncap.startTiming();
                 Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesTreeSet.iterator();
                 while (iterator.hasNext()) {
                     NextTickListEntry next = iterator.next();
@@ -587,11 +590,13 @@ public class WorldServer extends World {
                         this.pendingTickListEntriesThisTick.add(next);
                     }
                 }
+                timings.doTickPendingRedstoneUncap.stopTiming();
             }
             // PaperSpigot end
 
             this.methodProfiler.b();
             this.methodProfiler.a("ticking");
+            timings.doTickPendingTicking.startTiming();
             Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
 
             while (iterator.hasNext()) {
@@ -625,6 +630,7 @@ public class WorldServer extends World {
                     this.a(nextticklistentry.a, nextticklistentry.b, nextticklistentry.c, nextticklistentry.a(), 0);
                 }
             }
+            timings.doTickPendingTicking.stopTiming();
 
             this.methodProfiler.b();
             this.pendingTickListEntriesThisTick.clear();

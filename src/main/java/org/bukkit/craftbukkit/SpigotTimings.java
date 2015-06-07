@@ -136,6 +136,9 @@ public class SpigotTimings {
         public final CustomTimingsHandler tickEntities;
         public final CustomTimingsHandler buildDoTickTiles;
         public final CustomTimingsHandler doTickTilesCheckGaps;
+        public final CustomTimingsHandler doTickPendingBuild;
+        public final CustomTimingsHandler doTickPendingTicking;
+        public final CustomTimingsHandler doTickPendingRedstoneUncap;
 
         public final CustomTimingsHandler syncChunkLoadTimer;
         public final CustomTimingsHandler syncChunkLoadDataTimer;
@@ -165,6 +168,10 @@ public class SpigotTimings {
             tileEntityPending = new CustomTimingsHandler("** " + name + "tileEntityPending");
             buildDoTickTiles = new CustomTimingsHandler("** " + name + "buildDoTickTiles");
             doTickTilesCheckGaps = new CustomTimingsHandler("** " + name + "doTickTilesCheckGaps");
+            doTickPendingBuild = new CustomTimingsHandler("** " + name + "doTickPendingBuild");
+            doTickPendingTicking = new CustomTimingsHandler("** " + name + "doTickPendingTicking");
+            doTickPendingRedstoneUncap = new CustomTimingsHandler("** " + name + "doTickPendingRedstoneUncap");
+
 
             syncChunkLoadTimer = new CustomTimingsHandler("** " + name + "syncChunkLoad");
             syncChunkLoadDataTimer = new CustomTimingsHandler("** " + name + "syncChunkLoad - Data");

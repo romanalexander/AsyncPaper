@@ -2380,7 +2380,7 @@ public abstract class World implements IBlockAccess {
     protected void a(int i, int j, Chunk chunk) {
         this.methodProfiler.c("moodSound");
 
-        if (paperSpigotConfig.doTickMoodSound && this.K == 0 && !this.isStatic) {
+        if (this.K == 0 && !this.isStatic) {
             this.k = this.k * 3 + 1013904223;
             int k = this.k >> 2;
             int l = k & 15;
