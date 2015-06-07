@@ -983,7 +983,7 @@ public class Chunk {
     }
 
     public void b(boolean flag) {
-        if (this.w && !this.world.worldProvider.g && !flag) {
+        if (world.paperSpigotConfig.doTickRecheckGaps && this.w && !this.world.worldProvider.g && !flag) {
             this.c(this.world.isStatic);
         }
 

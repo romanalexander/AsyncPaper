@@ -299,7 +299,7 @@ public class PaperSpigotWorldConfig
         fallingBlocksCollideWithSigns = getBoolean("falling-blocks-collide-with-signs", false);
     }
 
-    public boolean doTickSleepCheck, doTickBiomeCacheCleanup, doTickVillages, doTickWeather, doTickIceAndSnow, doTickThunder, doTickMoodSound;
+    public boolean doTickSleepCheck, doTickBiomeCacheCleanup, doTickVillages, doTickWeather, doTickIceAndSnow, doTickThunder, doTickMoodSound, doTickRecheckGaps;
     private void doTickChanges() {
         doTickSleepCheck = getBoolean("do-tick.sleep-check", true);
         doTickBiomeCacheCleanup = getBoolean("do-tick.biome-cache-cleanup", true);
@@ -308,5 +308,6 @@ public class PaperSpigotWorldConfig
         doTickIceAndSnow = getBoolean("do-tick.ice-and-snow", true);
         doTickThunder = getBoolean("do-tick.thunder", true);
         doTickMoodSound = getBoolean("do-tick.mood-sound", true);
+        doTickRecheckGaps = getBoolean("do-tick.recheck-gaps", true);
     }
 }
