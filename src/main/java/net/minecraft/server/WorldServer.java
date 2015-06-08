@@ -598,51 +598,48 @@ public class WorldServer extends World {
             this.methodProfiler.a("ticking");
             timings.doTickPendingTicking.startTiming();
             final Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
-            if (PaperSpigotConfig.tickPendingThreads < 1) {
-                this.pendingTickListEntriesThisTick = new ArrayList<>(); // Full yolo pending ticks. Good luck.
-            }
 
-            entityService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    while (iterator.hasNext()) {
-                        final NextTickListEntry nextticklistentry2 = (NextTickListEntry) iterator.next();
-                        iterator.remove();
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                byte b0 = 0;
-                                if (WorldServer.this.b(nextticklistentry2.a - b0, nextticklistentry2.b - b0, nextticklistentry2.c - b0, nextticklistentry2.a + b0, nextticklistentry2.b + b0, nextticklistentry2.c + b0)) {
-                                    Block block = WorldServer.this.getType(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
+            while (iterator.hasNext()) {
+                final NextTickListEntry nextticklistentry2 = (NextTickListEntry) iterator.next();
+                iterator.remove();
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        byte b0 = 0;
+                        if (WorldServer.this.b(nextticklistentry2.a - b0, nextticklistentry2.b - b0, nextticklistentry2.c - b0, nextticklistentry2.a + b0, nextticklistentry2.b + b0, nextticklistentry2.c + b0)) {
+                            Block block = WorldServer.this.getType(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
 
-                                    if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry2.a())) {
-                                        try {
-                                            block.a(WorldServer.this, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, WorldServer.this.random);
-                                        } catch (Throwable throwable) {
-                                            CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
-                                            CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
+                            if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry2.a())) {
+                                try {
+                                    block.a(WorldServer.this, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, WorldServer.this.random);
+                                } catch (Throwable throwable) {
+                                    CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
+                                    CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
 
-                                            int k;
+                                    int k;
 
-                                            try {
-                                                k = WorldServer.this.getData(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
-                                            } catch (Throwable throwable1) {
-                                                k = -1;
-                                            }
-
-                                            CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, block, k);
-                                            throw new ReportedException(crashreport);
-                                        }
+                                    try {
+                                        k = WorldServer.this.getData(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
+                                    } catch (Throwable throwable1) {
+                                        k = -1;
                                     }
-                                } else {
-                                    WorldServer.this.a(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, nextticklistentry2.a(), 0);
+
+                                    CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, block, k);
+                                    throw new ReportedException(crashreport);
                                 }
                             }
-                        };
-                        entityService.submit(runnable);
+                        } else {
+                            WorldServer.this.a(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, nextticklistentry2.a(), 0);
+                        }
                     }
+                };
+                if (nextticklistentry2.a().isPowerSource() || nextticklistentry2.a() instanceof IContainer) {
+                    runnable.run();
+                } else {
+                    entityService.submit(runnable);
                 }
-            });
+            }
+
 
             this.pendingTickListEntriesThisTick.clear();
             timings.doTickPendingTicking.stopTiming();

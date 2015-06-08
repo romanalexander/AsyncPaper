@@ -227,6 +227,7 @@ public class PaperSpigotConfig
     public static int worldThreads;
     public static int entityThreads;
     public static int lightingThreads;
+    public static int tickPendingThreads;
     public static boolean saferConnectionHandlerProcessing;
 
     private static void concurrencyThreads()
@@ -240,10 +241,12 @@ public class PaperSpigotConfig
         worldThreads = getInt("concurrency.world-threads", 1);
         entityThreads = getInt("concurrency.entity-threads", 1);
         lightingThreads = getInt("concurrency.lighting-threads", 1);
+        tickPendingThreads = getInt("concurrency.tickpending-threads", 1);
         log( "Connection processing threads: " + connectionHandlerThreads);
         log( "World processing threads: " + worldThreads);
         log( "Entity & TileEntity & EntityActivation processing threads: " + entityThreads);
         log( "Lighting processing threads: " + lightingThreads);
+        log( "Tickpending threads: " + lightingThreads);
     }
 
     private static void log(String s)
