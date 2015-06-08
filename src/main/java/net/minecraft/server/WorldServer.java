@@ -9,13 +9,8 @@ import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
-import org.github.paperspigot.NamedThreadFactory;
-import org.github.paperspigot.PaperSpigotConfig;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 // CraftBukkit start
 // CraftBukkit end
@@ -540,7 +535,6 @@ public class WorldServer extends World {
         this.emptyTime = 0;
     }
 
-    public static ThreadPoolExecutor tickPendingService = new ThreadPoolExecutor(PaperSpigotConfig.tickPendingThreads, PaperSpigotConfig.tickPendingThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(0xffffff), new NamedThreadFactory("tickpending-worker"));
     public boolean a(boolean flag) {
         int i = this.pendingTickListEntriesTreeSet.size();
 
@@ -608,7 +602,7 @@ public class WorldServer extends World {
                 this.pendingTickListEntriesThisTick = new ArrayList<>(); // Full yolo pending ticks. Good luck.
             }
 
-            Runnable runnable = new Runnable() {
+            entityService.submit(new Runnable() {
                 @Override
                 public void run() {
                     while (iterator.hasNext()) {
@@ -645,19 +639,10 @@ public class WorldServer extends World {
                                 }
                             }
                         };
-                        if (PaperSpigotConfig.tickPendingThreads < 1 || !(nextticklistentry2.a() instanceof BlockFlowing)) {
-                            runnable.run();
-                        } else {
-                            tickPendingService.submit(runnable);
-                        }
+                        entityService.submit(runnable);
                     }
                 }
-            };
-            if (PaperSpigotConfig.tickPendingThreads < 1) {
-                runnable.run();
-            } else {
-                tickPendingService.submit(runnable);
-            }
+            });
 
             this.pendingTickListEntriesThisTick.clear();
             timings.doTickPendingTicking.stopTiming();
