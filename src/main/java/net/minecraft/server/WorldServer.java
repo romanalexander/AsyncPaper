@@ -9,8 +9,14 @@ import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.github.paperspigot.NamedThreadFactory;
+import org.github.paperspigot.PaperSpigotConfig;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // CraftBukkit start
 // CraftBukkit end
@@ -33,6 +39,12 @@ public class WorldServer extends World {
     private int T;
     private static final StructurePieceTreasure[] U = new StructurePieceTreasure[] { new StructurePieceTreasure(Items.STICK, 0, 1, 3, 10), new StructurePieceTreasure(Item.getItemOf(Blocks.WOOD), 0, 1, 3, 10), new StructurePieceTreasure(Item.getItemOf(Blocks.LOG), 0, 1, 3, 10), new StructurePieceTreasure(Items.STONE_AXE, 0, 1, 1, 3), new StructurePieceTreasure(Items.WOOD_AXE, 0, 1, 1, 5), new StructurePieceTreasure(Items.STONE_PICKAXE, 0, 1, 1, 3), new StructurePieceTreasure(Items.WOOD_PICKAXE, 0, 1, 1, 5), new StructurePieceTreasure(Items.APPLE, 0, 2, 3, 5), new StructurePieceTreasure(Items.BREAD, 0, 2, 3, 3), new StructurePieceTreasure(Item.getItemOf(Blocks.LOG2), 0, 1, 3, 10)};
     public List pendingTickListEntriesThisTick = new ArrayList();
+    public ThreadLocal<AtomicInteger> blockFlowingPhysicsProtection = new ThreadLocal<AtomicInteger>() {
+        @Override
+        protected AtomicInteger initialValue() {
+            return new AtomicInteger(0);
+        }
+    };
     private IntHashMap entitiesById;
 
     // CraftBukkit start
@@ -495,8 +507,15 @@ public class WorldServer extends World {
 
             synchronized (pendingTickListEntriesHashSet) {
                 if (!this.pendingTickListEntriesHashSet.contains(nextticklistentry)) {
-                    this.pendingTickListEntriesHashSet.add(nextticklistentry);
-                    this.pendingTickListEntriesTreeSet.add(nextticklistentry);
+                    if(nextticklistentry.a() instanceof BlockFlowing && blockFlowingPhysicsProtection.get().getAndIncrement() < 25) {
+                        this.pendingTickListEntriesThisTick.add(nextticklistentry);
+                        nextTickProcessor(nextticklistentry);
+                        this.pendingTickListEntriesThisTick.clear();
+                    } else {
+                        blockFlowingPhysicsProtection.get().set(0);
+                        this.pendingTickListEntriesHashSet.add(nextticklistentry);
+                        this.pendingTickListEntriesTreeSet.add(nextticklistentry);
+                    }
                 }
             }
         }
@@ -512,8 +531,15 @@ public class WorldServer extends World {
             }
 
             if (!this.pendingTickListEntriesHashSet.contains(nextticklistentry)) {
-                this.pendingTickListEntriesHashSet.add(nextticklistentry);
-                this.pendingTickListEntriesTreeSet.add(nextticklistentry);
+                if(nextticklistentry.a() instanceof BlockFlowing && blockFlowingPhysicsProtection.get().getAndIncrement() < 25) {
+                    this.pendingTickListEntriesThisTick.add(nextticklistentry);
+                    nextTickProcessor(nextticklistentry);
+                    this.pendingTickListEntriesThisTick.clear();
+                } else {
+                    blockFlowingPhysicsProtection.get().set(0);
+                    this.pendingTickListEntriesHashSet.add(nextticklistentry);
+                    this.pendingTickListEntriesTreeSet.add(nextticklistentry);
+                }
             }
         }
     }
@@ -535,6 +561,8 @@ public class WorldServer extends World {
         this.emptyTime = 0;
     }
 
+
+    public static ThreadPoolExecutor tickPendingService = new ThreadPoolExecutor(PaperSpigotConfig.tickPendingThreads, PaperSpigotConfig.tickPendingThreads, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(0xffffff), new NamedThreadFactory("tickpending-worker"));
     public boolean a(boolean flag) {
         int i = this.pendingTickListEntriesTreeSet.size();
 
@@ -605,35 +633,11 @@ public class WorldServer extends World {
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
-                        byte b0 = 0;
-                        if (WorldServer.this.b(nextticklistentry2.a - b0, nextticklistentry2.b - b0, nextticklistentry2.c - b0, nextticklistentry2.a + b0, nextticklistentry2.b + b0, nextticklistentry2.c + b0)) {
-                            Block block = WorldServer.this.getType(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
-
-                            if (block.getMaterial() != Material.AIR && Block.a(block, nextticklistentry2.a())) {
-                                try {
-                                    block.a(WorldServer.this, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, WorldServer.this.random);
-                                } catch (Throwable throwable) {
-                                    CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
-                                    CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
-
-                                    int k;
-
-                                    try {
-                                        k = WorldServer.this.getData(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c);
-                                    } catch (Throwable throwable1) {
-                                        k = -1;
-                                    }
-
-                                    CrashReportSystemDetails.a(crashreportsystemdetails, nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, block, k);
-                                    throw new ReportedException(crashreport);
-                                }
-                            }
-                        } else {
-                            WorldServer.this.a(nextticklistentry2.a, nextticklistentry2.b, nextticklistentry2.c, nextticklistentry2.a(), 0);
-                        }
+                        nextTickProcessor(nextticklistentry2);
                     }
                 };
-                if (nextticklistentry2.a().isPowerSource() || nextticklistentry2.a() instanceof IContainer) {
+//                if (nextticklistentry2.a().isPowerSource() || nextticklistentry2.a() instanceof IContainer) {
+                if(true) {
                     runnable.run();
                 } else {
                     entityService.submit(runnable);
@@ -648,6 +652,35 @@ public class WorldServer extends World {
             return !this.pendingTickListEntriesTreeSet.isEmpty();
         }
 
+    }
+
+    private void nextTickProcessor(NextTickListEntry entry) {
+        byte b0 = 0;
+        if (WorldServer.this.b(entry.a - b0, entry.b - b0, entry.c - b0, entry.a + b0, entry.b + b0, entry.c + b0)) {
+            Block block = WorldServer.this.getType(entry.a, entry.b, entry.c);
+
+            if (block.getMaterial() != Material.AIR && Block.a(block, entry.a())) {
+                try {
+                    block.a(WorldServer.this, entry.a, entry.b, entry.c, WorldServer.this.random);
+                } catch (Throwable throwable) {
+                    CrashReport crashreport = CrashReport.a(throwable, "Exception while ticking a block");
+                    CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Block being ticked");
+
+                    int k;
+
+                    try {
+                        k = WorldServer.this.getData(entry.a, entry.b, entry.c);
+                    } catch (Throwable throwable1) {
+                        k = -1;
+                    }
+
+                    CrashReportSystemDetails.a(crashreportsystemdetails, entry.a, entry.b, entry.c, block, k);
+                    throw new ReportedException(crashreport);
+                }
+            }
+        } else {
+            WorldServer.this.a(entry.a, entry.b, entry.c, entry.a(), 0);
+        }
     }
 
     public List a(Chunk chunk, boolean flag) {
