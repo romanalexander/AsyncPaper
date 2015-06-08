@@ -761,7 +761,7 @@ public abstract class Entity {
     }
 
     protected void I() {
-//        synchronized(playerPhysicsLock) {
+        synchronized(playerPhysicsLock) {
             int i = MathHelper.floor(this.boundingBox.a + 0.001D);
             int j = MathHelper.floor(this.boundingBox.b + 0.001D);
             int k = MathHelper.floor(this.boundingBox.c + 0.001D);
@@ -789,7 +789,7 @@ public abstract class Entity {
                 }
             }
         }
-//    }
+    }
 
     protected void a(int i, int j, int k, Block block) {
         StepSound stepsound = block.stepSound;
