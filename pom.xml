@@ -214,7 +214,7 @@
                   <shadedPattern>org.bukkit.craftbukkit.libs.${project.dependencies[6].version}.com.mysql</shadedPattern>
                 </relocation>
                 !-->
-                <!--<relocation>
+                <relocation>
                     <pattern>org.bukkit.craftbukkit</pattern>
                     <shadedPattern>org.bukkit.craftbukkit.v${minecraft_version}</shadedPattern>
                     <excludes>
@@ -224,7 +224,7 @@
                 <relocation>
                     <pattern>net.minecraft.server</pattern>
                     <shadedPattern>net.minecraft.server.v${minecraft_version}</shadedPattern>
-                </relocation>-->
+                </relocation>
               </relocations>
             </configuration>
           </execution>
