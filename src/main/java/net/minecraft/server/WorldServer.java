@@ -604,7 +604,9 @@ public class WorldServer extends World {
             this.methodProfiler.a("ticking");
             timings.doTickPendingTicking.startTiming();
             final Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
-            this.pendingTickListEntriesThisTick = new ArrayList<>(); // Full yolo pending ticks. Good luck.
+            if (PaperSpigotConfig.tickPendingThreads < 1) {
+                this.pendingTickListEntriesThisTick = new ArrayList<>(); // Full yolo pending ticks. Good luck.
+            }
 
             Runnable runnable = new Runnable() {
                 @Override
@@ -657,6 +659,7 @@ public class WorldServer extends World {
                 tickPendingService.submit(runnable);
             }
 
+            this.pendingTickListEntriesThisTick.clear();
             timings.doTickPendingTicking.stopTiming();
 
             this.methodProfiler.b();
