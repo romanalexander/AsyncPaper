@@ -633,7 +633,6 @@ public class WorldServer extends World {
                         }
                     }
                 };
-                if()
                 entityService.submit(runnable);
             }
             timings.doTickPendingTicking.stopTiming();
