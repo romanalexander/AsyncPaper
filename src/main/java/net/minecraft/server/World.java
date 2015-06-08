@@ -1626,7 +1626,7 @@ public abstract class World implements IBlockAccess {
             if(tileentity instanceof TileEntityPiston) {
                 runnable.run();
             } else {
-                entityService.submit(Executors.callable(runnable, Void.TYPE));
+                entityService.submit(runnable);
             }
 
         }
