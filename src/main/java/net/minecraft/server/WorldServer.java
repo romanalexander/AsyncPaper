@@ -598,6 +598,7 @@ public class WorldServer extends World {
             this.methodProfiler.a("ticking");
             timings.doTickPendingTicking.startTiming();
             Iterator iterator = this.pendingTickListEntriesThisTick.iterator();
+            this.pendingTickListEntriesThisTick = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 final NextTickListEntry nextticklistentry2 = (NextTickListEntry) iterator.next();
@@ -638,7 +639,6 @@ public class WorldServer extends World {
             timings.doTickPendingTicking.stopTiming();
 
             this.methodProfiler.b();
-            this.pendingTickListEntriesThisTick.clear();
             return !this.pendingTickListEntriesTreeSet.isEmpty();
         }
 
